@@ -1,0 +1,60 @@
+services:
+  # ---------- Infraestructura: base de datos MySQL ----------
+  db:
+    image: mysql:8.0
+    container_name: php-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    # Fem que MySQL escolti directament al port 8002 (en lloc del 3306 per defecte)
+    command: --port=8002
+    ports:
+      # host:contenidor -> tots dos 8002
+      - "8002:8002"
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-P", "8002", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  # ---------- Backend: Laravel ----------
+  api:
+    build:
+      context: ./api
+    container_name: php-api
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ../php-api:/var/www/html
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "composer install --no-interaction --prefer-dist &&
+             php artisan migrate --force &&
+             php artisan serve --host=0.0.0.0 --port=8000"
+
+  # ---------- Frontend: Vue + Vite ----------
+  admin:
+    image: node:22-alpine
+    container_name: php-admin
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ../php-admin:/app
+    ports:
+      - "8001:8001"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 8001"
+
+volumes:
+  dbdata:
+    # Nom fix del volum perquè NO depengui del nom de la carpeta/projecte
+    # (així renombrar carpetes no fa "perdre" les dades de MySQL).
+    name: php_dbdata

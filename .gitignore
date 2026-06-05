@@ -1,0 +1,47 @@
+# ===========================================================
+#  .gitignore del projecte (monorepo: Vue + Laravel + Docker)
+# ===========================================================
+
+# -------- Variables d'entorn i secrets (MAI al repositori) --------
+.env
+.env.*
+# la plantilla SÍ que es puja (no conté secrets):
+!.env.example
+*.key
+auth.json
+
+# -------- Dependències (es reinstal·len amb npm/composer) --------
+node_modules/
+vendor/
+
+# -------- Artefactes de build --------
+dist/
+dist-ssr/
+/docker/php-api/public/build/
+/docker/php-api/public/hot
+/docker/php-api/public/storage
+
+# -------- Laravel: emmagatzematge i cache --------
+/docker/php-api/storage/*.key
+/docker/php-api/storage/pail
+/docker/php-api/.phpunit.cache
+/docker/php-api/.phpunit.result.cache
+
+# -------- Logs --------
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# -------- Sistema operatiu --------
+.DS_Store
+Thumbs.db
+
+# -------- Editors / IDE --------
+.idea/
+.vscode/
+.fleet/
+.nova/
+.zed/
+*.swp
+*.swo
