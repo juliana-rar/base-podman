@@ -1,47 +1,45 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
-import { dashboard } from '@/routes';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { CalendarClock, Clock, History, Home, Newspaper, Tags } from '@lucide/vue';
+import { computed } from 'vue';
+import { useI18n } from '@/lib/i18n';
+import '../../css/reserva/dashboard.css';
 
 defineOptions({
     layout: {
-        breadcrumbs: [
-            {
-                title: 'Dashboard',
-                href: dashboard(),
-            },
-        ],
+        breadcrumbs: [{ title: 'Tauler', href: '/dashboard' }],
     },
 });
+
+const page = usePage();
+const user = computed(() => page.props.auth.user);
+const { t } = useI18n();
+
+const items = [
+    { key: 'nav.reservar', desc: 'dash.reservarD', href: '/reservar', icon: CalendarClock },
+    { key: 'nav.hores', desc: 'dash.horesD', href: '/admin/horas', icon: Clock },
+    { key: 'nav.posts', desc: 'dash.postsD', href: '/admin/posts', icon: Newspaper },
+    { key: 'nav.etiquetes', desc: 'dash.etiquetesD', href: '/admin/etiquetes', icon: Tags },
+    { key: 'nav.historial', desc: 'dash.historialD', href: '/admin/reserves', icon: History },
+    { key: 'nav.inici', desc: 'dash.iniciD', href: '/', icon: Home },
+];
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head title="Tauler" />
 
-    <div
-        class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-        </div>
-        <div
-            class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
-        >
-            <PlaceholderPattern />
-        </div>
+    <div id="rsv-dash">
+        <header>
+            <h1>{{ t('dash.hello') }}, {{ user?.name }} 👋</h1>
+            <p>{{ t('dash.where') }}</p>
+        </header>
+
+        <nav>
+            <Link v-for="item in items" :key="item.href" :href="item.href">
+                <component :is="item.icon" />
+                <span>{{ t(item.key) }}</span>
+                <small>{{ t(item.desc) }}</small>
+            </Link>
+        </nav>
     </div>
 </template>

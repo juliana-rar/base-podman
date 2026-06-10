@@ -1,0 +1,133 @@
+/*
+ * Calendari mensual per triar dia. Estil sobri, sense neó.
+ * Etiqueta base: .rsv-cal. Resta per :nth-child.
+ */
+
+.rsv-cal {
+    --c-surface: #ffffff;
+    --c-ink: #1f2430;
+    --c-muted: #6b7280;
+    --c-line: #e5e7eb;
+    --c-accent: #4f46e5;
+    --c-accent-soft: rgba(79, 70, 229, 0.1);
+
+    width: 100%;
+    max-width: 20rem;
+    background: var(--c-surface);
+    border: 1px solid var(--c-line);
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+    user-select: none;
+}
+
+.dark .rsv-cal {
+    --c-surface: #14171f;
+    --c-ink: #e7e9ee;
+    --c-muted: #9aa0ac;
+    --c-line: rgba(255, 255, 255, 0.08);
+    --c-accent: #818cf8;
+    --c-accent-soft: rgba(129, 140, 248, 0.16);
+}
+
+/* 1r: capçalera (anterior · mes · següent) */
+.rsv-cal > :nth-child(1) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.rsv-cal > :nth-child(1) > :nth-child(2) {
+    font-weight: 700;
+    color: var(--c-ink);
+    text-transform: capitalize;
+}
+
+.rsv-cal > :nth-child(1) > button {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--c-line);
+    background: transparent;
+    color: var(--c-muted);
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.rsv-cal > :nth-child(1) > button:hover {
+    color: var(--c-ink);
+    border-color: var(--c-muted);
+}
+
+/* 2n: fila de dies de la setmana */
+.rsv-cal > :nth-child(2) {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+    margin-bottom: 0.35rem;
+}
+
+.rsv-cal > :nth-child(2) > span {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--c-muted);
+    text-transform: uppercase;
+}
+
+/* 3r: graella de dies */
+.rsv-cal > :nth-child(3) {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+}
+
+.rsv-cal > :nth-child(3) > button {
+    position: relative;
+    aspect-ratio: 1;
+    border: 1px solid transparent;
+    border-radius: 0.6rem;
+    background: transparent;
+    color: var(--c-ink);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.rsv-cal > :nth-child(3) > button:hover:not(:disabled) {
+    border-color: var(--c-accent);
+}
+
+/* Dia amb disponibilitat: punt sota el número */
+.rsv-cal > :nth-child(3) > .has-data::after {
+    content: '';
+    position: absolute;
+    bottom: 0.35rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0.3rem;
+    height: 0.3rem;
+    border-radius: 50%;
+    background: var(--c-accent);
+}
+
+/* Dia seleccionat */
+.rsv-cal > :nth-child(3) > .is-selected {
+    background: var(--c-accent);
+    color: #fff;
+}
+
+.rsv-cal > :nth-child(3) > .is-selected.has-data::after {
+    background: #fff;
+}
+
+/* Dia deshabilitat (passat) */
+.rsv-cal > :nth-child(3) > button:disabled {
+    color: var(--c-muted);
+    opacity: 0.4;
+    cursor: not-allowed;
+}

@@ -1,0 +1,100 @@
+/*
+ * Tauler d'administració: botons de navegació centrats.
+ * Etiqueta base: #rsv-dash. Resta per :nth-child.
+ */
+
+#rsv-dash {
+    --d-card: #ffffff;
+    --d-ink: #1f2430;
+    --d-muted: #6b7280;
+    --d-line: #e5e7eb;
+    --d-accent: #4f46e5;
+    --d-soft: rgba(79, 70, 229, 0.1);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+    padding: clamp(2rem, 6vw, 4rem) 1rem;
+    color: var(--d-ink);
+}
+
+.dark #rsv-dash {
+    --d-card: #14171f;
+    --d-ink: #e7e9ee;
+    --d-muted: #9aa0ac;
+    --d-line: rgba(255, 255, 255, 0.08);
+    --d-accent: #818cf8;
+    --d-soft: rgba(129, 140, 248, 0.16);
+}
+
+/* --- 1r: capçalera --- */
+#rsv-dash > :nth-child(1) {
+    text-align: center;
+}
+
+#rsv-dash > :nth-child(1) > :nth-child(1) {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.4rem;
+}
+
+#rsv-dash > :nth-child(1) > :nth-child(2) {
+    color: var(--d-muted);
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+/* --- 2n: graella de botons --- */
+#rsv-dash > :nth-child(2) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 1rem;
+    width: 100%;
+    max-width: 46rem;
+}
+
+/* Cada botó-targeta */
+#rsv-dash > :nth-child(2) > a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    background: var(--d-card);
+    border: 1px solid var(--d-line);
+    border-radius: 1.1rem;
+    padding: 1.4rem;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 16px rgba(16, 24, 40, 0.05);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+#rsv-dash > :nth-child(2) > a:hover {
+    transform: translateY(-3px);
+    border-color: var(--d-accent);
+    box-shadow: 0 14px 30px -12px rgba(79, 70, 229, 0.45);
+}
+
+/* Icona en pastilla */
+#rsv-dash > :nth-child(2) > a > svg {
+    width: 2.7rem;
+    height: 2.7rem;
+    box-sizing: border-box;
+    padding: 0.6rem;
+    border-radius: 0.75rem;
+    background: var(--d-soft);
+    color: var(--d-accent);
+    margin-bottom: 0.35rem;
+}
+
+#rsv-dash > :nth-child(2) > a > span {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+#rsv-dash > :nth-child(2) > a > small {
+    color: var(--d-muted);
+    font-size: 0.85rem;
+}

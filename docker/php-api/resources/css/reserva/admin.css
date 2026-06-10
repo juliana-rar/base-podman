@@ -1,0 +1,1137 @@
+/*
+ * Panells d'administració: #rsv-hours (franges) i #rsv-posts.
+ * Etiqueta base única per pàgina; seccions controlades per :nth-child.
+ */
+
+#rsv-hours,
+#rsv-posts {
+    --a-card: #ffffff;
+    --a-ink: #1e1b2e;
+    --a-muted: #6b6880;
+    --a-line: rgba(127, 127, 160, 0.18);
+    --a-accent: #4f46e5;
+    --a-accent-2: #0d9488;
+    --a-danger: #dc2626;
+    --a-soft: rgba(79, 70, 229, 0.09);
+
+    padding: clamp(1rem, 3vw, 2rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    color: var(--a-ink);
+}
+
+.dark #rsv-hours,
+.dark #rsv-posts {
+    --a-card: #161327;
+    --a-ink: #ede9ff;
+    --a-muted: #9b97b4;
+    --a-line: rgba(150, 150, 190, 0.16);
+    --a-soft: rgba(129, 140, 248, 0.16);
+}
+
+/* Capçalera (1r) */
+#rsv-hours > :nth-child(1) > :nth-child(1),
+#rsv-posts > :nth-child(1) > :nth-child(1) {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+}
+
+#rsv-hours > :nth-child(1) > :nth-child(2),
+#rsv-posts > :nth-child(1) > :nth-child(2) {
+    color: var(--a-muted);
+    margin: 0;
+}
+
+/* Panells (2n = formulari, 3r = llista) */
+#rsv-hours > :nth-child(2),
+#rsv-hours > :nth-child(3),
+#rsv-posts > :nth-child(2),
+#rsv-posts > :nth-child(3),
+#rsv-posts > :nth-child(4) {
+    background: var(--a-card);
+    border: 1px solid var(--a-line);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.5rem 1.5rem -0.85rem rgba(30, 27, 46, 0.3);
+}
+
+/* En franges: el formulari té calendari + rellotge + camps, que s'ajusten */
+#rsv-hours > :nth-child(2) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+    gap: 1.5rem;
+    align-items: start;
+}
+
+/* El calendari, centrat dins de la seva cel·la (com el rellotge) */
+#rsv-hours > :nth-child(2) > .rsv-cal {
+    justify-self: center;
+}
+
+/* Dia (i hora) triats, ressaltats */
+#rsv-hours .rsv-chosen {
+    font-weight: 700;
+    color: var(--a-accent);
+    text-transform: capitalize;
+    margin: 0 0 1rem;
+}
+
+/* Títols de panell */
+#rsv-hours h2,
+#rsv-posts h2 {
+    font-weight: 700;
+    margin: 0 0 1rem;
+    font-size: 1.15rem;
+}
+
+/* Camps de formulari */
+#rsv-hours label,
+#rsv-posts label {
+    display: block;
+    font-weight: 600;
+    color: var(--a-muted);
+    margin: 0 0 0.35rem;
+    font-size: 0.9rem;
+}
+
+#rsv-hours input,
+#rsv-posts input,
+#rsv-posts textarea {
+    width: 100%;
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-ink);
+    border-radius: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    font-size: 1rem;
+    font-family: inherit;
+    color-scheme: light dark;
+    margin-bottom: 1rem;
+}
+
+#rsv-posts textarea {
+    min-height: 8rem;
+    resize: vertical;
+}
+
+#rsv-hours input:focus,
+#rsv-posts input:focus,
+#rsv-posts textarea:focus {
+    outline: none;
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.18);
+}
+
+/* Botó principal d'enviament */
+#rsv-hours button[type='submit'],
+#rsv-posts button[type='submit'] {
+    border: none;
+    border-radius: 0.85rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    background: var(--a-accent);
+    box-shadow: 0 0.75rem 1.5rem -0.5rem rgba(17, 24, 39, 0.6);
+    transition: transform 0.15s ease;
+}
+
+#rsv-hours button[type='submit']:hover,
+#rsv-posts button[type='submit']:hover {
+    transform: translateY(-1px);
+}
+
+/* Error de validació */
+#rsv-hours .rsv-error,
+#rsv-posts .rsv-error {
+    color: var(--a-danger);
+    font-size: 0.85rem;
+    margin: -0.5rem 0 0.75rem;
+}
+
+/* Llistes (graella de targetes) */
+#rsv-hours > :nth-child(3) > :nth-child(2),
+#rsv-posts > :nth-child(3) > :nth-child(2) {
+    display: grid;
+    gap: 0.65rem;
+}
+
+#rsv-hours > :nth-child(3) > :nth-child(2) {
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+
+/* Cada element de la llista */
+#rsv-hours > :nth-child(3) > :nth-child(2) > *,
+#rsv-posts > :nth-child(3) > :nth-child(2) > * {
+    border: 1px solid var(--a-line);
+    border-radius: 0.9rem;
+    padding: 1rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+/* Franja reservada: marcada en rosa */
+#rsv-hours > :nth-child(3) > :nth-child(2) > .is-booked {
+    border-left: 4px solid var(--a-accent-2);
+}
+
+#rsv-hours > :nth-child(3) > :nth-child(2) > .is-free {
+    border-left: 4px solid var(--a-accent);
+}
+
+/* Capçalera de cada element (data/hora + accions) */
+#rsv-hours > :nth-child(3) > :nth-child(2) > * > :nth-child(1),
+#rsv-posts > :nth-child(3) > :nth-child(2) > * > :nth-child(1) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-weight: 700;
+}
+
+#rsv-hours .rsv-tag,
+#rsv-posts .rsv-tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--a-muted);
+}
+
+/* Botó d'eliminar */
+#rsv-hours button.rsv-del,
+#rsv-posts button.rsv-del {
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: var(--a-danger);
+    background: transparent;
+    border-radius: 0.6rem;
+    padding: 0.35rem 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#rsv-hours button.rsv-del:hover,
+#rsv-posts button.rsv-del:hover {
+    background: var(--a-danger);
+    color: #fff;
+}
+
+/* Accions d'un post a la llista (editar + eliminar) */
+#rsv-posts .rsv-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#rsv-posts button.rsv-edit {
+    border: 1px solid var(--a-line);
+    color: var(--a-accent);
+    background: transparent;
+    border-radius: 0.6rem;
+    padding: 0.35rem 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#rsv-posts button.rsv-edit:hover {
+    background: var(--a-accent);
+    color: #fff;
+    border-color: transparent;
+}
+
+/* Accions del formulari (desar + cancel·lar) */
+#rsv-posts .rsv-form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+#rsv-posts button.rsv-cancel {
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-muted);
+    border-radius: 0.85rem;
+    padding: 0.75rem 1.25rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+#rsv-posts button.rsv-cancel:hover {
+    color: var(--a-ink);
+}
+
+/* Capçalera de la llista: títol + cercador */
+#rsv-posts .rsv-post-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+
+#rsv-posts .rsv-post-head h2 {
+    margin: 0;
+}
+
+#rsv-posts .rsv-search {
+    flex: 1;
+    min-width: 12rem;
+    max-width: 22rem;
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-ink);
+    border-radius: 0.75rem;
+    padding: 0.55rem 0.9rem;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+#rsv-posts .rsv-search:focus {
+    outline: none;
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-soft);
+}
+
+/* Graella de posts en columnes */
+#rsv-posts > :nth-child(3) > :nth-child(2) {
+    grid-template-columns: repeat(auto-fill, minmax(min(18rem, 100%), 1fr));
+    gap: 1rem;
+    align-items: start;
+}
+
+/* Cos retallat a la targeta */
+#rsv-posts .rsv-post-body {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Llista d'etiquetes (targeta) */
+#rsv-posts .rsv-taglist {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+/* Xip d'etiqueta (targeta i formulari) */
+#rsv-posts .rsv-tagchip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--a-soft);
+    color: var(--a-accent);
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+#rsv-posts .rsv-tagchip > button {
+    border: none;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 0.95rem;
+    line-height: 1;
+    padding: 0;
+}
+
+/* Entrada d'etiquetes al formulari */
+#rsv-posts .rsv-taginput {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--a-line);
+    border-radius: 0.75rem;
+    padding: 0.4rem 0.5rem;
+    margin-bottom: 1rem;
+}
+
+#rsv-posts .rsv-taginput:focus-within {
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-soft);
+}
+
+#rsv-posts .rsv-taginput > input {
+    flex: 1;
+    min-width: 8rem;
+    border: none;
+    background: transparent;
+    color: var(--a-ink);
+    padding: 0.3rem;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+#rsv-posts .rsv-taginput > input:focus {
+    outline: none;
+}
+
+/* Chips per triar etiquetes del catàleg (al formulari) */
+#rsv-posts .rsv-tagpick {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-bottom: 0.65rem;
+}
+
+#rsv-posts .rsv-tagpick > button {
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-muted);
+    border-radius: 999px;
+    padding: 0.2rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#rsv-posts .rsv-tagpick > button:hover {
+    border-color: var(--a-accent);
+    color: var(--a-ink);
+}
+
+#rsv-posts .rsv-tagpick > .is-on {
+    background: var(--a-accent);
+    color: #fff;
+    border-color: transparent;
+}
+
+/* Secció de gestió del catàleg */
+#rsv-posts .rsv-tagmanage .rsv-taginput {
+    max-width: 30rem;
+}
+
+/* Selector de color */
+#rsv-posts .rsv-color {
+    width: 2.4rem;
+    height: 2.4rem;
+    flex: 0 0 auto;
+    padding: 0;
+    border: 1px solid var(--a-line);
+    border-radius: 0.6rem;
+    background: transparent;
+    cursor: pointer;
+}
+
+#rsv-posts .rsv-color::-webkit-color-swatch-wrapper {
+    padding: 2px;
+}
+
+#rsv-posts .rsv-color::-webkit-color-swatch {
+    border: none;
+    border-radius: 0.4rem;
+}
+
+/* Files del catàleg d'etiquetes */
+#rsv-posts .rsv-tagrows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#rsv-posts .rsv-tagrow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--a-line);
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.75rem;
+}
+
+#rsv-posts .rsv-tagrow > .rsv-tagchip {
+    margin-right: auto;
+}
+
+#rsv-hours .rsv-empty,
+#rsv-posts .rsv-empty {
+    color: var(--a-muted);
+    text-align: center;
+    padding: 1.5rem;
+}
+
+/* Cos del post a la llista */
+#rsv-posts .rsv-post-body {
+    color: var(--a-muted);
+    line-height: 1.5;
+    white-space: pre-line;
+    margin: 0;
+}
+
+/* Camps de fitxer */
+#rsv-posts input[type='file'] {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+#rsv-posts input[type='file']::file-selector-button {
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-ink);
+    border-radius: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    margin-right: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Previsualització de la portada (formulari) */
+#rsv-posts .rsv-preview {
+    width: 100%;
+    max-height: 12rem;
+    object-fit: cover;
+    border-radius: 0.75rem;
+    border: 1px solid var(--a-line);
+    margin-bottom: 1rem;
+}
+
+/* Miniatura de portada (llista) */
+#rsv-posts .rsv-cover-thumb {
+    width: 100%;
+    max-height: 10rem;
+    object-fit: cover;
+    border-radius: 0.75rem;
+    border: 1px solid var(--a-line);
+}
+
+/* Galeria de miniatures (formulari i llista) */
+#rsv-posts .rsv-thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+#rsv-posts .rsv-thumbs > img {
+    width: 4rem;
+    height: 4rem;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    border: 1px solid var(--a-line);
+}
+
+/* ---------- Historial de reserves (#rsv-history) ---------- */
+
+#rsv-history {
+    --a-card: #ffffff;
+    --a-ink: #1f2430;
+    --a-muted: #6b7280;
+    --a-line: #e5e7eb;
+    --a-accent: #4f46e5;
+    --a-soft: rgba(79, 70, 229, 0.08);
+
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    color: var(--a-ink);
+}
+
+.dark #rsv-history {
+    --a-card: #14171f;
+    --a-ink: #e7e9ee;
+    --a-muted: #9aa0ac;
+    --a-line: rgba(255, 255, 255, 0.08);
+    --a-accent: #818cf8;
+    --a-soft: rgba(129, 140, 248, 0.14);
+}
+
+/* Capçalera */
+#rsv-history > :nth-child(1) > :nth-child(1) {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+}
+
+#rsv-history > :nth-child(1) > :nth-child(2) {
+    color: var(--a-muted);
+    margin: 0;
+}
+
+/* Disposició: calendari | taula */
+#rsv-history > :nth-child(2) {
+    display: grid;
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+@media (max-width: 56rem) {
+    #rsv-history > :nth-child(2) {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Panells */
+#rsv-history > :nth-child(2) > * {
+    background: var(--a-card);
+    border: 1px solid var(--a-line);
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 16px rgba(16, 24, 40, 0.05);
+}
+
+#rsv-history h2 {
+    font-weight: 700;
+    margin: 0 0 1rem;
+    font-size: 1.05rem;
+}
+
+/* Panell del calendari */
+#rsv-history > :nth-child(2) > :nth-child(1) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#rsv-history > :nth-child(2) > :nth-child(1) > h2 {
+    align-self: flex-start;
+}
+
+#rsv-history .rsv-clear {
+    margin-top: 1rem;
+    width: 100%;
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-muted);
+    border-radius: 0.75rem;
+    padding: 0.55rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+#rsv-history .rsv-clear:hover {
+    color: var(--a-ink);
+    border-color: var(--a-muted);
+}
+
+/* Barra d'eines: cerca + comptador */
+#rsv-history .rsv-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+#rsv-history .rsv-toolbar > input {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-ink);
+    border-radius: 0.75rem;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.95rem;
+}
+
+#rsv-history .rsv-toolbar > input:focus {
+    outline: none;
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-soft);
+}
+
+#rsv-history .rsv-count {
+    font-size: 0.8rem;
+    color: var(--a-muted);
+    white-space: nowrap;
+}
+
+/* Xip del filtre de data */
+#rsv-history .rsv-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--a-soft);
+    color: var(--a-accent);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-transform: capitalize;
+}
+
+#rsv-history .rsv-chip > button {
+    border: none;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1.05rem;
+    line-height: 1;
+}
+
+/* Taula */
+#rsv-history .rsv-tablewrap {
+    overflow-x: auto;
+}
+
+#rsv-history table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+#rsv-history thead th {
+    text-align: center;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--a-muted);
+    font-weight: 700;
+    padding: 0 0.75rem 0.6rem;
+    border-bottom: 1px solid var(--a-line);
+    white-space: nowrap;
+}
+
+#rsv-history tbody td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--a-line);
+    vertical-align: middle;
+}
+
+#rsv-history tbody tr:last-child td {
+    border-bottom: none;
+}
+
+#rsv-history tbody tr:hover td {
+    background: var(--a-soft);
+}
+
+#rsv-history tbody td:first-child {
+    font-weight: 600;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+#rsv-history tbody td:nth-child(3) {
+    color: var(--a-muted);
+}
+
+#rsv-history .rsv-note-cell {
+    max-width: 22rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+#rsv-history .rsv-empty {
+    color: var(--a-muted);
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+/* ---------- Franges creades, agrupades per dia (#rsv-hours) ---------- */
+
+/* Contenidor de grups (substitueix la graella genèrica de targetes) */
+#rsv-hours > :nth-child(3) > :nth-child(2) {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    grid-template-columns: none;
+}
+
+/* Cada grup de dia (reseteja l'estil de targeta genèric) */
+#rsv-hours > :nth-child(3) > :nth-child(2) > * {
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+/* Capçalera del dia */
+#rsv-hours .rsv-day-label {
+    text-transform: capitalize;
+    font-size: 1.05rem;
+    margin: 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--a-line);
+}
+
+#rsv-hours .rsv-day-label > span {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--a-muted);
+    text-transform: none;
+}
+
+/* Graella d'hores del dia */
+#rsv-hours .rsv-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 0.6rem;
+}
+
+/* Targeta de franja */
+#rsv-hours .rsv-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+    background: var(--a-card);
+    border: 1px solid var(--a-line);
+    border-left: 3px solid var(--a-line);
+    border-radius: 0.85rem;
+    padding: 0.75rem 0.85rem;
+}
+
+#rsv-hours .rsv-slot.is-free {
+    border-left-color: #16a34a;
+}
+
+#rsv-hours .rsv-slot.is-booked {
+    border-left-color: var(--a-accent-2);
+}
+
+#rsv-hours .rsv-slot-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#rsv-hours .rsv-slot-time {
+    font-size: 1.25rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--a-ink);
+}
+
+/* Botó eliminar petit (×) */
+#rsv-hours .rsv-del-x {
+    width: 1.5rem;
+    height: 1.5rem;
+    border: none;
+    background: transparent;
+    color: var(--a-muted);
+    font-size: 1.15rem;
+    line-height: 1;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+#rsv-hours .rsv-del-x:hover {
+    background: rgba(220, 38, 38, 0.12);
+    color: var(--a-danger);
+}
+
+/* Insígnia d'estat */
+#rsv-hours .rsv-badge {
+    align-self: flex-start;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+}
+
+#rsv-hours .rsv-badge.free {
+    background: rgba(22, 163, 74, 0.14);
+    color: #15803d;
+}
+
+#rsv-hours .rsv-badge.booked {
+    background: rgba(13, 148, 136, 0.16);
+    color: #0f766e;
+}
+
+#rsv-hours .rsv-slot-user {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--a-ink);
+    overflow-wrap: anywhere;
+}
+
+#rsv-hours .rsv-slot-note {
+    font-size: 0.78rem;
+    color: var(--a-muted);
+    overflow-wrap: anywhere;
+}
+
+.dark #rsv-hours .rsv-badge.free {
+    color: #4ade80;
+}
+
+.dark #rsv-hours .rsv-badge.booked {
+    color: #2dd4bf;
+}
+
+/* Barra de la llista: títol + resum + filtre */
+#rsv-hours .rsv-slot-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+#rsv-hours .rsv-slot-head h2 {
+    margin: 0;
+}
+
+#rsv-hours .rsv-slot-summary {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Xip del dia filtrat */
+#rsv-hours .rsv-dayfilter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--a-soft);
+    color: var(--a-accent);
+    border: none;
+    border-radius: 999px;
+    padding: 0.25rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: capitalize;
+}
+
+#rsv-hours .rsv-dayfilter > span {
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+/* ---------- Pàgina de gestió d'etiquetes (#rsv-tags) ---------- */
+
+#rsv-tags {
+    --a-card: #ffffff;
+    --a-ink: #1e1b2e;
+    --a-muted: #6b6880;
+    --a-line: rgba(127, 127, 160, 0.18);
+    --a-accent: #4f46e5;
+    --a-soft: rgba(79, 70, 229, 0.09);
+    --a-danger: #dc2626;
+
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    color: var(--a-ink);
+}
+
+.dark #rsv-tags {
+    --a-card: #161327;
+    --a-ink: #ede9ff;
+    --a-muted: #9b97b4;
+    --a-line: rgba(150, 150, 190, 0.16);
+    --a-accent: #818cf8;
+    --a-soft: rgba(129, 140, 248, 0.16);
+}
+
+#rsv-tags > :nth-child(1) > :nth-child(1) {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+}
+
+#rsv-tags > :nth-child(1) > :nth-child(2) {
+    color: var(--a-muted);
+    margin: 0;
+}
+
+#rsv-tags > :nth-child(2) {
+    background: var(--a-card);
+    border: 1px solid var(--a-line);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.5rem 1.5rem -0.85rem rgba(30, 27, 46, 0.3);
+}
+
+#rsv-tags h2 {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin: 0 0 1rem;
+}
+
+#rsv-tags h2:nth-of-type(2) {
+    margin-top: 1.75rem;
+}
+
+#rsv-tags .rsv-taginput {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--a-line);
+    border-radius: 0.75rem;
+    padding: 0.4rem 0.5rem;
+    max-width: 32rem;
+}
+
+#rsv-tags .rsv-taginput:focus-within {
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-soft);
+}
+
+#rsv-tags .rsv-taginput > input[type='text'] {
+    flex: 1;
+    min-width: 8rem;
+    border: none;
+    background: transparent;
+    color: var(--a-ink);
+    padding: 0.3rem;
+    font-size: 0.9rem;
+}
+
+#rsv-tags .rsv-taginput > input[type='text']:focus {
+    outline: none;
+}
+
+#rsv-tags .rsv-color {
+    width: 2.4rem;
+    height: 2.4rem;
+    flex: 0 0 auto;
+    padding: 0;
+    border: 1px solid var(--a-line);
+    border-radius: 0.6rem;
+    background: transparent;
+    cursor: pointer;
+}
+
+#rsv-tags .rsv-color::-webkit-color-swatch-wrapper {
+    padding: 2px;
+}
+
+#rsv-tags .rsv-color::-webkit-color-swatch {
+    border: none;
+    border-radius: 0.4rem;
+}
+
+#rsv-tags .rsv-edit {
+    border: 1px solid var(--a-line);
+    color: var(--a-accent);
+    background: transparent;
+    border-radius: 0.6rem;
+    padding: 0.4rem 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#rsv-tags .rsv-edit:hover {
+    background: var(--a-accent);
+    color: #fff;
+    border-color: transparent;
+}
+
+#rsv-tags .rsv-tagrows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#rsv-tags .rsv-tagrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--a-line);
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.75rem;
+}
+
+#rsv-tags .rsv-tagchip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--a-soft);
+    color: var(--a-accent);
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+#rsv-tags .rsv-count {
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: var(--a-muted);
+    white-space: nowrap;
+}
+
+#rsv-tags button.rsv-del {
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    color: var(--a-danger);
+    background: transparent;
+    border-radius: 0.6rem;
+    padding: 0.35rem 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#rsv-tags button.rsv-del:hover {
+    background: var(--a-danger);
+    color: #fff;
+}
+
+#rsv-tags .rsv-empty {
+    color: var(--a-muted);
+    text-align: center;
+    padding: 1.5rem;
+}
+
+#rsv-hours .rsv-slot-summary > span {
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+}
+
+#rsv-hours .rsv-slot-summary > .free {
+    background: rgba(22, 163, 74, 0.14);
+    color: #15803d;
+}
+
+#rsv-hours .rsv-slot-summary > .booked {
+    background: rgba(13, 148, 136, 0.16);
+    color: #0f766e;
+}
+
+#rsv-hours .rsv-slot-filter {
+    display: inline-flex;
+    margin-left: auto;
+    border: 1px solid var(--a-line);
+    border-radius: 999px;
+    padding: 0.2rem;
+    gap: 0.2rem;
+}
+
+#rsv-hours .rsv-slot-filter > button {
+    border: none;
+    background: transparent;
+    color: var(--a-muted);
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#rsv-hours .rsv-slot-filter > .is-active {
+    background: var(--a-accent);
+    color: #fff;
+}
+
+.dark #rsv-hours .rsv-slot-summary > .free {
+    color: #4ade80;
+}
+
+.dark #rsv-hours .rsv-slot-summary > .booked {
+    color: #2dd4bf;
+}

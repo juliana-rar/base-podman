@@ -1,0 +1,270 @@
+/*
+ * Navbar centrat (substitueix el sidebar). Estil sobri i modern, sense neó.
+ * Etiqueta base: .rsv-shell (layout) i .rsv-nav (la barra). nth-child per a la resta.
+ */
+
+.rsv-shell {
+    --n-bg: #f6f7f9;
+    --n-surface: #ffffff;
+    --n-ink: #1f2430;
+    --n-muted: #6b7280;
+    --n-line: #e5e7eb;
+    --n-accent: #4f46e5;
+    --n-accent-soft: rgba(79, 70, 229, 0.1);
+
+    min-height: 100vh;
+    background: var(--n-bg);
+    color: var(--n-ink);
+    font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+.dark .rsv-shell {
+    --n-bg: #0b0d12;
+    --n-surface: #14171f;
+    --n-ink: #e7e9ee;
+    --n-muted: #9aa0ac;
+    --n-line: rgba(255, 255, 255, 0.08);
+    --n-accent: #818cf8;
+    --n-accent-soft: rgba(129, 140, 248, 0.14);
+}
+
+/* --- 1r fill del shell: la capçalera (sticky) --- */
+.rsv-shell > :nth-child(1) {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    justify-content: center;
+    padding: 0.85rem 1rem;
+    background: color-mix(in srgb, var(--n-bg) 80%, transparent);
+    backdrop-filter: blur(8px);
+}
+
+/* La barra en si: pastilla centrada en graella de 3 columnes */
+.rsv-nav {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 64rem;
+    background: var(--n-surface);
+    border: 1px solid var(--n-line);
+    border-radius: 999px;
+    padding: 0.45rem 0.75rem 0.45rem 1.25rem;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 12px rgba(16, 24, 40, 0.06);
+}
+
+/* 1r: marca (esquerra) */
+.rsv-nav > :nth-child(1) {
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+    color: var(--n-ink);
+    text-decoration: none;
+    justify-self: start;
+}
+
+/* 2n: enllaços (centrats) */
+.rsv-nav > :nth-child(2) {
+    display: flex;
+    gap: 0.25rem;
+    justify-self: center;
+}
+
+.rsv-nav > :nth-child(2) > a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--n-muted);
+    text-decoration: none;
+    transition: color 0.15s ease, background 0.15s ease;
+}
+
+.rsv-nav > :nth-child(2) > a:hover {
+    color: var(--n-ink);
+    background: var(--n-line);
+}
+
+.rsv-nav > :nth-child(2) > a.is-active {
+    color: var(--n-accent);
+    background: var(--n-accent-soft);
+}
+
+.rsv-nav > :nth-child(2) > a > svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* 3r: accions (dreta) */
+.rsv-nav > :nth-child(3) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-self: end;
+}
+
+.rsv-nav > :nth-child(3) > * {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Botó d'icona (tema) */
+.rsv-nav button.rsv-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    border: 1px solid var(--n-line);
+    background: transparent;
+    color: var(--n-muted);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.rsv-nav button.rsv-icon:hover {
+    color: var(--n-ink);
+    border-color: var(--n-muted);
+}
+
+.rsv-nav button.rsv-icon > svg {
+    width: 1.05rem;
+    height: 1.05rem;
+}
+
+/* Selector d'idioma */
+.rsv-nav .rsv-langwrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    height: 2.25rem;
+    padding: 0 0.55rem 0 0.7rem;
+    border: 1px solid var(--n-line);
+    border-radius: 999px;
+    color: var(--n-muted);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.rsv-nav .rsv-langwrap:hover {
+    color: var(--n-ink);
+    border-color: var(--n-muted);
+}
+
+.rsv-nav .rsv-langwrap > svg {
+    width: 1.05rem;
+    height: 1.05rem;
+}
+
+.rsv-nav .rsv-lang {
+    border: none;
+    background: transparent;
+    color: var(--n-ink);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.rsv-nav .rsv-lang:focus {
+    outline: none;
+}
+
+/* Nom d'usuari */
+.rsv-nav .rsv-user {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--n-muted);
+    padding: 0 0.35rem;
+}
+
+@media (max-width: 40rem) {
+    .rsv-nav .rsv-user {
+        display: none;
+    }
+}
+
+/* Botó de sortir */
+.rsv-nav .rsv-logout {
+    border: 1px solid var(--n-line);
+    background: transparent;
+    color: var(--n-ink);
+    border-radius: 999px;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s ease;
+}
+
+.rsv-nav .rsv-logout:hover {
+    background: var(--n-line);
+}
+
+/* --- 2n fill del shell: el contingut (centrat) --- */
+.rsv-shell > :nth-child(2) {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0.5rem 1rem 3rem;
+    text-align: center;
+}
+
+/* Els camps de formulari es mantenen alineats a l'esquerra per llegibilitat */
+.rsv-shell input,
+.rsv-shell textarea,
+.rsv-shell select {
+    text-align: left;
+}
+
+/* --- Responsive: en pantalles petites el navbar creix en alçada --- */
+@media (max-width: 52rem) {
+    .rsv-shell > :nth-child(1) {
+        padding: 0.6rem 0.75rem;
+    }
+
+    .rsv-nav {
+        grid-template-columns: 1fr auto;
+        row-gap: 0.6rem;
+        border-radius: 1.25rem;
+        padding: 0.65rem 0.9rem;
+    }
+
+    /* Marca: dalt a l'esquerra */
+    .rsv-nav > :nth-child(1) {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    /* Accions: dalt a la dreta */
+    .rsv-nav > :nth-child(3) {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    /* Enllaços: segona fila, a tota l'amplada i amb salt de línia */
+    .rsv-nav > :nth-child(2) {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        justify-self: stretch;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 30rem) {
+    .rsv-nav > :nth-child(2) > a {
+        padding: 0.45rem 0.7rem;
+        font-size: 0.85rem;
+    }
+
+    .rsv-shell > :nth-child(2) {
+        padding: 0.5rem 0.75rem 2.5rem;
+    }
+}

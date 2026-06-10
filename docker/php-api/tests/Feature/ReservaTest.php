@@ -1,0 +1,122 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Post;
+use App\Models\Reservation;
+use App\Models\Slot;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class ReservaTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_guests_are_redirected_from_the_booking_page(): void
+    {
+        $this->get(route('reservar'))->assertRedirect(route('login'));
+    }
+
+    public function test_user_can_view_the_booking_page(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->get(route('reservar'))->assertOk();
+    }
+
+    public function test_user_can_reserve_an_available_slot(): void
+    {
+        $user = User::factory()->create();
+        $slot = Slot::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('reservas.store'), ['slot_id' => $slot->id])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('reservations', [
+            'slot_id' => $slot->id,
+            'user_id' => $user->id,
+        ]);
+    }
+
+    public function test_user_cannot_reserve_an_already_booked_slot(): void
+    {
+        $slot = Slot::factory()->create();
+        Reservation::factory()->create(['slot_id' => $slot->id]);
+
+        $this->actingAs(User::factory()->create())
+            ->post(route('reservas.store'), ['slot_id' => $slot->id])
+            ->assertSessionHasErrors('slot_id');
+
+        $this->assertSame(1, Reservation::where('slot_id', $slot->id)->count());
+    }
+
+    public function test_user_can_cancel_their_own_reservation(): void
+    {
+        $user = User::factory()->create();
+        $reservation = Reservation::factory()->create(['user_id' => $user->id]);
+
+        $this->actingAs($user)
+            ->delete(route('reservas.destroy', $reservation))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('reservations', ['id' => $reservation->id]);
+    }
+
+    public function test_user_cannot_cancel_someone_elses_reservation(): void
+    {
+        $reservation = Reservation::factory()->create();
+
+        $this->actingAs(User::factory()->create())
+            ->delete(route('reservas.destroy', $reservation))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('reservations', ['id' => $reservation->id]);
+    }
+
+    public function test_normal_user_cannot_access_admin_pages(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get(route('admin.horas'))
+            ->assertForbidden();
+    }
+
+    public function test_admin_can_create_a_slot(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->post(route('admin.horas.store'), [
+                'starts_at' => now()->addDay()->setTime(10, 0)->format('Y-m-d\TH:i'),
+                'notes' => 'Primera visita',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('slots', ['notes' => 'Primera visita']);
+    }
+
+    public function test_admin_can_publish_a_post(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->post(route('admin.posts.store'), [
+                'title' => 'Hola món',
+                'body' => 'Primer post de prova.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('posts', [
+            'title' => 'Hola món',
+            'user_id' => $admin->id,
+        ]);
+    }
+
+    public function test_welcome_page_shows_published_posts(): void
+    {
+        Post::factory()->create(['title' => 'Novetat important']);
+
+        $this->get(route('home'))->assertOk();
+    }
+}

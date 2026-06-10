@@ -1,0 +1,309 @@
+/*
+ * Pàgina de reserva (usuari). Dins del NavbarLayout.
+ * Etiqueta base: #rsv-booking. Seccions per :nth-child:
+ *   1 = capçalera · 2 = zona principal · 3 = les meves reserves
+ * Zona principal: esquerra = calendari + hores · dreta = rellotge + confirmar.
+ */
+
+#rsv-booking {
+    --b-card: #ffffff;
+    --b-ink: #1f2430;
+    --b-muted: #6b7280;
+    --b-line: #e5e7eb;
+    --b-accent: #4f46e5;
+    --b-accent-2: #dc2626;
+
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    color: var(--b-ink);
+}
+
+.dark #rsv-booking {
+    --b-card: #14171f;
+    --b-ink: #e7e9ee;
+    --b-muted: #9aa0ac;
+    --b-line: rgba(255, 255, 255, 0.08);
+}
+
+/* --- 1r: capçalera --- */
+#rsv-booking > :nth-child(1) > :nth-child(1) {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.25rem;
+}
+
+#rsv-booking > :nth-child(1) > :nth-child(2) {
+    color: var(--b-muted);
+    margin: 0;
+}
+
+/* Missatge de confirmació / avís en reservar */
+#rsv-booking .rsv-confirm {
+    margin: 1rem 0 0;
+    padding: 0.85rem 1.1rem;
+    border-radius: 0.85rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+#rsv-booking .rsv-confirm.ok {
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
+    border-color: rgba(16, 185, 129, 0.35);
+}
+
+#rsv-booking .rsv-confirm.err {
+    background: rgba(220, 38, 38, 0.1);
+    color: #b91c1c;
+    border-color: rgba(220, 38, 38, 0.35);
+}
+
+.dark #rsv-booking .rsv-confirm.ok {
+    color: #6ee7b7;
+}
+
+.dark #rsv-booking .rsv-confirm.err {
+    color: #fca5a5;
+}
+
+.rsv-fade-enter-active,
+.rsv-fade-leave-active {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.rsv-fade-enter-from,
+.rsv-fade-leave-to {
+    opacity: 0;
+    transform: translateY(-0.35rem);
+}
+
+/* --- 2n: zona principal (calendari | rellotge) --- */
+#rsv-booking > :nth-child(2) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: stretch;
+}
+
+@media (max-width: 56rem) {
+    #rsv-booking > :nth-child(2) {
+        grid-template-columns: 1fr;
+    }
+}
+
+#rsv-booking > :nth-child(2) > * {
+    background: var(--b-card);
+    border: 1px solid var(--b-line);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 16px rgba(16, 24, 40, 0.05);
+}
+
+/* h2 dels dos panells */
+#rsv-booking > :nth-child(2) > * > :nth-child(1) {
+    font-weight: 700;
+    margin: 0 0 1rem;
+}
+
+/* --- Panell esquerre: calendari + hores disponibles --- */
+#rsv-booking > :nth-child(2) > :nth-child(1) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#rsv-booking > :nth-child(2) > :nth-child(1) > :nth-child(1) {
+    align-self: center;
+}
+
+/* h3 "Hores disponibles" */
+#rsv-booking > :nth-child(2) > :nth-child(1) > :nth-child(3) {
+    align-self: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--b-muted);
+    margin: 1.5rem 0 0.75rem;
+}
+
+/* Graella d'hores disponibles (o estat buit) */
+#rsv-booking > :nth-child(2) > :nth-child(1) > :nth-child(4) {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+    gap: 0.5rem;
+}
+
+#rsv-booking > :nth-child(2) > :nth-child(1) > :nth-child(4) > button {
+    border: 1px solid var(--b-line);
+    background: transparent;
+    color: var(--b-ink);
+    border-radius: 0.75rem;
+    padding: 0.6rem 0.4rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+    transition: all 0.15s ease;
+}
+
+#rsv-booking > :nth-child(2) > :nth-child(1) > :nth-child(4) > button:hover {
+    border-color: var(--b-accent);
+}
+
+#rsv-booking > :nth-child(2) > :nth-child(1) > :nth-child(4) > .is-active {
+    background: var(--b-accent);
+    color: #fff;
+    border-color: transparent;
+}
+
+#rsv-booking > :nth-child(2) > :nth-child(1) > .rsv-empty {
+    width: 100%;
+    color: var(--b-muted);
+    text-align: center;
+    padding: 1rem 0;
+}
+
+/* --- Panell dret: rellotge + textbox + confirmar --- */
+#rsv-booking > :nth-child(2) > :nth-child(2) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+#rsv-booking > :nth-child(2) > :nth-child(2) > :nth-child(1) {
+    align-self: center;
+}
+
+/* Fila del textbox d'hora (3r) */
+#rsv-booking > :nth-child(2) > :nth-child(2) > :nth-child(3) {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+}
+
+#rsv-booking > :nth-child(2) > :nth-child(2) > :nth-child(3) > label {
+    color: var(--b-muted);
+    font-weight: 600;
+}
+
+#rsv-booking input[type='time'] {
+    border: 1px solid var(--b-line);
+    background: transparent;
+    color: var(--b-ink);
+    border-radius: 0.75rem;
+    padding: 0.55rem 0.85rem;
+    font-size: 1rem;
+    color-scheme: light dark;
+}
+
+/* Camp obligatori de motiu de la reserva (4t) */
+#rsv-booking .rsv-note {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    text-align: left;
+}
+
+#rsv-booking .rsv-note > label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--b-muted);
+}
+
+#rsv-booking .rsv-note > textarea {
+    width: 100%;
+    min-height: 5rem;
+    resize: vertical;
+    border: 1px solid var(--b-line);
+    background: transparent;
+    color: var(--b-ink);
+    border-radius: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+}
+
+#rsv-booking .rsv-note > textarea:focus {
+    outline: none;
+    border-color: var(--b-accent);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+/* Botó de reservar (5è) */
+#rsv-booking > :nth-child(2) > :nth-child(2) > :nth-child(5) {
+    margin-top: auto;
+    width: 100%;
+    border: none;
+    border-radius: 0.85rem;
+    padding: 0.85rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    background: var(--b-accent);
+    transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+#rsv-booking > :nth-child(2) > :nth-child(2) > :nth-child(5):hover:not(:disabled) {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+#rsv-booking > :nth-child(2) > :nth-child(2) > :nth-child(5):disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* --- 3r: les meves reserves --- */
+#rsv-booking > :nth-child(3) > :nth-child(1) {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+}
+
+#rsv-booking > :nth-child(3) > :nth-child(2) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+#rsv-booking > :nth-child(3) > :nth-child(2) > * {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: var(--b-card);
+    border: 1px solid var(--b-line);
+    border-left: 4px solid var(--b-accent);
+    border-radius: 0.9rem;
+    padding: 0.85rem 1.1rem;
+}
+
+#rsv-booking > :nth-child(3) > :nth-child(2) > * > :nth-child(1) {
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+#rsv-booking > :nth-child(3) > :nth-child(2) > * button {
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    color: var(--b-accent-2);
+    background: transparent;
+    border-radius: 0.6rem;
+    padding: 0.4rem 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#rsv-booking > :nth-child(3) > :nth-child(2) > * button:hover {
+    background: var(--b-accent-2);
+    color: #fff;
+}
+
+#rsv-booking > :nth-child(3) > .rsv-empty {
+    color: var(--b-muted);
+}

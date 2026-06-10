@@ -2,7 +2,7 @@
 # composer dins d'admin o api
 # ús: ./bin/composer admin install   |   ./bin/composer api require xx/yy
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../docker/php-infraestructura"
 target="${1:?cal indicar admin|api}"
 shift
-docker compose exec "$target" composer "$@"
+podman compose --env-file .env exec "$target" composer "$@"
