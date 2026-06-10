@@ -22,15 +22,7 @@ const props = defineProps<{
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
-const { t, localeTag } = useI18n();
-
-function formatDate(value: string): string {
-    return new Date(value).toLocaleDateString(localeTag(), {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-    });
-}
+const { t } = useI18n();
 
 // --- Carrusel infinit (3 visibles, responsive) ---
 const SLIDE_MS = 450;
@@ -140,10 +132,6 @@ onBeforeUnmount(() => {
                                     >{{ tag.name }}</span>
                                 </div>
                                 <p class="rsv-body">{{ post.body }}</p>
-                                <div class="rsv-meta">
-                                    <span>{{ post.author?.name ?? 'Equip' }}</span>
-                                    <span>{{ formatDate(post.created_at) }}</span>
-                                </div>
                             </Link>
                         </div>
                     </div>
