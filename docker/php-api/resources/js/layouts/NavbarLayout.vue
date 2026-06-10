@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { CalendarClock, Clock, Globe, History, Home, Moon, Newspaper, Sun, Tags } from '@lucide/vue';
+import { CalendarClock, Clock, Globe, History, Home, LayoutGrid, Moon, Newspaper, Sun, Tags } from '@lucide/vue';
 import { computed } from 'vue';
 import { Toaster } from '@/components/ui/sonner';
 import { useAppearance } from '@/composables/useAppearance';
@@ -19,20 +19,20 @@ const { resolvedAppearance, updateAppearance } = useAppearance();
 const { t, locale, setLocale, locales } = useI18n();
 
 const items = computed<NavItem[]>(() => {
-    const base: NavItem[] = [{ title: 'nav.inici', href: '/', icon: Home }];
-
     if (user.value?.role === 'admin') {
-        base.push(
+        return [
+            { title: 'nav.dashboard', href: '/dashboard', icon: LayoutGrid },
             { title: 'nav.hores', href: '/admin/horas', icon: Clock },
             { title: 'nav.posts', href: '/admin/posts', icon: Newspaper },
             { title: 'nav.etiquetes', href: '/admin/etiquetes', icon: Tags },
             { title: 'nav.historial', href: '/admin/reserves', icon: History },
-        );
-    } else {
-        base.push({ title: 'nav.reservar', href: '/reservar', icon: CalendarClock });
+        ];
     }
 
-    return base;
+    return [
+        { title: 'nav.inici', href: '/', icon: Home },
+        { title: 'nav.reservar', href: '/reservar', icon: CalendarClock },
+    ];
 });
 
 function toggleTheme(): void {
