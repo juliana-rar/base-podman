@@ -40,7 +40,7 @@ class SlideImageController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Imatges afegides.']);
 
-        return back();
+        return redirect()->route('admin.imatges');
     }
 
     /**
@@ -52,7 +52,7 @@ class SlideImageController extends Controller
 
         $image->update(['is_visible' => $request->boolean('is_visible')]);
 
-        return back();
+        return redirect()->route('admin.imatges');
     }
 
     /**
@@ -65,6 +65,6 @@ class SlideImageController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Imatge eliminada.']);
 
-        return back();
+        return redirect()->route('admin.imatges');
     }
 }

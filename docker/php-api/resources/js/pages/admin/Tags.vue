@@ -40,6 +40,13 @@ function updateColor(id: number, event: Event): void {
     router.put(`/admin/tags/${id}`, { color }, { preserveScroll: true });
 }
 
+function updateName(id: number, event: Event): void {
+    const name = (event.target as HTMLInputElement).value.trim();
+    if (name) {
+        router.put(`/admin/tags/${id}`, { name }, { preserveScroll: true });
+    }
+}
+
 function remove(id: number): void {
     router.delete(`/admin/tags/${id}`, { preserveScroll: true });
 }
@@ -78,9 +85,16 @@ function remove(id: number): void {
                         aria-label="Color"
                         @change="updateColor(tag.id, $event)"
                     />
-                    <span class="rsv-tagchip" :style="{ backgroundColor: tag.color + '22', color: tag.color }">
-                        {{ tag.name }}
-                    </span>
+                    <input
+                        class="rsv-tagname"
+                        type="text"
+                        maxlength="30"
+                        :value="tag.name"
+                        :style="{ backgroundColor: tag.color + '22', color: tag.color }"
+                        aria-label="Nom de l'etiqueta"
+                        @change="updateName(tag.id, $event)"
+                        @keydown.enter="($event.target as HTMLInputElement).blur()"
+                    />
                     <span class="rsv-count">{{ tag.posts_count }} {{ tag.posts_count === 1 ? 'post' : 'posts' }}</span>
                     <button type="button" class="rsv-del" @click="remove(tag.id)">Eliminar</button>
                 </div>

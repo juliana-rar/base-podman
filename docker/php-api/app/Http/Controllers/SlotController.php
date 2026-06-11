@@ -39,8 +39,10 @@ class SlotController extends Controller
      */
     public function manage(): Response
     {
+        // Només les franges d'avui en endavant; les de dies passats no es mostren.
         $slots = Slot::query()
             ->with('reservation.user:id,name,email')
+            ->whereDate('starts_at', '>=', now()->toDateString())
             ->orderBy('starts_at')
             ->get();
 

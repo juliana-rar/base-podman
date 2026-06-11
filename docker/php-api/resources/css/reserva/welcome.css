@@ -127,38 +127,54 @@
     box-shadow: 0 1.4rem 2.6rem -0.5rem rgba(17, 24, 39, 0.7);
 }
 
-/* --- Carrusel d'imatges de presentació (3 visibles, bucle infinit) --- */
+/* --- Carrusel d'imatges de presentació (4 visibles, juntes, modern) --- */
 #rsv-welcome .rsv-slides {
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-    max-width: 64rem;
-    margin: 3rem auto 0;
+    width: 92vw;
+    max-width: 90rem;
+    margin-top: 3rem;
+    padding: 0 3.5rem;
 }
 
 #rsv-welcome .rsv-slide-nav {
-    flex: 0 0 auto;
-    width: 2.75rem;
-    height: 2.75rem;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    width: 2.9rem;
+    height: 2.9rem;
     border-radius: 50%;
-    border: 1px solid rgba(127, 127, 160, 0.2);
+    border: none;
     background: var(--w-card);
     color: var(--w-ink);
     font-size: 1.5rem;
     line-height: 1;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(17, 24, 39, 0.12);
-    transition: color 0.15s ease, border-color 0.15s ease;
+    box-shadow: 0 6px 18px -4px rgba(17, 24, 39, 0.3);
+    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+#rsv-welcome .rsv-slide-nav:first-of-type {
+    left: 0;
+}
+
+#rsv-welcome .rsv-slide-nav:last-of-type {
+    right: 0;
 }
 
 #rsv-welcome .rsv-slide-nav:hover {
-    color: var(--w-accent);
-    border-color: var(--w-accent);
+    background: var(--w-accent);
+    color: #fff;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 10px 24px -6px rgba(79, 70, 229, 0.6);
 }
 
 #rsv-welcome .rsv-slide-viewport {
-    flex: 1;
+    width: 100%;
     overflow: hidden;
 }
 
@@ -172,18 +188,37 @@
 }
 
 #rsv-welcome .rsv-slide-item {
-    flex: 0 0 calc(100% / var(--per, 3));
+    flex: 0 0 calc(100% / var(--per, 4));
     box-sizing: border-box;
-    padding: 0 0.5rem;
+    padding: 0.25rem;
 }
 
 #rsv-welcome .rsv-slide-item > img {
     width: 100%;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
-    border-radius: 1rem;
-    box-shadow: 0 0.75rem 1.5rem -0.75rem rgba(17, 24, 39, 0.3);
+    border-radius: 0.85rem;
     display: block;
+    cursor: zoom-in;
+    box-shadow: 0 0.5rem 1.25rem -0.75rem rgba(17, 24, 39, 0.35);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#rsv-welcome .rsv-slide-item > img:hover {
+    transform: scale(1.04);
+    box-shadow: 0 1rem 2rem -0.75rem rgba(17, 24, 39, 0.45);
+}
+
+@media (max-width: 36rem) {
+    #rsv-welcome .rsv-slides {
+        padding: 0 2.5rem;
+    }
+
+    #rsv-welcome .rsv-slide-nav {
+        width: 2.4rem;
+        height: 2.4rem;
+        font-size: 1.25rem;
+    }
 }
 
 /* --- 3r: secció de posts --- */
@@ -358,4 +393,57 @@
     padding: 2rem;
     color: var(--w-muted);
     font-size: 0.85rem;
+}
+
+/* --- Lightbox (modal d'imatge gran), teleportat al body --- */
+.rsv-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: rgba(10, 12, 20, 0.88);
+    backdrop-filter: blur(4px);
+    cursor: zoom-out;
+}
+
+.rsv-lightbox > img {
+    max-width: 92vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 0.85rem;
+    box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.5);
+    cursor: default;
+}
+
+.rsv-lb-close {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.5rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.rsv-lb-close:hover {
+    background: rgba(255, 255, 255, 0.32);
+}
+
+.rsv-lb-enter-active,
+.rsv-lb-leave-active {
+    transition: opacity 0.25s ease;
+}
+
+.rsv-lb-enter-from,
+.rsv-lb-leave-to {
+    opacity: 0;
 }

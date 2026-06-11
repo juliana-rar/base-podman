@@ -6,7 +6,6 @@ import '../../../css/reserva/admin.css';
 interface SlideImage {
     id: number;
     path: string;
-    is_visible: boolean;
     url: string;
 }
 
@@ -42,10 +41,6 @@ function submit(): void {
     });
 }
 
-function toggle(image: SlideImage): void {
-    router.put(`/admin/imatges/${image.id}`, { is_visible: !image.is_visible }, { preserveScroll: true });
-}
-
 function remove(id: number): void {
     router.delete(`/admin/imatges/${id}`, { preserveScroll: true });
 }
@@ -57,7 +52,7 @@ function remove(id: number): void {
     <div id="rsv-imatges">
         <header>
             <h1>Imatges de presentació</h1>
-            <p>Puja imatges per al carrusel de la pàgina d'inici i tria quines es mostren.</p>
+            <p>Puja imatges per al carrusel de la pàgina d'inici.</p>
         </header>
 
         <section>
@@ -72,13 +67,13 @@ function remove(id: number): void {
 
         <section>
             <h2>Galeria ({{ images.length }})</h2>
+            <p class="rsv-hint">Totes aquestes imatges surten al carrusel de la pàgina d'inici. Per treure'n una, prem Eliminar.</p>
             <div v-if="images.length" class="rsv-img-grid">
-                <div v-for="img in images" :key="img.id" class="rsv-img-card" :class="{ hidden: !img.is_visible }">
-                    <img :src="img.url" alt="" />
+                <div v-for="img in images" :key="img.id" class="rsv-img-card">
+                    <div class="rsv-img-thumb">
+                        <img :src="img.url" alt="" />
+                    </div>
                     <div class="rsv-img-actions">
-                        <button type="button" class="rsv-edit" @click="toggle(img)">
-                            {{ img.is_visible ? 'Amagar' : 'Mostrar' }}
-                        </button>
                         <button type="button" class="rsv-del" @click="remove(img.id)">Eliminar</button>
                     </div>
                 </div>

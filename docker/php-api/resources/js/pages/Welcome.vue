@@ -30,9 +30,10 @@ const page = usePage();
 const user = computed(() => page.props.auth.user);
 const { t } = useI18n();
 
-// --- Carrusel d'imatges de presentació (3 visibles, bucle infinit, auto-play) ---
+// --- Carrusel d'imatges de presentació (4 visibles, bucle infinit, auto-play) ---
+const slidePerView = ref(4);
 const slideCount = computed(() => props.slides.length);
-const slideUseCarousel = computed(() => slideCount.value > perView.value);
+const slideUseCarousel = computed(() => slideCount.value > slidePerView.value);
 
 const slideDisplay = computed(() =>
     slideUseCarousel.value ? [...props.slides, ...props.slides, ...props.slides] : props.slides,
@@ -45,7 +46,7 @@ let slideTimer: ReturnType<typeof setInterval> | undefined;
 
 const slideTrackStyle = computed(() => ({
     transform: slideUseCarousel.value
-        ? `translateX(calc(${-slideIndex.value} * 100% / ${perView.value}))`
+        ? `translateX(calc(${-slideIndex.value} * 100% / ${slidePerView.value}))`
         : 'none',
     transition: slideAnimate.value ? `transform ${SLIDE_MS}ms ease` : 'none',
 }));
@@ -83,6 +84,23 @@ function restartAuto(): void {
     }
 }
 
+// --- Lightbox: veure la imatge en gran ---
+const lightbox = ref<string | null>(null);
+
+function openLightbox(url: string): void {
+    lightbox.value = url;
+}
+
+function closeLightbox(): void {
+    lightbox.value = null;
+}
+
+function onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+        closeLightbox();
+    }
+}
+
 // --- Carrusel infinit (3 visibles, responsive) ---
 const SLIDE_MS = 450;
 const perView = ref(3);
@@ -90,6 +108,7 @@ const perView = ref(3);
 function updatePerView(): void {
     const w = window.innerWidth;
     perView.value = w < 640 ? 1 : w < 960 ? 2 : 3;
+    slidePerView.value = w < 560 ? 1 : w < 900 ? 2 : 4;
 }
 
 const count = computed(() => props.posts.length);
@@ -138,11 +157,13 @@ const next = () => step(1);
 onMounted(() => {
     updatePerView();
     window.addEventListener('resize', updatePerView);
+    window.addEventListener('keydown', onKeydown);
     restartAuto();
 });
 
 onBeforeUnmount(() => {
     window.removeEventListener('resize', updatePerView);
+    window.removeEventListener('keydown', onKeydown);
     clearInterval(slideTimer);
 });
 </script>
@@ -172,14 +193,14 @@ onBeforeUnmount(() => {
                 {{ user ? t('welcome.ctaUser') : t('welcome.ctaGuest') }}
             </Link>
 
-            <div v-if="slides.length" class="rsv-slides" :style="{ '--per': perView }">
+            <div v-if="slides.length" class="rsv-slides" :style="{ '--per': slidePerView }">
                 <button v-if="slideUseCarousel" type="button" class="rsv-slide-nav" aria-label="Anterior" @click="slidePrev">
                     ‹
                 </button>
                 <div class="rsv-slide-viewport">
                     <div class="rsv-slide-track" :class="{ 'is-static': !slideUseCarousel }" :style="slideTrackStyle">
                         <div v-for="(s, i) in slideDisplay" :key="i" class="rsv-slide-item">
-                            <img :src="s.url" alt="" />
+                            <img :src="s.url" alt="" @click="openLightbox(s.url)" />
                         </div>
                     </div>
                 </div>
@@ -221,5 +242,14 @@ onBeforeUnmount(() => {
         </section>
 
         <footer>© ReservaHores · {{ t('welcome.footer') }}</footer>
+
+        <Teleport to="body">
+            <transition name="rsv-lb">
+                <div v-if="lightbox" class="rsv-lightbox" @click="closeLightbox">
+                    <button type="button" class="rsv-lb-close" aria-label="Tancar" @click="closeLightbox">×</button>
+                    <img :src="lightbox" alt="" @click.stop />
+                </div>
+            </transition>
+        </Teleport>
     </div>
 </template>

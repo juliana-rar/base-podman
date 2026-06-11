@@ -195,7 +195,10 @@ function cancel(id: number): void {
             <h2>{{ t('res.meves') }}</h2>
             <div v-if="myReservations.length">
                 <div v-for="reservation in myReservations" :key="reservation.id">
-                    <span>{{ fullLabel(reservation.slot.starts_at) }}</span>
+                    <div class="rsv-res-info">
+                        <span>{{ fullLabel(reservation.slot.starts_at) }}</span>
+                        <span v-if="reservation.note" class="rsv-res-note">💬 {{ reservation.note }}</span>
+                    </div>
                     <button type="button" @click="cancel(reservation.id)">{{ t('res.cancelar') }}</button>
                 </div>
             </div>

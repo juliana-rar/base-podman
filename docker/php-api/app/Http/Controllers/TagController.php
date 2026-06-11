@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tag;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -48,7 +49,7 @@ class TagController extends Controller
     public function update(Request $request, Tag $tag): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['sometimes', 'required', 'string', 'max:30'],
+            'name' => ['sometimes', 'required', 'string', 'max:30', Rule::unique('tags', 'name')->ignore($tag->id)],
             'color' => ['sometimes', 'required', 'regex:/^#[0-9a-fA-F]{6}$/'],
         ]);
 

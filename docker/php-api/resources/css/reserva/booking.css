@@ -288,6 +288,24 @@
     text-transform: capitalize;
 }
 
+/* Info de la reserva (data + motiu) */
+#rsv-booking .rsv-res-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+
+#rsv-booking .rsv-res-note {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--b-muted);
+    text-transform: none;
+    overflow-wrap: anywhere;
+}
+
 #rsv-booking > :nth-child(3) > :nth-child(2) > * button {
     border: 1px solid rgba(220, 38, 38, 0.4);
     color: var(--b-accent-2);
