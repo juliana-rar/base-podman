@@ -16,13 +16,72 @@ interface Post {
     author: { id: number; name: string } | null;
 }
 
+interface Slide {
+    id: number;
+    url: string;
+}
+
 const props = defineProps<{
     posts: Post[];
+    slides: Slide[];
 }>();
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 const { t } = useI18n();
+
+// --- Carrusel d'imatges de presentació (3 visibles, bucle infinit, auto-play) ---
+const slideCount = computed(() => props.slides.length);
+const slideUseCarousel = computed(() => slideCount.value > perView.value);
+
+const slideDisplay = computed(() =>
+    slideUseCarousel.value ? [...props.slides, ...props.slides, ...props.slides] : props.slides,
+);
+
+const slideIndex = ref(props.slides.length);
+const slideAnimate = ref(true);
+let slideLocked = false;
+let slideTimer: ReturnType<typeof setInterval> | undefined;
+
+const slideTrackStyle = computed(() => ({
+    transform: slideUseCarousel.value
+        ? `translateX(calc(${-slideIndex.value} * 100% / ${perView.value}))`
+        : 'none',
+    transition: slideAnimate.value ? `transform ${SLIDE_MS}ms ease` : 'none',
+}));
+
+function slideRecenter(delta: number): void {
+    slideAnimate.value = false;
+    slideIndex.value += delta;
+    requestAnimationFrame(() => requestAnimationFrame(() => (slideAnimate.value = true)));
+}
+
+function slideStep(direction: number): void {
+    if (slideLocked || !slideUseCarousel.value) {
+        return;
+    }
+    slideLocked = true;
+    slideIndex.value += direction;
+
+    window.setTimeout(() => {
+        if (slideIndex.value >= 2 * slideCount.value) {
+            slideRecenter(-slideCount.value);
+        } else if (slideIndex.value < slideCount.value) {
+            slideRecenter(slideCount.value);
+        }
+        slideLocked = false;
+    }, SLIDE_MS);
+}
+
+const slidePrev = () => slideStep(-1);
+const slideNext = () => slideStep(1);
+
+function restartAuto(): void {
+    clearInterval(slideTimer);
+    if (slideUseCarousel.value) {
+        slideTimer = setInterval(slideNext, 4500);
+    }
+}
 
 // --- Carrusel infinit (3 visibles, responsive) ---
 const SLIDE_MS = 450;
@@ -79,10 +138,12 @@ const next = () => step(1);
 onMounted(() => {
     updatePerView();
     window.addEventListener('resize', updatePerView);
+    restartAuto();
 });
 
 onBeforeUnmount(() => {
     window.removeEventListener('resize', updatePerView);
+    clearInterval(slideTimer);
 });
 </script>
 
@@ -110,6 +171,22 @@ onBeforeUnmount(() => {
             <Link :href="user ? '/reservar' : '/login'">
                 {{ user ? t('welcome.ctaUser') : t('welcome.ctaGuest') }}
             </Link>
+
+            <div v-if="slides.length" class="rsv-slides" :style="{ '--per': perView }">
+                <button v-if="slideUseCarousel" type="button" class="rsv-slide-nav" aria-label="Anterior" @click="slidePrev">
+                    ‹
+                </button>
+                <div class="rsv-slide-viewport">
+                    <div class="rsv-slide-track" :class="{ 'is-static': !slideUseCarousel }" :style="slideTrackStyle">
+                        <div v-for="(s, i) in slideDisplay" :key="i" class="rsv-slide-item">
+                            <img :src="s.url" alt="" />
+                        </div>
+                    </div>
+                </div>
+                <button v-if="slideUseCarousel" type="button" class="rsv-slide-nav" aria-label="Següent" @click="slideNext">
+                    ›
+                </button>
+            </div>
         </section>
 
         <section>

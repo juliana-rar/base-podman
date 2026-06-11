@@ -1135,3 +1135,167 @@
 .dark #rsv-hours .rsv-slot-summary > .booked {
     color: #2dd4bf;
 }
+
+/* ---------- Imatges de presentació (#rsv-imatges) ---------- */
+
+#rsv-imatges {
+    --a-card: #ffffff;
+    --a-ink: #1e1b2e;
+    --a-muted: #6b6880;
+    --a-line: rgba(127, 127, 160, 0.18);
+    --a-accent: #4f46e5;
+    --a-danger: #dc2626;
+
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    color: var(--a-ink);
+}
+
+.dark #rsv-imatges {
+    --a-card: #161327;
+    --a-ink: #ede9ff;
+    --a-muted: #9b97b4;
+    --a-line: rgba(150, 150, 190, 0.16);
+    --a-accent: #818cf8;
+}
+
+#rsv-imatges > :nth-child(1) > :nth-child(1) {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+}
+
+#rsv-imatges > :nth-child(1) > :nth-child(2) {
+    color: var(--a-muted);
+    margin: 0;
+}
+
+#rsv-imatges > :nth-child(2),
+#rsv-imatges > :nth-child(3) {
+    background: var(--a-card);
+    border: 1px solid var(--a-line);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.5rem 1.5rem -0.85rem rgba(30, 27, 46, 0.3);
+}
+
+#rsv-imatges h2 {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin: 0 0 1rem;
+}
+
+#rsv-imatges input[type='file'] {
+    font-size: 0.9rem;
+    cursor: pointer;
+    margin-bottom: 1rem;
+}
+
+#rsv-imatges .rsv-thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+#rsv-imatges .rsv-thumbs > img {
+    width: 5rem;
+    height: 5rem;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    border: 1px solid var(--a-line);
+}
+
+#rsv-imatges .rsv-error {
+    color: var(--a-danger);
+    font-size: 0.85rem;
+    margin: 0 0 0.75rem;
+}
+
+#rsv-imatges section > button {
+    border: none;
+    border-radius: 0.85rem;
+    padding: 0.7rem 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    background: var(--a-accent);
+    transition: filter 0.15s ease;
+}
+
+#rsv-imatges section > button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Galeria */
+#rsv-imatges .rsv-img-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(13rem, 100%), 1fr));
+    gap: 1rem;
+}
+
+#rsv-imatges .rsv-img-card {
+    border: 1px solid var(--a-line);
+    border-radius: 0.9rem;
+    overflow: hidden;
+    background: var(--a-card);
+}
+
+#rsv-imatges .rsv-img-card.hidden {
+    opacity: 0.5;
+}
+
+#rsv-imatges .rsv-img-card > img {
+    width: 100%;
+    height: 8rem;
+    object-fit: cover;
+    display: block;
+}
+
+#rsv-imatges .rsv-img-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    padding: 0.6rem;
+}
+
+#rsv-imatges .rsv-img-actions > button {
+    border-radius: 0.6rem;
+    padding: 0.35rem 0.75rem;
+    font-weight: 600;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#rsv-imatges .rsv-edit {
+    border: 1px solid var(--a-line);
+    color: var(--a-accent);
+    background: transparent;
+}
+
+#rsv-imatges .rsv-edit:hover {
+    background: var(--a-accent);
+    color: #fff;
+    border-color: transparent;
+}
+
+#rsv-imatges .rsv-del {
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    color: var(--a-danger);
+    background: transparent;
+}
+
+#rsv-imatges .rsv-del:hover {
+    background: var(--a-danger);
+    color: #fff;
+}
+
+#rsv-imatges .rsv-empty {
+    color: var(--a-muted);
+    text-align: center;
+    padding: 1.5rem;
+}

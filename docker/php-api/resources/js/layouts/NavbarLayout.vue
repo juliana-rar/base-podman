@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { CalendarClock, Clock, Globe, History, Home, LayoutGrid, Moon, Newspaper, Sun, Tags } from '@lucide/vue';
+import { CalendarClock, Clock, Globe, History, Home, Images, LayoutGrid, Moon, Newspaper, Sun, Tags } from '@lucide/vue';
 import { computed } from 'vue';
 import { Toaster } from '@/components/ui/sonner';
 import { useAppearance } from '@/composables/useAppearance';
@@ -25,6 +25,7 @@ const items = computed<NavItem[]>(() => {
             { title: 'nav.hores', href: '/admin/horas', icon: Clock },
             { title: 'nav.posts', href: '/admin/posts', icon: Newspaper },
             { title: 'nav.etiquetes', href: '/admin/etiquetes', icon: Tags },
+            { title: 'nav.imatges', href: '/admin/imatges', icon: Images },
             { title: 'nav.historial', href: '/admin/reserves', icon: History },
         ];
     }

@@ -127,6 +127,65 @@
     box-shadow: 0 1.4rem 2.6rem -0.5rem rgba(17, 24, 39, 0.7);
 }
 
+/* --- Carrusel d'imatges de presentació (3 visibles, bucle infinit) --- */
+#rsv-welcome .rsv-slides {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 64rem;
+    margin: 3rem auto 0;
+}
+
+#rsv-welcome .rsv-slide-nav {
+    flex: 0 0 auto;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    border: 1px solid rgba(127, 127, 160, 0.2);
+    background: var(--w-card);
+    color: var(--w-ink);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(17, 24, 39, 0.12);
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+#rsv-welcome .rsv-slide-nav:hover {
+    color: var(--w-accent);
+    border-color: var(--w-accent);
+}
+
+#rsv-welcome .rsv-slide-viewport {
+    flex: 1;
+    overflow: hidden;
+}
+
+#rsv-welcome .rsv-slide-track {
+    display: flex;
+    width: 100%;
+}
+
+#rsv-welcome .rsv-slide-track.is-static {
+    justify-content: center;
+}
+
+#rsv-welcome .rsv-slide-item {
+    flex: 0 0 calc(100% / var(--per, 3));
+    box-sizing: border-box;
+    padding: 0 0.5rem;
+}
+
+#rsv-welcome .rsv-slide-item > img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 1rem;
+    box-shadow: 0 0.75rem 1.5rem -0.75rem rgba(17, 24, 39, 0.3);
+    display: block;
+}
+
 /* --- 3r: secció de posts --- */
 #rsv-welcome > :nth-child(3) {
     max-width: 72rem;

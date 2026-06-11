@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\SlideImageController;
 use App\Http\Controllers\SlotController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\WelcomeController;
@@ -42,6 +43,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('tags', [TagController::class, 'store'])->name('tags.store');
         Route::put('tags/{tag}', [TagController::class, 'update'])->name('tags.update');
         Route::delete('tags/{tag}', [TagController::class, 'destroy'])->name('tags.destroy');
+
+        // Imatges del carrusel de presentació
+        Route::get('imatges', [SlideImageController::class, 'index'])->name('imatges');
+        Route::post('imatges', [SlideImageController::class, 'store'])->name('imatges.store');
+        Route::put('imatges/{image}', [SlideImageController::class, 'update'])->name('imatges.update');
+        Route::delete('imatges/{image}', [SlideImageController::class, 'destroy'])->name('imatges.destroy');
 
         // Historial de totes les reserves fetes
         Route::get('reserves', [ReservationController::class, 'history'])->name('reserves');
