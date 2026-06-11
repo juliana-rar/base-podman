@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SlideImageController;
 use App\Http\Controllers\SlotController;
 use App\Http\Controllers\TagController;
@@ -49,6 +50,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('imatges', [SlideImageController::class, 'store'])->name('imatges.store');
         Route::put('imatges/{image}', [SlideImageController::class, 'update'])->name('imatges.update');
         Route::delete('imatges/{image}', [SlideImageController::class, 'destroy'])->name('imatges.destroy');
+
+        // Serveis
+        Route::get('serveis', [ServiceController::class, 'index'])->name('serveis');
+        Route::post('serveis', [ServiceController::class, 'store'])->name('serveis.store');
+        Route::post('serveis/{service}', [ServiceController::class, 'update'])->name('serveis.update');
+        Route::delete('serveis/{service}', [ServiceController::class, 'destroy'])->name('serveis.destroy');
 
         // Historial de totes les reserves fetes
         Route::get('reserves', [ReservationController::class, 'history'])->name('reserves');

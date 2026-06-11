@@ -18,7 +18,7 @@ class PostController extends Controller
      *
      * @var list<string>
      */
-    private array $columns = ['id', 'title', 'slug', 'body', 'cover_image', 'images', 'user_id', 'created_at'];
+    private array $columns = ['id', 'title', 'slug', 'body', 'summary', 'cover_image', 'images', 'user_id', 'created_at'];
 
     /**
      * Pàgina pública de detall d'un post, amb portada i galeria.
@@ -51,6 +51,7 @@ class PostController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
+            'summary' => ['nullable', 'string', 'max:500'],
             'cover' => ['nullable', 'image', 'max:5120'],
             'images' => ['nullable', 'array', 'max:8'],
             'images.*' => ['image', 'max:5120'],
@@ -68,6 +69,7 @@ class PostController extends Controller
         $post = $request->user()->posts()->create([
             'title' => $validated['title'],
             'body' => $validated['body'],
+            'summary' => $validated['summary'] ?? null,
             'cover_image' => $coverPath,
             'images' => $imagePaths,
         ]);
@@ -87,9 +89,13 @@ class PostController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
+            'summary' => ['nullable', 'string', 'max:500'],
             'cover' => ['nullable', 'image', 'max:5120'],
-            'images' => ['nullable', 'array', 'max:8'],
+            'removeCover' => ['nullable', 'boolean'],
+            'images' => ['nullable', 'array', 'max:12'],
             'images.*' => ['image', 'max:5120'],
+            'keepImages' => ['nullable', 'array'],
+            'keepImages.*' => ['string'],
             'tags' => ['nullable', 'array', 'max:12'],
             'tags.*' => ['string', 'max:30'],
         ]);
@@ -97,6 +103,7 @@ class PostController extends Controller
         $data = [
             'title' => $validated['title'],
             'body' => $validated['body'],
+            'summary' => $validated['summary'] ?? null,
         ];
 
         // Si canvia el títol, regenerem el slug (URL) mantenint-lo únic.
@@ -109,19 +116,28 @@ class PostController extends Controller
                 Storage::disk('public')->delete($post->cover_image);
             }
             $data['cover_image'] = $request->file('cover')->store('posts', 'public');
+        } elseif ($request->boolean('removeCover')) {
+            if ($post->cover_image) {
+                Storage::disk('public')->delete($post->cover_image);
+            }
+            $data['cover_image'] = null;
         }
 
-        if ($request->hasFile('images')) {
-            if ($post->images) {
-                Storage::disk('public')->delete($post->images);
-            }
+        // Galeria: conservem les existents marcades + afegim les noves pujades.
+        $current = $post->images ?? [];
+        $keep = array_values(array_intersect($validated['keepImages'] ?? [], $current));
 
-            $paths = [];
-            foreach ($request->file('images') as $image) {
-                $paths[] = $image->store('posts', 'public');
-            }
-            $data['images'] = $paths;
+        $removed = array_values(array_diff($current, $keep));
+        if ($removed !== []) {
+            Storage::disk('public')->delete($removed);
         }
+
+        $newPaths = [];
+        foreach ($request->file('images', []) as $image) {
+            $newPaths[] = $image->store('posts', 'public');
+        }
+
+        $data['images'] = [...$keep, ...$newPaths];
 
         $post->update($data);
 

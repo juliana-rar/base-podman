@@ -10,6 +10,7 @@ interface Reservation {
     created_at: string;
     user: { id: number; name: string; email: string } | null;
     slot: { id: number; starts_at: string; notes: string | null } | null;
+    service: { id: number; name: string } | null;
 }
 
 const props = defineProps<{
@@ -129,6 +130,7 @@ function clearDate(): void {
                                 <th>Reserva</th>
                                 <th>Usuari</th>
                                 <th>Email</th>
+                                <th>Servei</th>
                                 <th>Motiu</th>
                                 <th>Feta el</th>
                             </tr>
@@ -138,6 +140,7 @@ function clearDate(): void {
                                 <td>{{ r.slot ? slotLabel(r.slot.starts_at) : 'Franja eliminada' }}</td>
                                 <td>{{ r.user?.name ?? 'Usuari eliminat' }}</td>
                                 <td>{{ r.user?.email ?? '—' }}</td>
+                                <td>{{ r.service?.name ?? '—' }}</td>
                                 <td class="rsv-note-cell">{{ r.note ?? '—' }}</td>
                                 <td>{{ madeLabel(r.created_at) }}</td>
                             </tr>

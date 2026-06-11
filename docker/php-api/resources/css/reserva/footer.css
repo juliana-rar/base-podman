@@ -1,0 +1,147 @@
+/*
+ * Footer modern i reutilitzable, en consonància amb el navbar (AppFooter.vue).
+ * Etiqueta base per classe: .rsv-footer (funciona dins i fora del shell).
+ */
+
+.rsv-footer {
+    --f-bg: #f6f7f9;
+    --f-surface: #ffffff;
+    --f-ink: #1f2430;
+    --f-muted: #6b7280;
+    --f-line: #e5e7eb;
+    --f-accent: #4f46e5;
+
+    margin-top: 3rem;
+    padding: 1rem;
+    text-align: left;
+}
+
+.dark .rsv-footer {
+    --f-bg: #0b0d12;
+    --f-surface: #14171f;
+    --f-ink: #e7e9ee;
+    --f-muted: #9aa0ac;
+    --f-line: rgba(255, 255, 255, 0.08);
+    --f-accent: #818cf8;
+}
+
+/* Targeta principal (mateix llenguatge que la pastilla del navbar) */
+.rsv-footer-inner {
+    position: relative;
+    max-width: 78rem;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr;
+    gap: 2rem;
+    background: var(--f-surface);
+    border: 1px solid var(--f-line);
+    border-radius: 1.5rem;
+    padding: 2.25rem 2.25rem 2rem;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 18px 40px -24px rgba(16, 24, 40, 0.35);
+    overflow: hidden;
+}
+
+@media (max-width: 52rem) {
+    .rsv-footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .rsv-footer-brand {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 34rem) {
+    .rsv-footer-inner {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Marca + eslògan */
+.rsv-footer-logo {
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--f-accent);
+}
+
+.rsv-footer-brand > p {
+    margin: 0.6rem 0 0;
+    color: var(--f-muted);
+    line-height: 1.6;
+    max-width: 22rem;
+}
+
+/* Enllaços de xarxes socials (pastilles) */
+.rsv-footer-social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 1.1rem;
+}
+
+.rsv-footer-social > a {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid var(--f-line);
+    color: var(--f-muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.rsv-footer-social > a:hover {
+    color: #fff;
+    background: var(--f-accent);
+    border-color: transparent;
+    transform: translateY(-2px);
+}
+
+/* Columnes */
+.rsv-footer-col > h4 {
+    margin: 0 0 0.85rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--f-ink);
+}
+
+.rsv-footer-col > a,
+.rsv-footer-col > .rsv-footer-static {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 0.6rem;
+    color: var(--f-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.15s ease;
+}
+
+.rsv-footer-col > a:hover {
+    color: var(--f-accent);
+}
+
+.rsv-footer-col svg {
+    width: 1.05rem;
+    height: 1.05rem;
+    flex: none;
+    color: var(--f-accent);
+}
+
+/* Fila inferior (copyright) */
+.rsv-footer-bottom {
+    max-width: 78rem;
+    margin: 1.25rem auto 0;
+    padding: 1rem 0.75rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--f-muted);
+    font-size: 0.82rem;
+}

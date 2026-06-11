@@ -19,6 +19,7 @@ class Reservation extends Model
     protected $fillable = [
         'slot_id',
         'user_id',
+        'service_id',
         'note',
     ];
 
@@ -30,6 +31,16 @@ class Reservation extends Model
     public function slot(): BelongsTo
     {
         return $this->belongsTo(Slot::class);
+    }
+
+    /**
+     * Servei de la reserva.
+     *
+     * @return BelongsTo<Service, $this>
+     */
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
     }
 
     /**

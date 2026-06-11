@@ -12,15 +12,23 @@ interface Slot {
     notes: string | null;
 }
 
+interface Service {
+    id: number;
+    name: string;
+    url: string | null;
+}
+
 interface Reservation {
     id: number;
     note: string | null;
     slot: Slot;
+    service: Service | null;
 }
 
 const props = defineProps<{
     availableSlots: Slot[];
     myReservations: Reservation[];
+    services: Service[];
 }>();
 
 defineOptions({
@@ -74,12 +82,15 @@ const highlightTimes = computed(() => dayTimes.value.map((entry) => entry.time))
 
 const time = ref('');
 const note = ref('');
+const serviceId = ref<number | null>(null);
 
 const selectedSlotId = computed(
     () => dayTimes.value.find((entry) => entry.time === time.value)?.id ?? null,
 );
 
-const canReserve = computed(() => selectedSlotId.value !== null && note.value.trim() !== '');
+const canReserve = computed(
+    () => selectedSlotId.value !== null && serviceId.value !== null && note.value.trim() !== '',
+);
 
 watch(effectiveDay, () => {
     time.value = '';
@@ -111,7 +122,7 @@ function reserve(): void {
 
     router.post(
         '/reservas',
-        { slot_id: selectedSlotId.value, note: note.value },
+        { slot_id: selectedSlotId.value, service_id: serviceId.value, note: note.value },
         {
             preserveScroll: true,
             onSuccess: () => {
@@ -143,6 +154,22 @@ function cancel(id: number): void {
                     {{ message.text }}
                 </p>
             </transition>
+
+            <div v-if="services.length" class="rsv-service-pick">
+                <span class="rsv-service-label">{{ t('res.service') }} *</span>
+                <div class="rsv-service-chips">
+                    <button
+                        v-for="s in services"
+                        :key="s.id"
+                        type="button"
+                        :class="{ 'is-active': serviceId === s.id, 'has-img': s.url }"
+                        @click="serviceId = s.id"
+                    >
+                        <img v-if="s.url" :src="s.url" alt="" />
+                        <span>{{ s.name }}</span>
+                    </button>
+                </div>
+            </div>
         </header>
 
         <section>
@@ -197,6 +224,7 @@ function cancel(id: number): void {
                 <div v-for="reservation in myReservations" :key="reservation.id">
                     <div class="rsv-res-info">
                         <span>{{ fullLabel(reservation.slot.starts_at) }}</span>
+                        <span v-if="reservation.service" class="rsv-res-note">🔖 {{ reservation.service.name }}</span>
                         <span v-if="reservation.note" class="rsv-res-note">💬 {{ reservation.note }}</span>
                     </div>
                     <button type="button" @click="cancel(reservation.id)">{{ t('res.cancelar') }}</button>

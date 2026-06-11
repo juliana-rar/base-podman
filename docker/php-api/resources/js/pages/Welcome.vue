@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import AppFooter from '@/components/AppFooter.vue';
+import AppNavbar from '@/components/AppNavbar.vue';
 import { useI18n } from '@/lib/i18n';
+import '../../css/reserva/navbar.css';
 import '../../css/reserva/welcome.css';
 
 interface Post {
@@ -9,6 +12,7 @@ interface Post {
     title: string;
     slug: string;
     body: string;
+    summary: string | null;
     cover_url: string | null;
     image_urls: string[];
     tags: { id: number; name: string; color: string }[];
@@ -107,8 +111,8 @@ const perView = ref(3);
 
 function updatePerView(): void {
     const w = window.innerWidth;
-    perView.value = w < 640 ? 1 : w < 960 ? 2 : 3;
-    slidePerView.value = w < 560 ? 1 : w < 900 ? 2 : 4;
+    perView.value = w < 540 ? 1 : w < 820 ? 2 : 3;
+    slidePerView.value = w < 540 ? 1 : w < 820 ? 2 : w < 1100 ? 3 : 4;
 }
 
 const count = computed(() => props.posts.length);
@@ -175,16 +179,7 @@ onBeforeUnmount(() => {
     </Head>
 
     <div id="rsv-welcome">
-        <header>
-            <div>ReservaHores</div>
-            <nav>
-                <Link v-if="user" href="/dashboard">{{ t('welcome.panell') }}</Link>
-                <template v-else>
-                    <Link href="/login">{{ t('welcome.entrar') }}</Link>
-                    <Link href="/register">{{ t('welcome.crear') }}</Link>
-                </template>
-            </nav>
-        </header>
+        <AppNavbar />
 
         <section>
             <h1>{{ t('welcome.heroA') }} <span>{{ t('welcome.heroB') }}</span></h1>
@@ -229,7 +224,7 @@ onBeforeUnmount(() => {
                                         :style="{ backgroundColor: tag.color + '22', color: tag.color }"
                                     >{{ tag.name }}</span>
                                 </div>
-                                <p class="rsv-body">{{ post.body }}</p>
+                                <p v-if="post.summary" class="rsv-body">{{ post.summary }}</p>
                             </Link>
                         </div>
                     </div>
@@ -241,7 +236,7 @@ onBeforeUnmount(() => {
             <div v-else class="rsv-empty">{{ t('welcome.empty') }}</div>
         </section>
 
-        <footer>© ReservaHores · {{ t('welcome.footer') }}</footer>
+        <AppFooter />
 
         <Teleport to="body">
             <transition name="rsv-lb">

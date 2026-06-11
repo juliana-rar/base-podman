@@ -13,6 +13,8 @@
     --n-accent-soft: rgba(79, 70, 229, 0.1);
 
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     background: var(--n-bg);
     color: var(--n-ink);
     font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
@@ -28,8 +30,16 @@
     --n-accent-soft: rgba(129, 140, 248, 0.14);
 }
 
-/* --- 1r fill del shell: la capçalera (sticky) --- */
-.rsv-shell > :nth-child(1) {
+/* --- Capçalera (sticky). Per classe perquè funcioni dins i fora del shell --- */
+.rsv-navbar {
+    --n-bg: #f6f7f9;
+    --n-surface: #ffffff;
+    --n-ink: #1f2430;
+    --n-muted: #6b7280;
+    --n-line: #e5e7eb;
+    --n-accent: #4f46e5;
+    --n-accent-soft: rgba(79, 70, 229, 0.1);
+
     position: sticky;
     top: 0;
     z-index: 30;
@@ -40,6 +50,16 @@
     backdrop-filter: blur(8px);
 }
 
+.dark .rsv-navbar {
+    --n-bg: #0b0d12;
+    --n-surface: #14171f;
+    --n-ink: #e7e9ee;
+    --n-muted: #9aa0ac;
+    --n-line: rgba(255, 255, 255, 0.08);
+    --n-accent: #818cf8;
+    --n-accent-soft: rgba(129, 140, 248, 0.14);
+}
+
 /* La barra en si: pastilla centrada en graella de 3 columnes */
 .rsv-nav {
     display: grid;
@@ -47,7 +67,7 @@
     align-items: center;
     gap: 1rem;
     width: 100%;
-    max-width: 64rem;
+    max-width: 78rem;
     background: var(--n-surface);
     border: 1px solid var(--n-line);
     border-radius: 999px;
@@ -136,44 +156,112 @@
     height: 1.05rem;
 }
 
-/* Selector d'idioma */
-.rsv-nav .rsv-langwrap {
+/* Selector d'idioma: desplegable personalitzat */
+.rsv-langdd {
+    position: relative;
+}
+
+.rsv-langbtn {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.35rem;
     height: 2.25rem;
-    padding: 0 0.55rem 0 0.7rem;
+    padding: 0 0.6rem 0 0.7rem;
     border: 1px solid var(--n-line);
     border-radius: 999px;
+    background: transparent;
     color: var(--n-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
     cursor: pointer;
     transition: color 0.15s ease, border-color 0.15s ease;
 }
 
-.rsv-nav .rsv-langwrap:hover {
+.rsv-langbtn:hover,
+.rsv-langbtn.is-open {
     color: var(--n-ink);
     border-color: var(--n-muted);
 }
 
-.rsv-nav .rsv-langwrap > svg {
+.rsv-langbtn > svg {
     width: 1.05rem;
     height: 1.05rem;
 }
 
-.rsv-nav .rsv-lang {
+.rsv-langbtn .rsv-chev {
+    width: 0.9rem;
+    height: 0.9rem;
+    transition: transform 0.18s ease;
+}
+
+.rsv-langbtn.is-open .rsv-chev {
+    transform: rotate(180deg);
+}
+
+.rsv-langmenu {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    right: 0;
+    min-width: 9.5rem;
+    margin: 0;
+    padding: 0.3rem;
+    list-style: none;
+    background: var(--n-surface);
+    border: 1px solid var(--n-line);
+    border-radius: 0.85rem;
+    box-shadow: 0 14px 32px -14px rgba(16, 24, 40, 0.4);
+    z-index: 40;
+}
+
+.rsv-langmenu > li > button {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
     border: none;
     background: transparent;
     color: var(--n-ink);
-    font-size: 0.8rem;
-    font-weight: 700;
+    border-radius: 0.6rem;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.85rem;
     cursor: pointer;
-    padding: 0;
-    appearance: none;
-    -webkit-appearance: none;
+    text-align: left;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
-.rsv-nav .rsv-lang:focus {
-    outline: none;
+.rsv-langmenu > li > button:hover {
+    background: var(--n-line);
+}
+
+.rsv-langmenu > li > button.is-active {
+    background: var(--n-accent-soft);
+    color: var(--n-accent);
+}
+
+.rsv-langmenu .rsv-lcode {
+    font-weight: 700;
+    min-width: 1.6rem;
+}
+
+.rsv-langmenu .rsv-llabel {
+    color: var(--n-muted);
+    font-size: 0.78rem;
+}
+
+.rsv-langmenu > li > button.is-active .rsv-llabel {
+    color: inherit;
+}
+
+/* Animació del desplegable */
+.rsv-dd-enter-active,
+.rsv-dd-leave-active {
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.rsv-dd-enter-from,
+.rsv-dd-leave-to {
+    opacity: 0;
+    transform: translateY(-0.3rem);
 }
 
 /* Nom d'usuari */
@@ -208,12 +296,32 @@
     background: var(--n-line);
 }
 
+/* Botó de registre (visitants) */
+.rsv-nav .rsv-authlink {
+    background: var(--n-accent);
+    color: #fff;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: filter 0.15s ease;
+}
+
+.rsv-nav .rsv-authlink:hover {
+    filter: brightness(1.08);
+}
+
 /* --- 2n fill del shell: el contingut (centrat) --- */
 .rsv-shell > :nth-child(2) {
+    width: 100%;
     max-width: 72rem;
     margin: 0 auto;
     padding: 0.5rem 1rem 3rem;
     text-align: center;
+    flex: 1 0 auto;
 }
 
 /* Els camps de formulari es mantenen alineats a l'esquerra per llegibilitat */

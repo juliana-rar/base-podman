@@ -30,52 +30,7 @@
     --w-muted: #9b97b4;
 }
 
-/* --- 1r: capçalera / navegació --- */
-#rsv-welcome > :nth-child(1) {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 1.5rem clamp(1rem, 5vw, 4rem);
-    max-width: 72rem;
-    width: 100%;
-    margin: 0 auto;
-}
-
-#rsv-welcome > :nth-child(1) > :nth-child(1) {
-    font-size: 1.25rem;
-    font-weight: 700;
-    background: var(--w-accent);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-#rsv-welcome > :nth-child(1) > :nth-child(2) {
-    display: flex;
-    gap: 0.75rem;
-}
-
-#rsv-welcome > :nth-child(1) > :nth-child(2) > * {
-    padding: 0.5rem 1.1rem;
-    border-radius: 999px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-decoration: none;
-    color: var(--w-ink);
-    border: 1px solid rgba(127, 127, 160, 0.25);
-    transition: all 0.18s ease;
-}
-
-#rsv-welcome > :nth-child(1) > :nth-child(2) > :last-child {
-    background: var(--w-accent);
-    color: #fff;
-    border-color: transparent;
-}
-
-#rsv-welcome > :nth-child(1) > :nth-child(2) > *:hover {
-    transform: translateY(-1px);
-}
+/* (La capçalera ara és el component AppNavbar, amb estil propi a navbar.css) */
 
 /* --- 2n: hero --- */
 #rsv-welcome > :nth-child(2) {
@@ -387,13 +342,7 @@
     border-radius: 1.25rem;
 }
 
-/* --- 4t: peu de pàgina --- */
-#rsv-welcome > :nth-child(4) {
-    text-align: center;
-    padding: 2rem;
-    color: var(--w-muted);
-    font-size: 0.85rem;
-}
+/* (El peu de pàgina ara és el component AppFooter, amb estil propi a footer.css) */
 
 /* --- Lightbox (modal d'imatge gran), teleportat al body --- */
 .rsv-lightbox {

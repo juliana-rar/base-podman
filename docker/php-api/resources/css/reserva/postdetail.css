@@ -1,6 +1,6 @@
 /*
  * Pàgina pública de detall d'un post. Etiqueta base: #rsv-post.
- * Estil sobri (igual que la presentació) + carrusel d'imatges.
+ * Disseny modern: portada immersiva amb títol superposat + cos llegible.
  */
 
 #rsv-post {
@@ -13,11 +13,11 @@
 
     min-height: 100vh;
     background:
-        radial-gradient(1000px 500px at 90% -10%, rgba(79, 70, 229, 0.08), transparent 60%),
+        radial-gradient(1100px 520px at 90% -10%, rgba(79, 70, 229, 0.1), transparent 60%),
+        radial-gradient(900px 480px at 0% 0%, rgba(79, 70, 229, 0.06), transparent 55%),
         var(--p-bg);
     color: var(--p-ink);
     font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
-    text-align: center;
 }
 
 .dark #rsv-post {
@@ -29,173 +29,316 @@
     --p-accent: #818cf8;
 }
 
-/* --- 1r: capçalera amb enllaç de tornada --- */
-#rsv-post > :nth-child(1) {
-    max-width: 48rem;
-    margin: 0 auto;
-    padding: 1.5rem 1.25rem 0;
-}
+/* (La capçalera ara és el component AppNavbar, amb estil propi a navbar.css) */
 
-#rsv-post > :nth-child(1) > a {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--p-muted);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: color 0.15s ease;
-}
-
-#rsv-post > :nth-child(1) > a:hover {
-    color: var(--p-accent);
-}
-
-/* --- 2n: article --- */
+/* --- Article --- */
 #rsv-post > :nth-child(2) {
-    max-width: 48rem;
+    max-width: 62rem;
     margin: 0 auto;
     padding: 1.5rem 1.25rem 4rem;
 }
 
-/* Portada gran */
+/* --- Portada immersiva amb títol superposat --- */
 #rsv-post .rsv-hero {
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92vw;
+    max-width: 84rem;
+    min-height: 28rem;
+    background-size: cover;
+    background-position: center;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 24px 48px -24px rgba(16, 24, 40, 0.5);
+}
+
+#rsv-post .rsv-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(8, 10, 16, 0.88) 0%,
+        rgba(8, 10, 16, 0.45) 45%,
+        rgba(8, 10, 16, 0.05) 100%
+    );
+}
+
+#rsv-post .rsv-hero-content {
+    position: relative;
+    z-index: 1;
     width: 100%;
-    max-height: 24rem;
-    object-fit: cover;
-    border-radius: 1.25rem;
-    border: 1px solid var(--p-line);
-    margin-bottom: 1.5rem;
+    padding: 2.25rem;
+    text-align: left;
+    color: #fff;
 }
 
+#rsv-post .rsv-hero-content h1 {
+    color: #fff;
+}
+
+#rsv-post .rsv-hero-content .rsv-tags {
+    justify-content: flex-start;
+    margin-bottom: 1rem;
+}
+
+#rsv-post .rsv-hero-content .rsv-meta {
+    justify-content: flex-start;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 0;
+}
+
+/* --- Encapçalament sense portada (centrat) --- */
+#rsv-post .rsv-heading {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+#rsv-post .rsv-heading .rsv-tags,
+#rsv-post .rsv-heading .rsv-meta {
+    justify-content: center;
+}
+
+#rsv-post .rsv-heading .rsv-tags {
+    margin-bottom: 1rem;
+}
+
+/* --- Títol --- */
 #rsv-post h1 {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-size: clamp(1.9rem, 4.5vw, 2.75rem);
     font-weight: 800;
-    letter-spacing: -0.02em;
-    margin: 0 0 0.75rem;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    margin: 0 0 1rem;
+    overflow-wrap: anywhere;
 }
 
+/* --- Meta (autor + data) --- */
 #rsv-post .rsv-meta {
     display: flex;
-    justify-content: center;
-    gap: 1rem;
-    color: var(--p-muted);
+    align-items: center;
+    gap: 0.6rem;
     font-size: 0.9rem;
-    margin-bottom: 1.5rem;
+    font-weight: 500;
 }
 
+#rsv-post .rsv-avatar {
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--p-accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    flex: none;
+}
+
+#rsv-post .rsv-dot {
+    opacity: 0.6;
+}
+
+/* --- Etiquetes --- */
 #rsv-post .rsv-tags {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
     gap: 0.5rem;
-    margin: 0 0 1.5rem;
 }
 
 #rsv-post .rsv-tags > span {
     background: rgba(79, 70, 229, 0.09);
     color: var(--p-accent);
     border-radius: 999px;
-    padding: 0.25rem 0.8rem;
-    font-size: 0.8rem;
-    font-weight: 600;
+    padding: 0.3rem 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    backdrop-filter: blur(4px);
 }
 
 .dark #rsv-post .rsv-tags > span {
     background: rgba(129, 140, 248, 0.16);
 }
 
+/* --- Cos de l'article --- */
+#rsv-post .rsv-content {
+    max-width: 54rem;
+    margin: 0 auto;
+}
+
 #rsv-post .rsv-body {
-    line-height: 1.75;
-    font-size: 1.05rem;
+    line-height: 1.8;
+    font-size: 1.12rem;
     white-space: pre-line;
     margin: 0 0 2.5rem;
     text-align: left;
+    color: var(--p-ink);
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
-/* --- Carrusel --- */
-#rsv-post .rsv-carousel {
-    background: var(--p-card);
-    border: 1px solid var(--p-line);
-    border-radius: 1.25rem;
-    padding: 1rem;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+#rsv-post .rsv-body::first-letter {
+    float: left;
+    font-size: 3.4rem;
+    font-weight: 800;
+    line-height: 0.78;
+    padding: 0.3rem 0.65rem 0 0;
+    color: var(--p-accent);
 }
 
-/* Escenari (imatge gran + fletxes) */
-#rsv-post .rsv-carousel > div:first-child {
+/* --- Galeria ampla (3 imatges visibles, carrusel modern) --- */
+#rsv-post .rsv-gallery {
     position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92vw;
+    max-width: 72rem;
+    margin: 0 auto 2.5rem;
     display: flex;
     align-items: center;
+    gap: 0.5rem;
+}
+
+#rsv-post .rsv-gal-viewport {
+    flex: 1;
+    overflow: hidden;
+}
+
+#rsv-post .rsv-gal-track {
+    display: flex;
+    width: 100%;
+}
+
+#rsv-post .rsv-gal-track.is-static {
     justify-content: center;
 }
 
-#rsv-post .rsv-carousel > div:first-child > img {
-    width: 100%;
-    max-height: 28rem;
-    object-fit: contain;
-    border-radius: 0.85rem;
-    background: var(--p-bg);
+#rsv-post .rsv-gal-item {
+    flex: 0 0 calc(100% / var(--per, 3));
+    box-sizing: border-box;
+    padding: 0.3rem;
 }
 
-#rsv-post .rsv-carousel > div:first-child > button {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 2.75rem;
-    height: 2.75rem;
+#rsv-post .rsv-gal-item > img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 1rem;
+    display: block;
+    cursor: zoom-in;
+    box-shadow: 0 0.75rem 1.75rem -1rem rgba(16, 24, 40, 0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#rsv-post .rsv-gal-item > img:hover {
+    transform: scale(1.03);
+    box-shadow: 0 1.25rem 2.5rem -1rem rgba(16, 24, 40, 0.6);
+}
+
+#rsv-post .rsv-gal-nav {
+    flex: 0 0 auto;
+    width: 2.85rem;
+    height: 2.85rem;
     border-radius: 50%;
     border: 1px solid var(--p-line);
     background: var(--p-card);
     color: var(--p-ink);
-    font-size: 1.5rem;
+    font-size: 1.55rem;
     line-height: 1;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(16, 24, 40, 0.15);
+    box-shadow: 0 4px 12px -6px rgba(16, 24, 40, 0.3);
+    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
+}
+
+#rsv-post .rsv-gal-nav:hover:not(:disabled) {
+    background: var(--p-accent);
+    color: #fff;
+    border-color: transparent;
+    transform: scale(1.08);
+}
+
+#rsv-post .rsv-gal-nav:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+/* --- Lightbox (modal d'imatge gran), teleportat al body --- */
+.rsv-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: rgba(10, 12, 20, 0.88);
+    backdrop-filter: blur(4px);
+    cursor: zoom-out;
+}
+
+.rsv-lightbox > img {
+    max-width: 92vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 0.85rem;
+    box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.5);
+    cursor: default;
+}
+
+.rsv-lb-close {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.5rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
     transition: background 0.15s ease;
 }
 
-#rsv-post .rsv-carousel > div:first-child > button:first-of-type {
-    left: 0.75rem;
+.rsv-lb-close:hover {
+    background: rgba(255, 255, 255, 0.32);
 }
 
-#rsv-post .rsv-carousel > div:first-child > button:last-of-type {
-    right: 0.75rem;
+.rsv-lb-enter-active,
+.rsv-lb-leave-active {
+    transition: opacity 0.25s ease;
 }
 
-#rsv-post .rsv-carousel > div:first-child > button:hover {
-    background: var(--p-bg);
+.rsv-lb-enter-from,
+.rsv-lb-leave-to {
+    opacity: 0;
 }
 
-/* Miniatures */
-#rsv-post .rsv-thumbs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.85rem;
-}
+@media (max-width: 38rem) {
+    #rsv-post .rsv-hero {
+        min-height: 18rem;
+    }
 
-#rsv-post .rsv-thumbs > button {
-    width: 4rem;
-    height: 4rem;
-    padding: 0;
-    border: 2px solid transparent;
-    border-radius: 0.6rem;
-    overflow: hidden;
-    cursor: pointer;
-    background: none;
-    opacity: 0.6;
-    transition: opacity 0.15s ease, border-color 0.15s ease;
-}
+    #rsv-post .rsv-hero-content {
+        padding: 1.5rem;
+    }
 
-#rsv-post .rsv-thumbs > button > img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
+    #rsv-post .rsv-gallery {
+        width: 94vw;
+        padding: 0 0.25rem;
+    }
 
-#rsv-post .rsv-thumbs > .is-active {
-    opacity: 1;
-    border-color: var(--p-accent);
+    #rsv-post .rsv-gal-nav {
+        width: 2.4rem;
+        height: 2.4rem;
+        font-size: 1.25rem;
+    }
 }

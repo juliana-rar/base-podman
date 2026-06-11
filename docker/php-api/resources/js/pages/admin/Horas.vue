@@ -9,7 +9,12 @@ interface Slot {
     id: number;
     starts_at: string;
     notes: string | null;
-    reservation: { id: number; note: string | null; user: { id: number; name: string; email: string } } | null;
+    reservation: {
+        id: number;
+        note: string | null;
+        service: { id: number; name: string } | null;
+        user: { id: number; name: string; email: string };
+    } | null;
 }
 
 const props = defineProps<{
@@ -202,6 +207,7 @@ function remove(id: number): void {
                                 {{ slot.reservation ? 'Reservada' : 'Lliure' }}
                             </span>
                             <span v-if="slot.reservation" class="rsv-slot-user">👤 {{ slot.reservation.user.name }}</span>
+                            <span v-if="slot.reservation?.service" class="rsv-slot-note">🔖 {{ slot.reservation.service.name }}</span>
                             <span v-if="slot.reservation?.note" class="rsv-slot-note">💬 {{ slot.reservation.note }}</span>
                             <span v-if="slot.notes" class="rsv-slot-note">📝 {{ slot.notes }}</span>
                         </div>

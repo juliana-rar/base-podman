@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Service;
 use App\Models\Slot;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class SlotController extends Controller
 
         $myReservations = $request->user()
             ->reservations()
-            ->with('slot:id,starts_at,notes')
+            ->with('slot:id,starts_at,notes', 'service:id,name')
             ->get()
             ->sortBy('slot.starts_at')
             ->values();
@@ -31,6 +32,7 @@ class SlotController extends Controller
         return Inertia::render('Reservar', [
             'availableSlots' => $available,
             'myReservations' => $myReservations,
+            'services' => Service::orderBy('name')->get(['id', 'name', 'image_path']),
         ]);
     }
 
@@ -41,7 +43,7 @@ class SlotController extends Controller
     {
         // Només les franges d'avui en endavant; les de dies passats no es mostren.
         $slots = Slot::query()
-            ->with('reservation.user:id,name,email')
+            ->with('reservation.user:id,name,email', 'reservation.service:id,name')
             ->whereDate('starts_at', '>=', now()->toDateString())
             ->orderBy('starts_at')
             ->get();

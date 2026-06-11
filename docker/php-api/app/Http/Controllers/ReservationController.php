@@ -19,9 +19,9 @@ class ReservationController extends Controller
     {
         return Inertia::render('admin/Historial', [
             'reservations' => Reservation::query()
-                ->with(['user:id,name,email', 'slot:id,starts_at,notes'])
+                ->with(['user:id,name,email', 'slot:id,starts_at,notes', 'service:id,name'])
                 ->latest()
-                ->get(['id', 'slot_id', 'user_id', 'note', 'created_at']),
+                ->get(['id', 'slot_id', 'user_id', 'service_id', 'note', 'created_at']),
         ]);
     }
 
@@ -32,6 +32,7 @@ class ReservationController extends Controller
     {
         $validated = $request->validate([
             'slot_id' => ['required', 'integer', 'exists:slots,id'],
+            'service_id' => ['required', 'integer', 'exists:services,id'],
             'note' => ['required', 'string', 'max:1000'],
         ]);
 
@@ -46,6 +47,7 @@ class ReservationController extends Controller
         Reservation::create([
             'slot_id' => $slot->id,
             'user_id' => $request->user()->id,
+            'service_id' => $validated['service_id'],
             'note' => $validated['note'],
         ]);
 

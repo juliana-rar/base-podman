@@ -13,7 +13,9 @@ interface Post {
     id: number;
     title: string;
     body: string;
+    summary: string | null;
     cover_url: string | null;
+    images: string[];
     image_urls: string[];
     tags: Tag[];
     created_at: string;
@@ -31,11 +33,23 @@ defineOptions({
     },
 });
 
-const form = useForm<{ title: string; body: string; cover: File | null; images: File[]; tags: string[] }>({
+const form = useForm<{
+    title: string;
+    body: string;
+    summary: string;
+    cover: File | null;
+    removeCover: boolean;
+    images: File[];
+    keepImages: string[];
+    tags: string[];
+}>({
     title: '',
     body: '',
+    summary: '',
     cover: null,
+    removeCover: false,
     images: [],
+    keepImages: [],
     tags: [],
 });
 
@@ -43,7 +57,12 @@ const editingId = ref<number | null>(null);
 const isEditing = computed(() => editingId.value !== null);
 
 const coverPreview = ref<string | null>(null);
+// Portada actual del post en edició (per poder veure-la i treure-la).
+const editCover = ref<string | null>(null);
 const imagePreviews = ref<string[]>([]);
+// Imatges de galeria ja existents del post en edició (path + url públic).
+const editImages = ref<{ path: string; url: string }[]>([]);
+const keptExisting = computed(() => editImages.value.filter((img) => form.keepImages.includes(img.path)));
 const tagInput = ref('');
 const search = ref('');
 
@@ -84,6 +103,8 @@ function clearPreviews(): void {
     imagePreviews.value.forEach((url) => URL.revokeObjectURL(url));
     coverPreview.value = null;
     imagePreviews.value = [];
+    editImages.value = [];
+    editCover.value = null;
 }
 
 function onCover(event: Event): void {
@@ -93,13 +114,42 @@ function onCover(event: Event): void {
         URL.revokeObjectURL(coverPreview.value);
     }
     coverPreview.value = file ? URL.createObjectURL(file) : null;
+    // Triar una portada nova anul·la la petició de treure l'actual.
+    if (file) {
+        form.removeCover = false;
+    }
+}
+
+function clearNewCover(): void {
+    if (coverPreview.value) {
+        URL.revokeObjectURL(coverPreview.value);
+    }
+    coverPreview.value = null;
+    form.cover = null;
+}
+
+function removeCurrentCover(): void {
+    form.removeCover = true;
 }
 
 function onImages(event: Event): void {
-    const files = Array.from((event.target as HTMLInputElement).files ?? []);
-    form.images = files;
-    imagePreviews.value.forEach((url) => URL.revokeObjectURL(url));
-    imagePreviews.value = files.map((file) => URL.createObjectURL(file));
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    // Acumulem: afegim les noves a les ja triades en comptes de substituir-les.
+    form.images = [...form.images, ...files];
+    imagePreviews.value = [...imagePreviews.value, ...files.map((file) => URL.createObjectURL(file))];
+    // Buidem l'input perquè es pugui tornar a triar (fins i tot els mateixos fitxers).
+    input.value = '';
+}
+
+function removeNewImage(index: number): void {
+    URL.revokeObjectURL(imagePreviews.value[index]);
+    imagePreviews.value.splice(index, 1);
+    form.images.splice(index, 1);
+}
+
+function removeExisting(path: string): void {
+    form.keepImages = form.keepImages.filter((p) => p !== path);
 }
 
 function toggleTag(name: string): void {
@@ -131,11 +181,18 @@ function startEdit(post: Post): void {
     form.clearErrors();
     form.title = post.title;
     form.body = post.body;
+    form.summary = post.summary ?? '';
     form.tags = post.tags.map((t) => t.name);
     form.cover = null;
     form.images = [];
     tagInput.value = '';
     clearPreviews();
+    // Portada actual (es conserva tret que l'admin la tregui).
+    editCover.value = post.cover_url;
+    form.removeCover = false;
+    // Carreguem la galeria actual del post (totes conservades per defecte).
+    editImages.value = (post.images ?? []).map((path, i) => ({ path, url: post.image_urls[i] }));
+    form.keepImages = [...(post.images ?? [])];
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -201,6 +258,17 @@ function remove(id: number): void {
             <textarea id="body" v-model="form.body" required></textarea>
             <p v-if="form.errors.body" class="rsv-error">{{ form.errors.body }}</p>
 
+            <label for="summary">Resum (per a la pàgina d'inici)</label>
+            <textarea
+                id="summary"
+                v-model="form.summary"
+                maxlength="500"
+                rows="3"
+                placeholder="Text breu que apareixerà a la targeta de la pàgina de presentació (el contingut complet només es veu al detall del post)."
+            ></textarea>
+            <p class="rsv-tag">{{ form.summary.length }}/500</p>
+            <p v-if="form.errors.summary" class="rsv-error">{{ form.errors.summary }}</p>
+
             <label>Etiquetes</label>
             <div v-if="tagOptions.length" class="rsv-tagpick">
                 <button
@@ -225,18 +293,49 @@ function remove(id: number): void {
             </div>
 
             <label for="cover">Imatge de portada</label>
+
+            <!-- Portada actual (en edició) -->
+            <div v-if="isEditing && editCover && !coverPreview && !form.removeCover" class="rsv-cover-current">
+                <span class="rsv-tag">Portada actual — prem × per treure-la:</span>
+                <div class="rsv-thumb-wrap rsv-thumb-wrap-lg">
+                    <img :src="editCover" alt="Portada actual" />
+                    <button type="button" class="rsv-thumb-x" title="Treure portada" @click="removeCurrentCover">×</button>
+                </div>
+            </div>
+            <p v-else-if="isEditing && form.removeCover && !coverPreview" class="rsv-tag">
+                S'eliminarà la portada en desar. Tria'n una de nova si vols substituir-la.
+            </p>
+
             <input :key="`cover-${editingId ?? 'new'}`" id="cover" type="file" accept="image/*" @change="onCover" />
-            <img v-if="coverPreview" :src="coverPreview" alt="Portada" class="rsv-preview" />
+            <div v-if="coverPreview" class="rsv-thumb-wrap rsv-thumb-wrap-lg">
+                <img :src="coverPreview" alt="Portada" />
+                <button type="button" class="rsv-thumb-x" title="Treure" @click="clearNewCover">×</button>
+            </div>
             <p v-if="form.errors.cover" class="rsv-error">{{ form.errors.cover }}</p>
 
             <label for="images">Altres imatges (galeria)</label>
+
+            <!-- Imatges actuals del post (en edició) -->
+            <div v-if="isEditing && keptExisting.length" class="rsv-gallery-current">
+                <span class="rsv-tag">Imatges actuals — prem × per treure-les:</span>
+                <div class="rsv-thumbs">
+                    <div v-for="img in keptExisting" :key="img.path" class="rsv-thumb-wrap">
+                        <img :src="img.url" alt="" />
+                        <button type="button" class="rsv-thumb-x" title="Treure" @click="removeExisting(img.path)">×</button>
+                    </div>
+                </div>
+            </div>
+
             <input :key="`images-${editingId ?? 'new'}`" id="images" type="file" accept="image/*" multiple @change="onImages" />
             <div v-if="imagePreviews.length" class="rsv-thumbs">
-                <img v-for="(src, i) in imagePreviews" :key="i" :src="src" alt="" />
+                <div v-for="(src, i) in imagePreviews" :key="i" class="rsv-thumb-wrap">
+                    <img :src="src" alt="" />
+                    <button type="button" class="rsv-thumb-x" title="Treure" @click="removeNewImage(i)">×</button>
+                </div>
             </div>
             <p v-if="form.errors.images" class="rsv-error">{{ form.errors.images }}</p>
 
-            <p v-if="isEditing" class="rsv-tag">Deixa les imatges buides per mantenir les actuals.</p>
+            <p v-if="isEditing" class="rsv-tag">Pots triar fitxers diverses vegades; s'aniran acumulant. Les imatges actuals es mantenen tret que les treguis amb ×.</p>
 
             <div class="rsv-form-actions">
                 <button type="submit" :disabled="form.processing">
