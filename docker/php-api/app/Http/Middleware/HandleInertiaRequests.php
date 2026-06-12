@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\BusinessHour;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -41,6 +43,19 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'businessHours' => rescue(
+                fn () => BusinessHour::orderBy('weekday')->get(['weekday', 'closed', 'opens', 'closes']),
+                [],
+                false,
+            ),
+            'businessAddress' => rescue(fn () => Setting::get('address'), null, false),
+            'siteContact' => rescue(fn () => [
+                'email' => Setting::get('email'),
+                'phone' => Setting::get('phone'),
+                'instagram' => Setting::get('instagram'),
+                'facebook' => Setting::get('facebook'),
+                'linkedin' => Setting::get('linkedin'),
+            ], [], false),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

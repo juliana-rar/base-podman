@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BusinessHourController;
 use App\Http\Controllers\CancellationController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ReservationController;
@@ -63,6 +64,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Cancel·lacions amb el seu motiu
         Route::get('cancellacions', [CancellationController::class, 'index'])->name('cancellacions');
+
+        // Informació (horari, adreça i contacte del footer)
+        Route::get('informacio', [BusinessHourController::class, 'index'])->name('informacio');
+        Route::put('informacio', [BusinessHourController::class, 'update'])->name('informacio.update');
     });
 });
 

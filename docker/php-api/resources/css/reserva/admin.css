@@ -3,6 +3,195 @@
  * Etiqueta base única per pàgina; seccions controlades per :nth-child.
  */
 
+/* ---------- Horari d'atenció (#rsv-horaris) ---------- */
+#rsv-horaris {
+    --a-card: #ffffff;
+    --a-ink: #1e1b2e;
+    --a-muted: #6b6880;
+    --a-line: rgba(127, 127, 160, 0.18);
+    --a-accent: #4f46e5;
+    --a-soft: rgba(79, 70, 229, 0.09);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    color: var(--a-ink);
+}
+
+.dark #rsv-horaris {
+    --a-card: #161327;
+    --a-ink: #ede9ff;
+    --a-muted: #9b97b4;
+    --a-line: rgba(150, 150, 190, 0.16);
+    --a-accent: #818cf8;
+    --a-soft: rgba(129, 140, 248, 0.16);
+}
+
+#rsv-horaris > :nth-child(1) > :nth-child(1) {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+}
+
+#rsv-horaris > :nth-child(1) > :nth-child(2) {
+    color: var(--a-muted);
+    margin: 0;
+}
+
+#rsv-horaris > form {
+    background: var(--a-card);
+    border: 1px solid var(--a-line);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.5rem 1.5rem -0.85rem rgba(30, 27, 46, 0.3);
+    width: 100%;
+    max-width: 40rem;
+    text-align: center;
+}
+
+#rsv-horaris .rsv-hr-section {
+    text-align: left;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0 0 0.85rem;
+}
+
+#rsv-horaris .rsv-hr-section:nth-of-type(2) {
+    margin-top: 1.75rem;
+}
+
+#rsv-horaris .rsv-hr-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    text-align: left;
+    margin-bottom: 1.5rem;
+}
+
+#rsv-horaris .rsv-hr-fields > label {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--a-muted);
+    margin-top: 0.5rem;
+}
+
+#rsv-horaris .rsv-hr-fields > input {
+    width: 100%;
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-ink);
+    border-radius: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.95rem;
+}
+
+#rsv-horaris .rsv-hr-fields > input:focus {
+    outline: none;
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-soft);
+}
+
+#rsv-horaris .rsv-error {
+    text-align: left;
+    color: #dc2626;
+    font-size: 0.85rem;
+    margin: 0.1rem 0 0;
+}
+
+#rsv-horaris .rsv-hr-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+#rsv-horaris .rsv-hr-row {
+    display: grid;
+    grid-template-columns: minmax(6rem, 1fr) auto auto;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid var(--a-line);
+    border-radius: 0.85rem;
+    padding: 0.7rem 1rem;
+}
+
+#rsv-horaris .rsv-hr-row.is-closed {
+    background: var(--a-soft);
+}
+
+#rsv-horaris .rsv-hr-day {
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+#rsv-horaris .rsv-hr-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--a-muted);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+#rsv-horaris .rsv-hr-toggle > input {
+    width: 1.05rem;
+    height: 1.05rem;
+    accent-color: var(--a-accent);
+    cursor: pointer;
+}
+
+#rsv-horaris .rsv-hr-times {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--a-muted);
+}
+
+#rsv-horaris .rsv-hr-times > input {
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-ink);
+    border-radius: 0.6rem;
+    padding: 0.4rem 0.55rem;
+    font-size: 0.9rem;
+    color-scheme: light dark;
+}
+
+#rsv-horaris .rsv-hr-times > input:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+#rsv-horaris button[type='submit'] {
+    border: none;
+    background: var(--a-accent);
+    color: #fff;
+    border-radius: 0.85rem;
+    padding: 0.7rem 1.5rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+}
+
+#rsv-horaris button[type='submit']:hover:not(:disabled) {
+    filter: brightness(1.08);
+}
+
+#rsv-horaris button[type='submit']:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 34rem) {
+    #rsv-horaris .rsv-hr-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+}
+
 #rsv-hours,
 #rsv-posts {
     --a-card: #ffffff;
