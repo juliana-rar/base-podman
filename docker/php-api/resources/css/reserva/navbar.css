@@ -94,12 +94,23 @@
 
 /* 1r: marca (esquerra) */
 .rsv-nav > :nth-child(1) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
     font-weight: 700;
     font-size: 1.05rem;
     letter-spacing: -0.01em;
     color: var(--n-ink);
     text-decoration: none;
     justify-self: start;
+}
+
+.rsv-nav .rsv-brand-logo {
+    height: 1.7rem;
+    width: auto;
+    max-width: 9rem;
+    object-fit: contain;
+    display: block;
 }
 
 /* 2n: enllaços (centrats) */

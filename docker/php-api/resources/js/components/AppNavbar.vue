@@ -19,6 +19,8 @@ import type { NavItem } from '@/types';
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user ?? null);
+const siteName = computed(() => (page.props.siteName as string | undefined) || 'ReservaHores');
+const logoUrl = computed(() => (page.props.logoUrl as string | null | undefined) ?? null);
 const { isCurrentUrl } = useCurrentUrl();
 const { resolvedAppearance, updateAppearance } = useAppearance();
 const { t, locale, setLocale, locales } = useI18n();
@@ -84,7 +86,10 @@ onBeforeUnmount(() => {
 <template>
     <header class="rsv-navbar">
         <div class="rsv-nav">
-            <Link href="/">ReservaHores</Link>
+            <Link href="/" class="rsv-brand">
+                <img v-if="logoUrl" :src="logoUrl" alt="" class="rsv-brand-logo" />
+                <span>{{ siteName }}</span>
+            </Link>
             <nav>
                 <Link
                     v-for="item in items"

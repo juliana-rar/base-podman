@@ -226,6 +226,13 @@
     justify-content: center;
 }
 
+/* Poques imatges (sense carrusel): no s'estiren a tota l'amplada */
+#rsv-post .rsv-gal-track.is-static .rsv-gal-item {
+    flex: 0 1 auto;
+    width: 15rem;
+    max-width: 100%;
+}
+
 #rsv-post .rsv-gal-item {
     flex: 0 0 calc(100% / var(--per, 3));
     box-sizing: border-box;

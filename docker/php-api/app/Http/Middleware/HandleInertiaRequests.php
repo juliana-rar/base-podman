@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\BusinessHour;
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -56,6 +57,8 @@ class HandleInertiaRequests extends Middleware
                 'facebook' => Setting::get('facebook'),
                 'linkedin' => Setting::get('linkedin'),
             ], [], false),
+            'siteName' => rescue(fn () => Setting::get('site_name') ?: 'ReservaHores', 'ReservaHores', false),
+            'logoUrl' => rescue(fn () => ($p = Setting::get('logo')) ? Storage::url($p) : null, null, false),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

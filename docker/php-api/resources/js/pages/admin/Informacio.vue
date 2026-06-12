@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import { useI18n } from '@/lib/i18n';
 import '../../../css/reserva/admin.css';
 
@@ -18,6 +19,8 @@ const props = defineProps<{
     instagram: string | null;
     facebook: string | null;
     linkedin: string | null;
+    siteName: string | null;
+    logoUrl: string | null;
 }>();
 
 defineOptions({
@@ -41,6 +44,9 @@ const form = useForm<{
     instagram: string;
     facebook: string;
     linkedin: string;
+    site_name: string;
+    logo: File | null;
+    removeLogo: boolean;
 }>({
     hours: props.hours.map((h) => ({
         weekday: h.weekday,
@@ -54,10 +60,47 @@ const form = useForm<{
     instagram: props.instagram ?? '',
     facebook: props.facebook ?? '',
     linkedin: props.linkedin ?? '',
+    site_name: props.siteName ?? '',
+    logo: null,
+    removeLogo: false,
 });
 
+const logoPreview = ref<string | null>(null);
+
+function onLogo(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+    form.logo = file;
+    form.removeLogo = false;
+    if (logoPreview.value) {
+        URL.revokeObjectURL(logoPreview.value);
+    }
+    logoPreview.value = file ? URL.createObjectURL(file) : null;
+}
+
+function removeLogo(): void {
+    form.logo = null;
+    form.removeLogo = true;
+    if (logoPreview.value) {
+        URL.revokeObjectURL(logoPreview.value);
+    }
+    logoPreview.value = null;
+}
+
 function submit(): void {
-    form.put('/admin/informacio', { preserveScroll: true });
+    form
+        .transform((data) => ({ ...data, _method: 'put' }))
+        .post('/admin/informacio', {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                form.logo = null;
+                form.removeLogo = false;
+                if (logoPreview.value) {
+                    URL.revokeObjectURL(logoPreview.value);
+                }
+                logoPreview.value = null;
+            },
+        });
 }
 </script>
 
@@ -71,6 +114,34 @@ function submit(): void {
         </header>
 
         <form @submit.prevent="submit">
+            <h2 class="rsv-hr-section">Marca</h2>
+            <div class="rsv-hr-fields">
+                <label for="site_name">Nom (apareix al navbar i al footer)</label>
+                <input id="site_name" v-model="form.site_name" type="text" maxlength="100" placeholder="ReservaHores" />
+
+                <label>Logo</label>
+                <div class="rsv-logo-row">
+                    <div class="rsv-logo-prev">
+                        <img v-if="logoPreview" :src="logoPreview" alt="" />
+                        <img v-else-if="props.logoUrl && !form.removeLogo" :src="props.logoUrl" alt="" />
+                        <span v-else class="rsv-logo-none">Sense logo</span>
+                    </div>
+                    <label class="rsv-file">
+                        <span>{{ form.logo ? form.logo.name : 'Triar imatge' }}</span>
+                        <input type="file" accept="image/*" @change="onLogo" />
+                    </label>
+                    <button
+                        v-if="(props.logoUrl && !form.removeLogo) || logoPreview"
+                        type="button"
+                        class="rsv-logo-del"
+                        @click="removeLogo"
+                    >
+                        Treure
+                    </button>
+                </div>
+                <p v-if="form.errors.logo" class="rsv-error">{{ form.errors.logo }}</p>
+            </div>
+
             <h2 class="rsv-hr-section">Horari d'atenció</h2>
             <div class="rsv-hr-rows">
                 <div v-for="h in form.hours" :key="h.weekday" class="rsv-hr-row" :class="{ 'is-closed': h.closed }">

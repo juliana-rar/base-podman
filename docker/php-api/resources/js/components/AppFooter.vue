@@ -15,6 +15,7 @@ interface BusinessHour {
 const page = usePage();
 const { t, localeTag } = useI18n();
 const year = computed(() => new Date().getFullYear());
+const siteName = computed(() => (page.props.siteName as string | undefined) || 'ReservaHores');
 
 const hours = computed<BusinessHour[]>(() => (page.props.businessHours as BusinessHour[] | undefined) ?? []);
 const address = computed<string>(() => (page.props.businessAddress as string | null | undefined) ?? '');
@@ -122,7 +123,7 @@ function hourRange(h: BusinessHour): string {
         </div>
 
         <div class="rsv-footer-bottom">
-            <span>© {{ year }} ReservaHores · {{ t('footer.rights') }}</span>
+            <span>© {{ year }} {{ siteName }} · {{ t('footer.rights') }}</span>
         </div>
     </footer>
 </template>

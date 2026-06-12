@@ -18,6 +18,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
+# Límits de pujada de fitxers (fotos) més alts que els 2M per defecte
+RUN { echo 'upload_max_filesize=20M'; echo 'post_max_size=25M'; echo 'memory_limit=256M'; } > /usr/local/etc/php/conf.d/zz-uploads.ini
+
 # Composer (copiado desde la imagen oficial)
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 

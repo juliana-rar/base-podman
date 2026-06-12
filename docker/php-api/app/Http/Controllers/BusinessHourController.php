@@ -6,6 +6,7 @@ use App\Models\BusinessHour;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,6 +36,8 @@ class BusinessHourController extends Controller
     {
         $this->ensureRows();
 
+        $logo = Setting::get('logo');
+
         return Inertia::render('admin/Informacio', [
             'hours' => BusinessHour::orderBy('weekday')->get(['weekday', 'closed', 'opens', 'closes']),
             'address' => Setting::get('address', ''),
@@ -43,6 +46,8 @@ class BusinessHourController extends Controller
             'instagram' => Setting::get('instagram', ''),
             'facebook' => Setting::get('facebook', ''),
             'linkedin' => Setting::get('linkedin', ''),
+            'siteName' => Setting::get('site_name', 'ReservaHores'),
+            'logoUrl' => $logo ? Storage::url($logo) : null,
         ]);
     }
 
@@ -63,6 +68,9 @@ class BusinessHourController extends Controller
             'instagram' => ['nullable', 'string', 'max:255'],
             'facebook' => ['nullable', 'string', 'max:255'],
             'linkedin' => ['nullable', 'string', 'max:255'],
+            'site_name' => ['nullable', 'string', 'max:100'],
+            'logo' => ['nullable', 'image', 'max:2048'],
+            'removeLogo' => ['nullable', 'boolean'],
         ]);
 
         foreach ($validated['hours'] as $hour) {
@@ -73,11 +81,24 @@ class BusinessHourController extends Controller
             ]);
         }
 
-        foreach (['address', 'email', 'phone', 'instagram', 'facebook', 'linkedin'] as $key) {
+        foreach (['address', 'email', 'phone', 'instagram', 'facebook', 'linkedin', 'site_name'] as $key) {
             Setting::put($key, $validated[$key] ?? null);
         }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Horari actualitzat.']);
+        // Logo: substitueix si se'n puja un de nou; elimina si es demana.
+        if ($request->hasFile('logo')) {
+            if ($old = Setting::get('logo')) {
+                Storage::disk('public')->delete($old);
+            }
+            Setting::put('logo', $request->file('logo')->store('site', 'public'));
+        } elseif ($request->boolean('removeLogo')) {
+            if ($old = Setting::get('logo')) {
+                Storage::disk('public')->delete($old);
+            }
+            Setting::put('logo', null);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Informació actualitzada.']);
 
         return back();
     }

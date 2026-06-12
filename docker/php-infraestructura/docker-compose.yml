@@ -39,7 +39,10 @@ services:
       db:
         condition: service_healthy
     command: >
-      sh -c "composer install --no-interaction --prefer-dist &&
+      sh -c "echo 'upload_max_filesize=20M' > /usr/local/etc/php/conf.d/zz-uploads.ini &&
+             echo 'post_max_size=25M' >> /usr/local/etc/php/conf.d/zz-uploads.ini &&
+             echo 'memory_limit=256M' >> /usr/local/etc/php/conf.d/zz-uploads.ini &&
+             composer install --no-interaction --prefer-dist &&
              npm install &&
              npm run build &&
              php artisan migrate --force &&

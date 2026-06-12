@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import { home } from '@/routes';
 
 defineProps<{
     title?: string;
     description?: string;
 }>();
+
+const page = usePage();
+const siteName = computed(() => (page.props.siteName as string | undefined) || 'ReservaHores');
+const logoUrl = computed(() => (page.props.logoUrl as string | null | undefined) ?? null);
 </script>
 
 <template>
@@ -29,9 +34,10 @@ defineProps<{
                     <div class="flex flex-col items-center gap-3">
                         <Link
                             :href="home()"
-                            class="text-2xl font-extrabold tracking-tight text-[#4f46e5] dark:text-[#818cf8]"
+                            class="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-[#4f46e5] dark:text-[#818cf8]"
                         >
-                            ReservaHores
+                            <img v-if="logoUrl" :src="logoUrl" alt="" class="h-8 w-auto max-w-[10rem] object-contain" />
+                            <span>{{ siteName }}</span>
                         </Link>
                         <div class="space-y-1.5 text-center">
                             <h1 class="text-xl font-semibold">{{ title }}</h1>
