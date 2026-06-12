@@ -11,11 +11,23 @@
     --n-line: #e5e7eb;
     --n-accent: #4f46e5;
     --n-accent-soft: rgba(79, 70, 229, 0.1);
+    --pat-dot: rgba(79, 70, 229, 0.16);
+    --pat-grid: rgba(79, 70, 229, 0.06);
+    --pat-h1: rgba(79, 70, 229, 0.18);
+    --pat-h2: rgba(168, 85, 247, 0.14);
+    --pat-h3: rgba(236, 72, 153, 0.1);
 
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background: var(--n-bg);
+    /* Patró modern: halos d'accent + graella de punts + línies fines */
+    background:
+        radial-gradient(900px 480px at 85% -6%, var(--pat-h1), transparent 60%),
+        radial-gradient(820px 460px at -8% 4%, var(--pat-h2), transparent 55%),
+        radial-gradient(700px 700px at 50% 118%, var(--pat-h3), transparent 60%),
+        radial-gradient(circle at 1px 1px, var(--pat-dot) 1.5px, transparent 1.6px) 0 0 / 26px 26px,
+        linear-gradient(var(--pat-grid) 1px, transparent 1px) 0 0 / 100% 26px,
+        var(--n-bg);
     color: var(--n-ink);
     font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
 }
@@ -28,6 +40,11 @@
     --n-line: rgba(255, 255, 255, 0.08);
     --n-accent: #818cf8;
     --n-accent-soft: rgba(129, 140, 248, 0.14);
+    --pat-dot: rgba(129, 140, 248, 0.14);
+    --pat-grid: rgba(129, 140, 248, 0.06);
+    --pat-h1: rgba(79, 70, 229, 0.16);
+    --pat-h2: rgba(168, 85, 247, 0.12);
+    --pat-h3: rgba(236, 72, 153, 0.08);
 }
 
 /* --- Capçalera (sticky). Per classe perquè funcioni dins i fora del shell --- */
@@ -46,8 +63,8 @@
     display: flex;
     justify-content: center;
     padding: 0.85rem 1rem;
-    background: color-mix(in srgb, var(--n-bg) 80%, transparent);
-    backdrop-filter: blur(8px);
+    /* Transparent: el fons modern es veu sencer darrere del nav a totes les pàgines */
+    background: transparent;
 }
 
 .dark .rsv-navbar {

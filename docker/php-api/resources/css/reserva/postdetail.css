@@ -11,10 +11,20 @@
     --p-line: #e5e7eb;
     --p-accent: #4f46e5;
 
+    --pat-dot: rgba(79, 70, 229, 0.16);
+    --pat-grid: rgba(79, 70, 229, 0.06);
+    --pat-h1: rgba(79, 70, 229, 0.18);
+    --pat-h2: rgba(168, 85, 247, 0.14);
+    --pat-h3: rgba(236, 72, 153, 0.1);
+
     min-height: 100vh;
+    /* Patró modern (igual que la resta de webs) */
     background:
-        radial-gradient(1100px 520px at 90% -10%, rgba(79, 70, 229, 0.1), transparent 60%),
-        radial-gradient(900px 480px at 0% 0%, rgba(79, 70, 229, 0.06), transparent 55%),
+        radial-gradient(900px 480px at 85% -6%, var(--pat-h1), transparent 60%),
+        radial-gradient(820px 460px at -8% 4%, var(--pat-h2), transparent 55%),
+        radial-gradient(700px 700px at 50% 118%, var(--pat-h3), transparent 60%),
+        radial-gradient(circle at 1px 1px, var(--pat-dot) 1.5px, transparent 1.6px) 0 0 / 26px 26px,
+        linear-gradient(var(--pat-grid) 1px, transparent 1px) 0 0 / 100% 26px,
         var(--p-bg);
     color: var(--p-ink);
     font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
@@ -27,6 +37,11 @@
     --p-muted: #9aa0ac;
     --p-line: rgba(255, 255, 255, 0.08);
     --p-accent: #818cf8;
+    --pat-dot: rgba(129, 140, 248, 0.14);
+    --pat-grid: rgba(129, 140, 248, 0.06);
+    --pat-h1: rgba(79, 70, 229, 0.16);
+    --pat-h2: rgba(168, 85, 247, 0.12);
+    --pat-h3: rgba(236, 72, 153, 0.08);
 }
 
 /* (La capçalera ara és el component AppNavbar, amb estil propi a navbar.css) */
@@ -182,15 +197,6 @@
     color: var(--p-ink);
     overflow-wrap: anywhere;
     word-break: break-word;
-}
-
-#rsv-post .rsv-body::first-letter {
-    float: left;
-    font-size: 3.4rem;
-    font-weight: 800;
-    line-height: 0.78;
-    padding: 0.3rem 0.65rem 0 0;
-    color: var(--p-accent);
 }
 
 /* --- Galeria ampla (3 imatges visibles, carrusel modern) --- */

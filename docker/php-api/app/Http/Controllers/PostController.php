@@ -18,7 +18,7 @@ class PostController extends Controller
      *
      * @var list<string>
      */
-    private array $columns = ['id', 'title', 'slug', 'body', 'summary', 'cover_image', 'images', 'user_id', 'created_at'];
+    private array $columns = ['id', 'title', 'slug', 'body', 'body2', 'summary', 'cover_image', 'images', 'user_id', 'created_at'];
 
     /**
      * Pàgina pública de detall d'un post, amb portada i galeria.
@@ -51,6 +51,7 @@ class PostController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
+            'body2' => ['nullable', 'string'],
             'summary' => ['nullable', 'string', 'max:500'],
             'cover' => ['nullable', 'image', 'max:5120'],
             'images' => ['nullable', 'array', 'max:8'],
@@ -69,6 +70,7 @@ class PostController extends Controller
         $post = $request->user()->posts()->create([
             'title' => $validated['title'],
             'body' => $validated['body'],
+            'body2' => $validated['body2'] ?? null,
             'summary' => $validated['summary'] ?? null,
             'cover_image' => $coverPath,
             'images' => $imagePaths,
@@ -89,6 +91,7 @@ class PostController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
+            'body2' => ['nullable', 'string'],
             'summary' => ['nullable', 'string', 'max:500'],
             'cover' => ['nullable', 'image', 'max:5120'],
             'removeCover' => ['nullable', 'boolean'],
@@ -103,6 +106,7 @@ class PostController extends Controller
         $data = [
             'title' => $validated['title'],
             'body' => $validated['body'],
+            'body2' => $validated['body2'] ?? null,
             'summary' => $validated['summary'] ?? null,
         ];
 

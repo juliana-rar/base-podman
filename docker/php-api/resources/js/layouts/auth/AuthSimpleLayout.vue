@@ -13,8 +13,11 @@ defineProps<{
         class="relative flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10"
         style="
             background:
-                radial-gradient(1000px 520px at 90% -10%, rgba(79, 70, 229, 0.12), transparent 60%),
-                radial-gradient(900px 480px at 0% 0%, rgba(79, 70, 229, 0.08), transparent 55%),
+                radial-gradient(900px 480px at 85% -6%, rgba(79, 70, 229, 0.18), transparent 60%),
+                radial-gradient(820px 460px at -8% 4%, rgba(168, 85, 247, 0.14), transparent 55%),
+                radial-gradient(700px 700px at 50% 118%, rgba(236, 72, 153, 0.1), transparent 60%),
+                radial-gradient(circle at 1px 1px, rgba(79, 70, 229, 0.15) 1.5px, transparent 1.6px) 0 0 / 26px 26px,
+                linear-gradient(rgba(79, 70, 229, 0.06) 1px, transparent 1px) 0 0 / 100% 26px,
                 var(--background);
         "
     >

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { Briefcase, CalendarClock, Clock, History, Home, Images, Newspaper, Tags } from '@lucide/vue';
+import { Briefcase, CalendarClock, Clock, History, Home, Images, Newspaper, Tags, User } from '@lucide/vue';
 import { computed } from 'vue';
 import { useI18n } from '@/lib/i18n';
 import '../../css/reserva/dashboard.css';
@@ -23,6 +23,7 @@ const items = [
     { key: 'nav.etiquetes', desc: 'dash.etiquetesD', href: '/admin/etiquetes', icon: Tags },
     { key: 'nav.imatges', desc: 'dash.imatgesD', href: '/admin/imatges', icon: Images },
     { key: 'nav.historial', desc: 'dash.historialD', href: '/admin/reserves', icon: History },
+    { key: 'nav.perfil', desc: 'dash.perfilD', href: '/settings/profile', icon: User },
     { key: 'nav.inici', desc: 'dash.iniciD', href: '/', icon: Home },
 ];
 </script>

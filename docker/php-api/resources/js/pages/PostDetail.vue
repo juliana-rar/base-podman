@@ -11,6 +11,7 @@ interface Post {
     id: number;
     title: string;
     body: string;
+    body2: string | null;
     cover_url: string | null;
     image_urls: string[];
     tags: { id: number; name: string; color: string }[];
@@ -145,7 +146,11 @@ function formatDate(value: string): string {
                 </div>
             </div>
 
-            <!-- Galeria ampla: 3 imatges visibles, fletxes i lightbox -->
+            <div class="rsv-content">
+                <p class="rsv-body">{{ post.body }}</p>
+            </div>
+
+            <!-- Galeria ampla (entre els dos continguts): 3 imatges, fletxes i lightbox -->
             <div v-if="images.length" class="rsv-gallery" :style="{ '--per': shownPer }">
                 <button
                     v-if="useCarousel"
@@ -176,8 +181,8 @@ function formatDate(value: string): string {
                 >›</button>
             </div>
 
-            <div class="rsv-content">
-                <p class="rsv-body">{{ post.body }}</p>
+            <div v-if="post.body2" class="rsv-content">
+                <p class="rsv-body">{{ post.body2 }}</p>
             </div>
         </article>
 

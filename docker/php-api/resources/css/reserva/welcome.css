@@ -10,13 +10,22 @@
     --w-muted: #6b6880;
     --w-accent: #4f46e5;
     --w-accent-2: #4f46e5;
+    --w-dot: rgba(79, 70, 229, 0.18);
+    --w-grid: rgba(79, 70, 229, 0.08);
+    --w-halo-1: rgba(79, 70, 229, 0.22);
+    --w-halo-2: rgba(168, 85, 247, 0.18);
+    --w-halo-3: rgba(236, 72, 153, 0.12);
 
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    /* Patró modern: halos d'accent + graella de punts + línies fines */
     background:
-        radial-gradient(1200px 600px at 80% -10%, rgba(236, 72, 153, 0.12), transparent 60%),
-        radial-gradient(1000px 500px at -10% 10%, rgba(17, 24, 39, 0.16), transparent 55%),
+        radial-gradient(900px 480px at 85% -8%, var(--w-halo-1), transparent 60%),
+        radial-gradient(820px 460px at -8% 6%, var(--w-halo-2), transparent 55%),
+        radial-gradient(700px 700px at 50% 120%, var(--w-halo-3), transparent 60%),
+        radial-gradient(circle at 1px 1px, var(--w-dot) 1.5px, transparent 1.6px) 0 0 / 26px 26px,
+        linear-gradient(var(--w-grid) 1px, transparent 1px) 0 0 / 100% 26px,
         var(--w-bg);
     color: var(--w-ink);
     font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
@@ -28,9 +37,18 @@
     --w-card: #161327;
     --w-ink: #ede9ff;
     --w-muted: #9b97b4;
+    --w-dot: rgba(129, 140, 248, 0.14);
+    --w-grid: rgba(129, 140, 248, 0.06);
+    --w-halo-1: rgba(79, 70, 229, 0.16);
+    --w-halo-2: rgba(168, 85, 247, 0.12);
+    --w-halo-3: rgba(236, 72, 153, 0.08);
 }
 
-/* (La capçalera ara és el component AppNavbar, amb estil propi a navbar.css) */
+/* A la presentació el navbar és transparent perquè es vegi el patró del fons */
+#rsv-welcome > .rsv-navbar {
+    background: transparent;
+    backdrop-filter: none;
+}
 
 /* --- 2n: hero --- */
 #rsv-welcome > :nth-child(2) {

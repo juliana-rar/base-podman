@@ -38,6 +38,7 @@ const items = computed<NavItem[]>(() => {
             { title: 'nav.etiquetes', href: '/admin/etiquetes', icon: Tags },
             { title: 'nav.imatges', href: '/admin/imatges', icon: Images },
             { title: 'nav.historial', href: '/admin/reserves', icon: History },
+            { title: 'nav.perfil', href: '/settings/profile', icon: User },
         ];
     }
 

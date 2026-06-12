@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import '../../../css/reserva/admin.css';
 
 interface Tag {
@@ -13,6 +13,7 @@ interface Post {
     id: number;
     title: string;
     body: string;
+    body2: string | null;
     summary: string | null;
     cover_url: string | null;
     images: string[];
@@ -36,6 +37,7 @@ defineOptions({
 const form = useForm<{
     title: string;
     body: string;
+    body2: string;
     summary: string;
     cover: File | null;
     removeCover: boolean;
@@ -45,6 +47,7 @@ const form = useForm<{
 }>({
     title: '',
     body: '',
+    body2: '',
     summary: '',
     cover: null,
     removeCover: false,
@@ -95,6 +98,26 @@ const filteredPosts = computed(() => {
         [p.title, p.body, ...p.tags.map((t) => t.name)].join(' ').toLowerCase().includes(q),
     );
 });
+
+// Paginació: màxim 9 posts per pàgina.
+const PER_PAGE = 9;
+const currentPage = ref(1);
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredPosts.value.length / PER_PAGE)));
+
+const pagedPosts = computed(() =>
+    filteredPosts.value.slice((currentPage.value - 1) * PER_PAGE, currentPage.value * PER_PAGE),
+);
+
+// En cercar o si canvia el nombre de pàgines, tornem a una pàgina vàlida.
+watch([search, totalPages], () => {
+    if (currentPage.value > totalPages.value) {
+        currentPage.value = totalPages.value;
+    }
+});
+
+function goToPage(page: number): void {
+    currentPage.value = page;
+}
 
 function clearPreviews(): void {
     if (coverPreview.value) {
@@ -181,6 +204,7 @@ function startEdit(post: Post): void {
     form.clearErrors();
     form.title = post.title;
     form.body = post.body;
+    form.body2 = post.body2 ?? '';
     form.summary = post.summary ?? '';
     form.tags = post.tags.map((t) => t.name);
     form.cover = null;
@@ -257,6 +281,10 @@ function remove(id: number): void {
             <label for="body">Contingut</label>
             <textarea id="body" v-model="form.body" required></textarea>
             <p v-if="form.errors.body" class="rsv-error">{{ form.errors.body }}</p>
+
+            <label for="body2">Contingut 2 (opcional)</label>
+            <textarea id="body2" v-model="form.body2"></textarea>
+            <p v-if="form.errors.body2" class="rsv-error">{{ form.errors.body2 }}</p>
 
             <label for="summary">Resum (per a la pàgina d'inici)</label>
             <textarea
@@ -352,7 +380,7 @@ function remove(id: number): void {
             </div>
 
             <div v-if="filteredPosts.length" class="rsv-post-grid">
-                <article v-for="post in filteredPosts" :key="post.id">
+                <article v-for="post in pagedPosts" :key="post.id">
                     <div>
                         <span>{{ post.title }}</span>
                         <div class="rsv-actions">
@@ -374,6 +402,20 @@ function remove(id: number): void {
                 </article>
             </div>
             <div v-else class="rsv-empty">Cap post coincideix amb la cerca.</div>
+
+            <div v-if="totalPages > 1" class="rsv-pagination">
+                <button type="button" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">‹</button>
+                <button
+                    v-for="page in totalPages"
+                    :key="page"
+                    type="button"
+                    :class="{ 'is-active': page === currentPage }"
+                    @click="goToPage(page)"
+                >
+                    {{ page }}
+                </button>
+                <button type="button" :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">›</button>
+            </div>
         </section>
     </div>
 </template>

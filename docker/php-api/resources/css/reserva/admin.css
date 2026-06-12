@@ -279,6 +279,44 @@
     margin: 0;
 }
 
+/* Paginació dels posts (màx. 8 per pàgina) */
+#rsv-posts .rsv-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 1.5rem;
+}
+
+#rsv-posts .rsv-pagination > button {
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.6rem;
+    border: 1px solid var(--a-line);
+    background: var(--a-card);
+    color: var(--a-ink);
+    border-radius: 0.65rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+#rsv-posts .rsv-pagination > button:hover:not(:disabled):not(.is-active) {
+    border-color: var(--a-accent);
+    color: var(--a-accent);
+}
+
+#rsv-posts .rsv-pagination > button.is-active {
+    background: var(--a-accent);
+    border-color: transparent;
+    color: #fff;
+}
+
+#rsv-posts .rsv-pagination > button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 #rsv-posts .rsv-search {
     flex: 1;
     min-width: 12rem;
