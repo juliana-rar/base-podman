@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CancellationController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ServiceController;
@@ -59,6 +60,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Historial de totes les reserves fetes
         Route::get('reserves', [ReservationController::class, 'history'])->name('reserves');
+
+        // Cancel·lacions amb el seu motiu
+        Route::get('cancellacions', [CancellationController::class, 'index'])->name('cancellacions');
     });
 });
 

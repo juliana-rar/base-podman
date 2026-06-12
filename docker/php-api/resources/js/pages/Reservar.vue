@@ -137,8 +137,31 @@ function reserve(): void {
     );
 }
 
-function cancel(id: number): void {
-    router.delete(`/reservas/${id}`, { preserveScroll: true });
+// Cancel·lació amb motiu obligatori (modal).
+const cancelId = ref<number | null>(null);
+const cancelReason = ref('');
+
+function openCancel(id: number): void {
+    cancelId.value = id;
+    cancelReason.value = '';
+}
+
+function closeCancel(): void {
+    cancelId.value = null;
+}
+
+function confirmCancel(): void {
+    if (cancelId.value === null || cancelReason.value.trim() === '') {
+        return;
+    }
+    router.delete(`/reservas/${cancelId.value}`, {
+        data: { reason: cancelReason.value },
+        preserveScroll: true,
+        onSuccess: () => {
+            cancelId.value = null;
+            cancelReason.value = '';
+        },
+    });
 }
 </script>
 
@@ -227,10 +250,33 @@ function cancel(id: number): void {
                         <span v-if="reservation.service" class="rsv-res-note">🔖 {{ reservation.service.name }}</span>
                         <span v-if="reservation.note" class="rsv-res-note">💬 {{ reservation.note }}</span>
                     </div>
-                    <button type="button" @click="cancel(reservation.id)">{{ t('res.cancelar') }}</button>
+                    <button type="button" @click="openCancel(reservation.id)">{{ t('res.cancelar') }}</button>
                 </div>
             </div>
             <div v-else class="rsv-empty">{{ t('res.capReserva') }}</div>
         </section>
+
+        <Teleport to="body">
+            <transition name="rsv-fade">
+                <div v-if="cancelId !== null" class="rsv-cancel-overlay" @click.self="closeCancel">
+                    <div class="rsv-cancel-modal">
+                        <h3>{{ t('res.cancelTitle') }}</h3>
+                        <label for="cancel-reason">{{ t('res.cancelReason') }} *</label>
+                        <textarea
+                            id="cancel-reason"
+                            v-model="cancelReason"
+                            maxlength="1000"
+                            :placeholder="t('res.cancelReasonPh')"
+                        ></textarea>
+                        <div class="rsv-cancel-actions">
+                            <button type="button" class="rsv-cancel-back" @click="closeCancel">{{ t('res.cancelBack') }}</button>
+                            <button type="button" class="rsv-cancel-go" :disabled="cancelReason.trim() === ''" @click="confirmCancel">
+                                {{ t('res.cancelConfirm') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+        </Teleport>
     </div>
 </template>

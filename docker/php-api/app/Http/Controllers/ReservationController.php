@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cancellation;
 use App\Models\Reservation;
 use App\Models\Slot;
 use Illuminate\Http\RedirectResponse;
@@ -64,6 +65,20 @@ class ReservationController extends Controller
         if ($reservation->user_id !== $request->user()->id && ! $request->user()->isAdmin()) {
             abort(403);
         }
+
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $reservation->loadMissing('slot:id,starts_at', 'service:id,name');
+
+        Cancellation::create([
+            'user_id' => $reservation->user_id,
+            'service_name' => $reservation->service?->name,
+            'slot_starts_at' => $reservation->slot?->starts_at,
+            'note' => $reservation->note,
+            'reason' => $validated['reason'],
+        ]);
 
         $reservation->delete();
 

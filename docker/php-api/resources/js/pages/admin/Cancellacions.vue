@@ -4,22 +4,23 @@ import { computed, ref, watch } from 'vue';
 import Calendar from '@/components/Calendar.vue';
 import '../../../css/reserva/admin.css';
 
-interface Reservation {
+interface Cancellation {
     id: number;
-    note: string | null;
-    created_at: string;
     user: { id: number; name: string; email: string } | null;
-    slot: { id: number; starts_at: string; notes: string | null } | null;
-    service: { id: number; name: string } | null;
+    service_name: string | null;
+    slot_starts_at: string | null;
+    note: string | null;
+    reason: string;
+    created_at: string;
 }
 
 const props = defineProps<{
-    reservations: Reservation[];
+    cancellations: Cancellation[];
 }>();
 
 defineOptions({
     layout: {
-        breadcrumbs: [{ title: 'Historial', href: '/admin/reserves' }],
+        breadcrumbs: [{ title: 'Cancel·lacions', href: '/admin/cancellacions' }],
     },
 });
 
@@ -53,26 +54,21 @@ function madeLabel(iso: string): string {
 const search = ref('');
 const selectedDate = ref('');
 
-// Dies (de creació de la reserva) que tenen alguna reserva, per al calendari.
-const reservationDayKeys = computed(() => [
-    ...new Set(props.reservations.map((r) => dayKeyOf(r.created_at))),
+const cancellationDayKeys = computed(() => [
+    ...new Set(props.cancellations.map((c) => dayKeyOf(c.created_at))),
 ]);
 
 const filtered = computed(() => {
     const q = search.value.trim().toLowerCase();
 
-    return props.reservations.filter((r) => {
-        if (selectedDate.value && dayKeyOf(r.created_at) !== selectedDate.value) {
+    return props.cancellations.filter((c) => {
+        if (selectedDate.value && dayKeyOf(c.created_at) !== selectedDate.value) {
             return false;
         }
         if (!q) {
             return true;
         }
-        const haystack = [
-            r.user?.name,
-            r.user?.email,
-            r.slot ? slotLabel(r.slot.starts_at) : '',
-        ]
+        const haystack = [c.user?.name, c.user?.email, c.service_name, c.reason]
             .join(' ')
             .toLowerCase();
         return haystack.includes(q);
@@ -93,7 +89,7 @@ function clearDate(): void {
     selectedDate.value = '';
 }
 
-// Paginació: màxim 20 reserves per pàgina.
+// Paginació: màxim 20 cancel·lacions per pàgina.
 const PER_PAGE = 20;
 const currentPage = ref(1);
 const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / PER_PAGE)));
@@ -116,18 +112,18 @@ function goToPage(page: number): void {
 </script>
 
 <template>
-    <Head title="Historial de reserves" />
+    <Head title="Cancel·lacions" />
 
     <div id="rsv-history">
         <header>
-            <h1>Historial de reserves</h1>
-            <p>Cerca, filtra per data i consulta totes les reserves fetes.</p>
+            <h1>Cancel·lacions</h1>
+            <p>Reserves que els usuaris han cancel·lat, amb el motiu indicat.</p>
         </header>
 
         <section>
             <aside>
                 <h2>Filtra per data</h2>
-                <Calendar v-model="selectedDate" :highlight-dates="reservationDayKeys" />
+                <Calendar v-model="selectedDate" :highlight-dates="cancellationDayKeys" />
                 <button v-if="selectedDate" type="button" class="rsv-clear" @click="clearDate">
                     Veure totes les dates
                 </button>
@@ -135,12 +131,12 @@ function goToPage(page: number): void {
 
             <div>
                 <div class="rsv-toolbar">
-                    <input v-model="search" type="search" placeholder="Cerca per usuari, email o hora…" />
-                    <span class="rsv-count">{{ filtered.length }} de {{ reservations.length }}</span>
+                    <input v-model="search" type="search" placeholder="Cerca per usuari, email, servei o motiu…" />
+                    <span class="rsv-count">{{ filtered.length }} de {{ cancellations.length }}</span>
                 </div>
 
                 <div v-if="selectedDate" class="rsv-chip">
-                    Reserves fetes el {{ selectedDateLabel }}
+                    Cancel·lades el {{ selectedDateLabel }}
                     <button type="button" aria-label="Treure filtre" @click="clearDate">×</button>
                 </div>
 
@@ -148,22 +144,22 @@ function goToPage(page: number): void {
                     <table>
                         <thead>
                             <tr>
-                                <th>Reserva</th>
+                                <th>Cita</th>
                                 <th>Usuari</th>
                                 <th>Email</th>
                                 <th>Servei</th>
-                                <th>Motiu</th>
-                                <th>Feta el</th>
+                                <th>Motiu cancel·lació</th>
+                                <th>Cancel·lada el</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="r in paged" :key="r.id">
-                                <td>{{ r.slot ? slotLabel(r.slot.starts_at) : 'Franja eliminada' }}</td>
-                                <td>{{ r.user?.name ?? 'Usuari eliminat' }}</td>
-                                <td>{{ r.user?.email ?? '—' }}</td>
-                                <td>{{ r.service?.name ?? '—' }}</td>
-                                <td class="rsv-note-cell">{{ r.note ?? '—' }}</td>
-                                <td>{{ madeLabel(r.created_at) }}</td>
+                            <tr v-for="c in paged" :key="c.id">
+                                <td>{{ c.slot_starts_at ? slotLabel(c.slot_starts_at) : '—' }}</td>
+                                <td>{{ c.user?.name ?? 'Usuari eliminat' }}</td>
+                                <td>{{ c.user?.email ?? '—' }}</td>
+                                <td>{{ c.service_name ?? '—' }}</td>
+                                <td class="rsv-note-cell">{{ c.reason }}</td>
+                                <td>{{ madeLabel(c.created_at) }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -182,7 +178,7 @@ function goToPage(page: number): void {
                         <button type="button" :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">›</button>
                     </div>
                 </div>
-                <div v-else class="rsv-empty">Cap reserva coincideix amb el filtre.</div>
+                <div v-else class="rsv-empty">Encara no hi ha cap cancel·lació.</div>
             </div>
         </section>
     </div>

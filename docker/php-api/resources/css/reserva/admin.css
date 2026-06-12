@@ -57,6 +57,537 @@
     box-shadow: 0 0.5rem 1.5rem -0.85rem rgba(30, 27, 46, 0.3);
 }
 
+/* Resum de les reserves: gran contenidor estètic */
+#rsv-hours .rsv-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding: 1.6rem;
+    border: 1px solid var(--a-line);
+    border-radius: 1.5rem;
+    background:
+        radial-gradient(680px 280px at 100% -25%, var(--a-soft), transparent 70%),
+        radial-gradient(560px 260px at -10% 120%, var(--a-soft), transparent 70%),
+        var(--a-card);
+    box-shadow: 0 1rem 2.5rem -1.25rem rgba(30, 27, 46, 0.4);
+}
+
+#rsv-hours .rsv-summary-title {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+/* Dins del contenidor, les targetes/panells usen un fons una mica diferenciat */
+#rsv-hours .rsv-summary .rsv-stat,
+#rsv-hours .rsv-summary .rsv-panel,
+#rsv-hours .rsv-summary .rsv-period {
+    background: var(--a-card);
+}
+
+/* Capçalera del resum (títol + exportar) */
+#rsv-hours .rsv-summary-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+#rsv-hours .rsv-export {
+    border: 1px solid var(--a-line);
+    background: var(--a-card);
+    color: var(--a-accent);
+    border-radius: 0.75rem;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+#rsv-hours .rsv-export:hover {
+    background: var(--a-accent);
+    color: #fff;
+    border-color: transparent;
+}
+
+/* El panell del gràfic de línia ocupa tota l'amplada */
+#rsv-hours .rsv-panel.is-wide {
+    grid-column: 1 / -1;
+}
+
+/* Indicador de tendència */
+#rsv-hours .rsv-trend {
+    margin-left: auto;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.1rem 0.55rem;
+    border-radius: 999px;
+}
+
+#rsv-hours .rsv-trend.up {
+    color: #16a34a;
+    background: rgba(22, 163, 74, 0.12);
+}
+
+#rsv-hours .rsv-trend.down {
+    color: var(--a-danger);
+    background: rgba(220, 38, 38, 0.12);
+}
+
+#rsv-hours .rsv-trend.flat {
+    color: var(--a-muted);
+    background: rgba(127, 127, 160, 0.14);
+}
+
+/* Gràfic de línia (SVG) */
+#rsv-hours .rsv-line {
+    position: relative;
+    height: 9rem;
+}
+
+#rsv-hours .rsv-line-val {
+    position: absolute;
+    transform: translate(-50%, -150%);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--a-ink);
+    background: var(--a-card);
+    padding: 0 0.25rem;
+    border-radius: 0.3rem;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+#rsv-hours .rsv-line-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+#rsv-hours .rsv-line-area {
+    fill: var(--a-soft);
+}
+
+#rsv-hours .rsv-line-stroke {
+    fill: none;
+    stroke: var(--a-accent);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+}
+
+#rsv-hours .rsv-line-dot {
+    fill: #fff;
+    stroke: var(--a-accent);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+}
+
+#rsv-hours .rsv-line-x {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.4rem;
+    font-size: 0.65rem;
+    color: var(--a-muted);
+    text-transform: capitalize;
+}
+
+#rsv-hours .rsv-line-x > span {
+    flex: 1;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Barres horitzontals (reserves per servei) */
+#rsv-hours .rsv-hbars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+#rsv-hours .rsv-hbar {
+    display: grid;
+    grid-template-columns: minmax(5rem, 8rem) 1fr auto;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+#rsv-hours .rsv-hbar-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+}
+
+#rsv-hours .rsv-hbar-track {
+    height: 0.7rem;
+    background: rgba(127, 127, 160, 0.14);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+#rsv-hours .rsv-hbar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--a-accent), #818cf8);
+    transition: width 0.3s ease;
+}
+
+#rsv-hours .rsv-hbar-num {
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Grup de botons d'exportació */
+#rsv-hours .rsv-export-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* Badge alternatiu (accent) */
+#rsv-hours .rsv-count-badge.alt {
+    background: var(--a-accent);
+}
+
+/* Navegació de dies de l'agenda */
+#rsv-hours .rsv-agenda-nav {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+#rsv-hours .rsv-agenda-nav > button {
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--a-line);
+    background: var(--a-card);
+    color: var(--a-ink);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+#rsv-hours .rsv-agenda-nav > button:hover {
+    color: var(--a-accent);
+    border-color: var(--a-accent);
+}
+
+#rsv-hours .rsv-agenda-day {
+    min-width: 6rem;
+    text-align: center;
+    text-transform: capitalize;
+    color: var(--a-accent);
+}
+
+#rsv-hours .rsv-agenda-date {
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    height: 1.9rem;
+    margin: 0;
+    border: 1px solid var(--a-line);
+    background: var(--a-card);
+    color: var(--a-ink);
+    border-radius: 0.6rem;
+    padding: 0 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.9rem;
+    vertical-align: middle;
+    cursor: pointer;
+    color-scheme: light dark;
+}
+
+#rsv-hours .rsv-agenda-date:focus {
+    outline: none;
+    border-color: var(--a-accent);
+}
+
+#rsv-hours .rsv-agenda-today {
+    width: auto !important;
+    padding: 0 0.7rem;
+    font-size: 0.8rem !important;
+    font-weight: 600;
+}
+
+/* Agenda d'avui */
+#rsv-hours .rsv-agenda {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 20rem;
+    overflow: auto;
+}
+
+#rsv-hours .rsv-agenda > li {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--a-line);
+    border-left: 3px solid var(--a-muted);
+    border-radius: 0.6rem;
+}
+
+#rsv-hours .rsv-agenda > li.is-booked {
+    border-left-color: #0d9488;
+}
+
+#rsv-hours .rsv-agenda > li.is-free {
+    border-left-color: #16a34a;
+}
+
+#rsv-hours .rsv-agenda-time {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+#rsv-hours .rsv-agenda-status {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.05rem 0.55rem;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+#rsv-hours .rsv-agenda-status.booked {
+    background: rgba(13, 148, 136, 0.14);
+    color: #0d9488;
+}
+
+#rsv-hours .rsv-agenda-status.free {
+    background: rgba(22, 163, 74, 0.14);
+    color: #16a34a;
+}
+
+#rsv-hours .rsv-agenda-info {
+    font-size: 0.85rem;
+    color: var(--a-muted);
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#rsv-hours .rsv-period {
+    align-self: flex-start;
+    display: inline-flex;
+    gap: 0.25rem;
+    background: var(--a-card);
+    border: 1px solid var(--a-line);
+    border-radius: 999px;
+    padding: 0.25rem;
+}
+
+#rsv-hours .rsv-period > button {
+    border: none;
+    background: transparent;
+    color: var(--a-muted);
+    padding: 0.4rem 1.1rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+#rsv-hours .rsv-period > .is-active {
+    background: var(--a-accent);
+    color: #fff;
+}
+
+#rsv-hours .rsv-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 1rem;
+}
+
+#rsv-hours .rsv-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    background: var(--a-card);
+    border: 1px solid var(--a-line);
+    border-radius: 1.25rem;
+    padding: 1.35rem 1.5rem;
+    box-shadow: 0 0.5rem 1.5rem -0.85rem rgba(30, 27, 46, 0.3);
+    border-left: 4px solid var(--a-accent);
+}
+
+#rsv-hours .rsv-stat.is-booked {
+    border-left-color: #0d9488;
+}
+
+#rsv-hours .rsv-stat.is-free {
+    border-left-color: #16a34a;
+}
+
+#rsv-hours .rsv-stat.is-text {
+    border-left-color: var(--a-muted);
+}
+
+#rsv-hours .rsv-stat-num {
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--a-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+#rsv-hours .rsv-stat-num.sm {
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-transform: capitalize;
+}
+
+#rsv-hours .rsv-stat-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--a-muted);
+}
+
+/* Fila de panells: gràfic + pròximes + sense servei */
+#rsv-hours .rsv-summary-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1rem;
+}
+
+#rsv-hours .rsv-panel {
+    background: var(--a-card);
+    border: 1px solid var(--a-line);
+    border-radius: 1.25rem;
+    padding: 1.25rem 1.35rem;
+    box-shadow: 0 0.5rem 1.5rem -0.85rem rgba(30, 27, 46, 0.3);
+}
+
+#rsv-hours .rsv-panel > h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Gràfic de barres */
+#rsv-hours .rsv-chart {
+    display: flex;
+    gap: 0.4rem;
+    height: 9rem;
+}
+
+#rsv-hours .rsv-chart-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+#rsv-hours .rsv-chart-track {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+#rsv-hours .rsv-chart-bar {
+    position: relative;
+    width: 100%;
+    max-width: 2.2rem;
+    min-height: 0.25rem;
+    background: linear-gradient(180deg, var(--a-accent), #818cf8);
+    border-radius: 0.4rem 0.4rem 0 0;
+    transition: height 0.3s ease;
+}
+
+#rsv-hours .rsv-chart-val {
+    position: absolute;
+    top: -1.15rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--a-ink);
+}
+
+#rsv-hours .rsv-chart-x {
+    font-size: 0.65rem;
+    color: var(--a-muted);
+    white-space: nowrap;
+    text-transform: capitalize;
+}
+
+/* Llistes (pròximes / sense servei) */
+#rsv-hours .rsv-mini-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+#rsv-hours .rsv-mini-list > li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    border-left: 3px solid var(--a-accent);
+    padding-left: 0.65rem;
+}
+
+#rsv-hours .rsv-mini-list.is-warn > li {
+    border-left-color: var(--a-danger);
+}
+
+#rsv-hours .rsv-mini-list .t {
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: capitalize;
+}
+
+#rsv-hours .rsv-mini-list .u {
+    font-size: 0.8rem;
+    color: var(--a-muted);
+}
+
+#rsv-hours .rsv-mini-empty {
+    margin: 0;
+    color: var(--a-muted);
+    font-size: 0.9rem;
+}
+
+#rsv-hours .rsv-count-badge {
+    background: var(--a-danger);
+    color: #fff;
+    border-radius: 999px;
+    padding: 0.05rem 0.55rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
 /* En franges: el formulari té calendari + rellotge + camps, que s'ajusten */
 #rsv-hours > :nth-child(2) {
     display: grid;
@@ -835,6 +1366,44 @@
     color: var(--a-muted);
     text-align: center;
     padding: 2rem 1rem;
+}
+
+/* Paginació (cancel·lacions / historial) */
+#rsv-history .rsv-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 1.25rem;
+}
+
+#rsv-history .rsv-pagination > button {
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.6rem;
+    border: 1px solid var(--a-line);
+    background: var(--a-card);
+    color: var(--a-ink);
+    border-radius: 0.65rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+#rsv-history .rsv-pagination > button:hover:not(:disabled):not(.is-active) {
+    border-color: var(--a-accent);
+    color: var(--a-accent);
+}
+
+#rsv-history .rsv-pagination > button.is-active {
+    background: var(--a-accent);
+    border-color: transparent;
+    color: #fff;
+}
+
+#rsv-history .rsv-pagination > button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 /* ---------- Franges creades, agrupades per dia (#rsv-hours) ---------- */

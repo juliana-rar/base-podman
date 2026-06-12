@@ -1,21 +1,23 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
+import { useI18n } from '@/lib/i18n';
 import { toUrl } from '@/lib/utils';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
 
+const { t } = useI18n();
+
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profile',
+        title: 'set.profile',
         href: editProfile(),
     },
     {
-        title: 'Security',
+        title: 'set.security',
         href: editSecurity(),
     },
 ];
@@ -25,11 +27,6 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
 
 <template>
     <div class="px-4 py-6">
-        <Heading
-            title="Settings"
-            description="Manage your profile and account settings"
-        />
-
         <div class="flex flex-col lg:flex-row lg:space-x-12">
             <aside class="w-full max-w-xl lg:w-48">
                 <nav
@@ -48,7 +45,7 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
                     >
                         <Link :href="item.href">
                             <component :is="item.icon" class="h-4 w-4" />
-                            {{ item.title }}
+                            {{ t(item.title) }}
                         </Link>
                     </Button>
                 </nav>

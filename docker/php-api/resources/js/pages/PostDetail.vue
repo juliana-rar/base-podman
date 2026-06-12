@@ -23,39 +23,60 @@ const props = defineProps<{ post: Post }>();
 
 const { localeTag } = useI18n();
 
-// --- Galeria: carrusel de 3 imatges (responsive), més ample que el text ---
+// --- Galeria: carrusel infinit de 3 imatges (responsive), més ample que el text ---
+const SLIDE_MS = 400;
 const images = computed(() => props.post.image_urls ?? []);
 const perView = ref(3);
+
+const count = computed(() => images.value.length);
+const shownPer = computed(() => Math.min(perView.value, count.value || 1));
+const useCarousel = computed(() => count.value > perView.value);
+
+// Triple buffer per al bucle infinit; recentrem en silenci als extrems.
+const display = computed(() =>
+    useCarousel.value ? [...images.value, ...images.value, ...images.value] : images.value,
+);
+
 const index = ref(0);
+const animate = ref(true);
+let locked = false;
 
 function updatePerView(): void {
     const w = window.innerWidth;
     perView.value = w < 560 ? 1 : w < 900 ? 2 : 3;
-    if (index.value > maxIndex.value) {
-        index.value = maxIndex.value;
-    }
+    index.value = useCarousel.value ? count.value : 0;
 }
-
-const shownPer = computed(() => Math.min(perView.value, images.value.length || 1));
-const useCarousel = computed(() => images.value.length > perView.value);
-const maxIndex = computed(() => Math.max(0, images.value.length - perView.value));
 
 const trackStyle = computed(() => ({
-    transform: `translateX(calc(${-index.value} * 100% / ${perView.value}))`,
-    transition: 'transform 0.4s ease',
+    transform: useCarousel.value ? `translateX(calc(${-index.value} * 100% / ${perView.value}))` : 'none',
+    transition: animate.value ? `transform ${SLIDE_MS}ms ease` : 'none',
 }));
 
-function prev(): void {
-    if (index.value > 0) {
-        index.value -= 1;
-    }
+function recenter(delta: number): void {
+    animate.value = false;
+    index.value += delta;
+    requestAnimationFrame(() => requestAnimationFrame(() => (animate.value = true)));
 }
 
-function next(): void {
-    if (index.value < maxIndex.value) {
-        index.value += 1;
+function step(direction: number): void {
+    if (locked || !useCarousel.value) {
+        return;
     }
+    locked = true;
+    index.value += direction;
+
+    window.setTimeout(() => {
+        if (index.value >= 2 * count.value) {
+            recenter(-count.value);
+        } else if (index.value < count.value) {
+            recenter(count.value);
+        }
+        locked = false;
+    }, SLIDE_MS);
 }
+
+const prev = () => step(-1);
+const next = () => step(1);
 
 // --- Lightbox: veure la imatge en gran ---
 const lightbox = ref<string | null>(null);
@@ -157,7 +178,6 @@ function formatDate(value: string): string {
                     type="button"
                     class="rsv-gal-nav"
                     aria-label="Anterior"
-                    :disabled="index === 0"
                     @click="prev"
                 >‹</button>
                 <div class="rsv-gal-viewport">
@@ -166,7 +186,7 @@ function formatDate(value: string): string {
                         :class="{ 'is-static': !useCarousel }"
                         :style="useCarousel ? trackStyle : undefined"
                     >
-                        <div v-for="(src, i) in images" :key="i" class="rsv-gal-item">
+                        <div v-for="(src, i) in display" :key="i" class="rsv-gal-item">
                             <img :src="src" alt="" @click="openLightbox(src)" />
                         </div>
                     </div>
@@ -176,7 +196,6 @@ function formatDate(value: string): string {
                     type="button"
                     class="rsv-gal-nav"
                     aria-label="Següent"
-                    :disabled="index === maxIndex"
                     @click="next"
                 >›</button>
             </div>

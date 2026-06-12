@@ -400,3 +400,110 @@
 #rsv-booking > :nth-child(3) > .rsv-empty {
     color: var(--b-muted);
 }
+
+/* --- Modal de cancel·lació (teleportat al body) --- */
+.rsv-cancel-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: rgba(10, 12, 20, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.rsv-cancel-modal {
+    width: 100%;
+    max-width: 28rem;
+    background: #ffffff;
+    color: #1f2430;
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.dark .rsv-cancel-modal {
+    background: #14171f;
+    color: #e7e9ee;
+}
+
+.rsv-cancel-modal > h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.rsv-cancel-modal > label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.rsv-cancel-modal > textarea {
+    width: 100%;
+    min-height: 6rem;
+    resize: vertical;
+    border: 1px solid #e5e7eb;
+    background: transparent;
+    color: inherit;
+    border-radius: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+.dark .rsv-cancel-modal > textarea {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.rsv-cancel-modal > textarea:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.rsv-cancel-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.rsv-cancel-back {
+    border: 1px solid #e5e7eb;
+    background: transparent;
+    color: inherit;
+    border-radius: 0.75rem;
+    padding: 0.55rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.dark .rsv-cancel-back {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.rsv-cancel-go {
+    border: none;
+    background: #dc2626;
+    color: #fff;
+    border-radius: 0.75rem;
+    padding: 0.55rem 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+}
+
+.rsv-cancel-go:hover:not(:disabled) {
+    filter: brightness(1.08);
+}
+
+.rsv-cancel-go:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}

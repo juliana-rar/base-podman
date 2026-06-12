@@ -139,9 +139,10 @@
     padding: 1rem 0.75rem 0;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     gap: 0.5rem;
     color: var(--f-muted);
     font-size: 0.82rem;
+    text-align: center;
 }

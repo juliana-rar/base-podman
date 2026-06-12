@@ -28,26 +28,8 @@
     --d-soft: rgba(129, 140, 248, 0.16);
 }
 
-/* --- 1r: capçalera --- */
+/* --- Graella de botons --- */
 #rsv-dash > :nth-child(1) {
-    text-align: center;
-}
-
-#rsv-dash > :nth-child(1) > :nth-child(1) {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    margin: 0 0 0.4rem;
-}
-
-#rsv-dash > :nth-child(1) > :nth-child(2) {
-    color: var(--d-muted);
-    margin: 0;
-    font-size: 1.05rem;
-}
-
-/* --- 2n: graella de botons --- */
-#rsv-dash > :nth-child(2) {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
     gap: 1rem;
@@ -56,7 +38,7 @@
 }
 
 /* Cada botó-targeta */
-#rsv-dash > :nth-child(2) > a {
+#rsv-dash > :nth-child(1) > a {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -71,14 +53,14 @@
     transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
 }
 
-#rsv-dash > :nth-child(2) > a:hover {
+#rsv-dash > :nth-child(1) > a:hover {
     transform: translateY(-3px);
     border-color: var(--d-accent);
     box-shadow: 0 14px 30px -12px rgba(79, 70, 229, 0.45);
 }
 
 /* Icona en pastilla */
-#rsv-dash > :nth-child(2) > a > svg {
+#rsv-dash > :nth-child(1) > a > svg {
     width: 2.7rem;
     height: 2.7rem;
     box-sizing: border-box;
@@ -89,12 +71,12 @@
     margin-bottom: 0.35rem;
 }
 
-#rsv-dash > :nth-child(2) > a > span {
+#rsv-dash > :nth-child(1) > a > span {
     font-size: 1.1rem;
     font-weight: 700;
 }
 
-#rsv-dash > :nth-child(2) > a > small {
+#rsv-dash > :nth-child(1) > a > small {
     color: var(--d-muted);
     font-size: 0.85rem;
 }

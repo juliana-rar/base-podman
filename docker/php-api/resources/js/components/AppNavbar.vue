@@ -1,19 +1,14 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import {
-    Briefcase,
     CalendarClock,
     ChevronDown,
     Clock,
     Globe,
-    History,
     Home,
-    Images,
     LayoutGrid,
     Moon,
-    Newspaper,
     Sun,
-    Tags,
     User,
 } from '@lucide/vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
@@ -33,11 +28,6 @@ const items = computed<NavItem[]>(() => {
         return [
             { title: 'nav.dashboard', href: '/dashboard', icon: LayoutGrid },
             { title: 'nav.hores', href: '/admin/horas', icon: Clock },
-            { title: 'nav.serveis', href: '/admin/serveis', icon: Briefcase },
-            { title: 'nav.posts', href: '/admin/posts', icon: Newspaper },
-            { title: 'nav.etiquetes', href: '/admin/etiquetes', icon: Tags },
-            { title: 'nav.imatges', href: '/admin/imatges', icon: Images },
-            { title: 'nav.historial', href: '/admin/reserves', icon: History },
             { title: 'nav.perfil', href: '/settings/profile', icon: User },
         ];
     }

@@ -48,7 +48,6 @@ const year = computed(() => new Date().getFullYear());
 
         <div class="rsv-footer-bottom">
             <span>© {{ year }} ReservaHores · {{ t('footer.rights') }}</span>
-            <span>{{ t('welcome.footer') }}</span>
         </div>
     </footer>
 </template>

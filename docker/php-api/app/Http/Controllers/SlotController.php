@@ -48,8 +48,16 @@ class SlotController extends Controller
             ->orderBy('starts_at')
             ->get();
 
+        // Franges per al resum/estadístiques: finestra amb passat i futur.
+        $statsSlots = Slot::query()
+            ->with('reservation.user:id,name,email', 'reservation.service:id,name')
+            ->whereBetween('starts_at', [now()->subDays(61)->startOfDay(), now()->addDays(62)->endOfDay()])
+            ->orderBy('starts_at')
+            ->get();
+
         return Inertia::render('admin/Horas', [
             'slots' => $slots,
+            'statsSlots' => $statsSlots,
         ]);
     }
 

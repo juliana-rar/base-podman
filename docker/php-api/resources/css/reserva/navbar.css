@@ -334,7 +334,7 @@
 /* --- 2n fill del shell: el contingut (centrat) --- */
 .rsv-shell > :nth-child(2) {
     width: 100%;
-    max-width: 72rem;
+    max-width: 78rem;
     margin: 0 auto;
     padding: 0.5rem 1rem 3rem;
     text-align: center;
