@@ -142,6 +142,12 @@
     transform: translateX(-50%);
 }
 
+#rsv-booking .rsv-service-hint {
+    margin: 0;
+    color: var(--b-muted);
+    font-size: 0.9rem;
+}
+
 /* Contenidor amb desplaçament lateral quan hi ha moltes categories. */
 #rsv-booking .rsv-service-scroller {
     width: 100%;

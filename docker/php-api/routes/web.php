@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BusinessHourController;
 use App\Http\Controllers\CancellationController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ServiceCategoryController;
@@ -64,6 +65,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('serveis-categories', [ServiceCategoryController::class, 'store'])->name('serveis.categories.store');
         Route::post('serveis-categories/{serviceCategory}', [ServiceCategoryController::class, 'update'])->name('serveis.categories.update');
         Route::delete('serveis-categories/{serviceCategory}', [ServiceCategoryController::class, 'destroy'])->name('serveis.categories.destroy');
+
+        // Empleats
+        Route::get('empleats', [EmployeeController::class, 'index'])->name('empleats');
+        Route::post('empleats', [EmployeeController::class, 'store'])->name('empleats.store');
+        Route::post('empleats/{employee}', [EmployeeController::class, 'update'])->name('empleats.update');
+        Route::delete('empleats/{employee}', [EmployeeController::class, 'destroy'])->name('empleats.destroy');
 
         // Historial de totes les reserves fetes
         Route::get('reserves', [ReservationController::class, 'history'])->name('reserves');

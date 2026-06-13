@@ -22,6 +22,13 @@ interface Service {
     category: { id: number; name: string; description: string | null; url: string | null } | null;
 }
 
+interface Employee {
+    id: number;
+    name: string;
+    url: string | null;
+    service_ids: number[];
+}
+
 interface Reservation {
     id: number;
     note: string | null;
@@ -33,6 +40,7 @@ const props = defineProps<{
     availableSlots: Slot[];
     myReservations: Reservation[];
     services: Service[];
+    employees: Employee[];
 }>();
 
 defineOptions({
@@ -44,6 +52,17 @@ defineOptions({
 const { t, localeTag } = useI18n();
 const pad = (n: number) => String(n).padStart(2, '0');
 
+// Empleat escollit (null = qualsevol). Filtra els serveis als que fa aquell empleat.
+const employeeId = ref<number | null>(null);
+
+const visibleServices = computed(() => {
+    if (employeeId.value === null) return [];
+    const emp = props.employees.find((e) => e.id === employeeId.value);
+    if (!emp) return [];
+    const ids = new Set(emp.service_ids);
+    return props.services.filter((s) => ids.has(s.id));
+});
+
 // Serveis agrupats per categoria; el grup sense categoria va al final (sense títol).
 const serviceGroups = computed(() => {
     const byCat = new Map<
@@ -51,7 +70,7 @@ const serviceGroups = computed(() => {
         { id: number | null; name: string; description: string | null; url: string | null; services: Service[] }
     >();
     const uncategorized: Service[] = [];
-    for (const s of props.services) {
+    for (const s of visibleServices.value) {
         if (s.category) {
             const group = byCat.get(s.category.id);
             if (group) {
@@ -157,11 +176,22 @@ const selectedSlotId = computed(
 );
 
 const canReserve = computed(
-    () => selectedSlotId.value !== null && serviceId.value !== null && note.value.trim() !== '',
+    () =>
+        selectedSlotId.value !== null &&
+        employeeId.value !== null &&
+        serviceId.value !== null &&
+        note.value.trim() !== '',
 );
 
 watch(effectiveDay, () => {
     time.value = '';
+});
+
+// Si l'empleat escollit canvia i el servei triat ja no està disponible, es desselecciona.
+watch(employeeId, () => {
+    if (serviceId.value !== null && !visibleServices.value.some((s) => s.id === serviceId.value)) {
+        serviceId.value = null;
+    }
 });
 
 const dayLabel = computed(() =>
@@ -190,7 +220,7 @@ function reserve(): void {
 
     router.post(
         '/reservas',
-        { slot_id: selectedSlotId.value, service_id: serviceId.value, note: note.value },
+        { slot_id: selectedSlotId.value, service_id: serviceId.value, employee_id: employeeId.value, note: note.value },
         {
             preserveScroll: true,
             onSuccess: () => {
@@ -246,9 +276,27 @@ function confirmCancel(): void {
                 </p>
             </transition>
 
+            <div v-if="employees.length" class="rsv-service-pick">
+                <span class="rsv-service-label">{{ t('res.employee') }} *</span>
+                <div class="rsv-service-chips">
+                    <button
+                        v-for="e in employees"
+                        :key="e.id"
+                        type="button"
+                        :class="{ 'is-active': employeeId === e.id, 'has-img': e.url }"
+                        @click="employeeId = e.id"
+                    >
+                        <img v-if="e.url" :src="e.url" alt="" />
+                        <span>{{ e.name }}</span>
+                    </button>
+                </div>
+            </div>
+
             <div v-if="services.length" class="rsv-service-pick">
                 <span class="rsv-service-label">{{ t('res.service') }} *</span>
-                <div class="rsv-service-scroller">
+                <p v-if="employeeId === null" class="rsv-service-hint">{{ t('res.pickEmployeeFirst') }}</p>
+                <p v-else-if="!serviceGroups.length" class="rsv-service-hint">{{ t('res.employeeNoServices') }}</p>
+                <div v-else class="rsv-service-scroller">
                     <div class="rsv-service-groups">
                         <div v-for="group in serviceGroups" :key="group.id ?? 'none'" class="rsv-service-group">
                         <span v-if="group.name" class="rsv-service-cat">

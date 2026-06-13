@@ -34,6 +34,7 @@ class ReservationController extends Controller
         $validated = $request->validate([
             'slot_id' => ['required', 'integer', 'exists:slots,id'],
             'service_id' => ['required', 'integer', 'exists:services,id'],
+            'employee_id' => ['required', 'integer', 'exists:employees,id'],
             'note' => ['required', 'string', 'max:1000'],
         ]);
 
@@ -49,6 +50,7 @@ class ReservationController extends Controller
             'slot_id' => $slot->id,
             'user_id' => $request->user()->id,
             'service_id' => $validated['service_id'],
+            'employee_id' => $validated['employee_id'],
             'note' => $validated['note'],
         ]);
 

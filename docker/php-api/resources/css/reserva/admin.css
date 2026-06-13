@@ -2748,3 +2748,302 @@
     width: 100%;
     margin: 0;
 }
+
+/* ---------- Empleats (#rsv-empleats) ---------- */
+#rsv-empleats {
+    --a-card: #ffffff;
+    --a-ink: #1e1b2e;
+    --a-muted: #6b6880;
+    --a-line: rgba(127, 127, 160, 0.18);
+    --a-accent: #4f46e5;
+    --a-soft: rgba(79, 70, 229, 0.09);
+    --a-danger: #dc2626;
+
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    color: var(--a-ink);
+}
+
+.dark #rsv-empleats {
+    --a-card: #161327;
+    --a-ink: #ede9ff;
+    --a-muted: #9b97b4;
+    --a-line: rgba(150, 150, 190, 0.16);
+    --a-accent: #818cf8;
+    --a-soft: rgba(129, 140, 248, 0.16);
+}
+
+#rsv-empleats > :nth-child(1) > :nth-child(1) {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+}
+
+#rsv-empleats > :nth-child(1) > :nth-child(2) {
+    color: var(--a-muted);
+    margin: 0;
+}
+
+#rsv-empleats h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0 0 0.85rem;
+}
+
+/* Botons i missatges compartits */
+#rsv-empleats .rsv-edit {
+    border: 1px solid var(--a-line);
+    color: var(--a-accent);
+    background: transparent;
+    border-radius: 0.75rem;
+    padding: 0.5rem 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#rsv-empleats .rsv-edit:hover {
+    background: var(--a-accent);
+    color: #fff;
+    border-color: transparent;
+}
+
+#rsv-empleats button.rsv-del {
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    color: var(--a-danger);
+    background: transparent;
+    border-radius: 0.6rem;
+    padding: 0.35rem 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#rsv-empleats button.rsv-del:hover {
+    background: var(--a-danger);
+    color: #fff;
+}
+
+#rsv-empleats .rsv-error {
+    color: var(--a-danger);
+    font-size: 0.85rem;
+    margin: 0 0 0.75rem;
+}
+
+#rsv-empleats .rsv-empty {
+    color: var(--a-muted);
+    text-align: center;
+    padding: 1.5rem;
+}
+
+#rsv-empleats .rsv-file {
+    display: inline-flex;
+    align-items: center;
+    max-width: 13rem;
+    border: 1px dashed var(--a-line);
+    border-radius: 0.75rem;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.85rem;
+    color: var(--a-muted);
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+#rsv-empleats .rsv-file:hover {
+    border-color: var(--a-accent);
+    color: var(--a-accent);
+}
+
+#rsv-empleats .rsv-file > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#rsv-empleats .rsv-file > input {
+    display: none;
+}
+
+/* Formulari de nou empleat / edició */
+#rsv-empleats .rsv-emp-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    border: 1px solid var(--a-line);
+    border-radius: 1rem;
+    padding: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+#rsv-empleats .rsv-emp-fields {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#rsv-empleats .rsv-emp-fields > input[type='text'] {
+    flex: 1;
+    min-width: 12rem;
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-ink);
+    border-radius: 0.75rem;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.95rem;
+}
+
+#rsv-empleats .rsv-emp-fields > input[type='text']:focus {
+    outline: none;
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-soft);
+}
+
+#rsv-empleats .rsv-emp-prev > img {
+    width: 3rem;
+    height: 3rem;
+    object-fit: cover;
+    border-radius: 0.6rem;
+    border: 1px solid var(--a-line);
+}
+
+/* Assignació de serveis */
+#rsv-empleats .rsv-emp-assign-label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+#rsv-empleats .rsv-emp-groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+}
+
+#rsv-empleats .rsv-emp-group {
+    flex: 1 1 12rem;
+    min-width: 11rem;
+    border: 1px solid var(--a-line);
+    border-radius: 0.75rem;
+    padding: 0.65rem 0.8rem;
+    background: var(--a-soft);
+}
+
+#rsv-empleats .rsv-emp-grouphead {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding-bottom: 0.4rem;
+    margin-bottom: 0.4rem;
+    border-bottom: 1px solid var(--a-line);
+    cursor: pointer;
+}
+
+#rsv-empleats .rsv-emp-srv {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.9rem;
+    padding: 0.2rem 0;
+    cursor: pointer;
+}
+
+#rsv-empleats .rsv-emp-srv input,
+#rsv-empleats .rsv-emp-grouphead input {
+    accent-color: var(--a-accent);
+}
+
+/* Llista d'empleats */
+#rsv-empleats .rsv-emp-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#rsv-empleats .rsv-emp-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    border: 1px solid var(--a-line);
+    border-radius: 0.75rem;
+    padding: 0.65rem 0.95rem;
+}
+
+#rsv-empleats .rsv-emp-thumb {
+    flex: none;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    border: 1px solid var(--a-line);
+    background: var(--a-soft);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#rsv-empleats .rsv-emp-thumb > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#rsv-empleats .rsv-emp-noimg {
+    color: var(--a-muted);
+    font-weight: 700;
+}
+
+#rsv-empleats .rsv-emp-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1;
+    min-width: 10rem;
+}
+
+#rsv-empleats .rsv-emp-name {
+    font-weight: 700;
+}
+
+#rsv-empleats .rsv-emp-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+#rsv-empleats .rsv-emp-tag {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--a-accent);
+    background: var(--a-soft);
+    border-radius: 999px;
+    padding: 0.1rem 0.6rem;
+}
+
+#rsv-empleats .rsv-emp-none {
+    font-size: 0.8rem;
+    color: var(--a-muted);
+}
+
+/* Edició dins de la fila */
+#rsv-empleats .rsv-emp-editmain {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+#rsv-empleats .rsv-emp-editmain .rsv-emp-fields {
+    flex: 1;
+}
+
+#rsv-empleats .rsv-emp-editactions {
+    display: flex;
+    gap: 0.5rem;
+}

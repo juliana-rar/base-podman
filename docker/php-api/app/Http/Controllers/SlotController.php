@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Employee;
 use App\Models\Service;
 use App\Models\Slot;
 use Illuminate\Http\RedirectResponse;
@@ -35,6 +36,15 @@ class SlotController extends Controller
             'services' => Service::with('category:id,name,description,image_path')
                 ->orderBy('name')
                 ->get(['id', 'name', 'price', 'duration_minutes', 'description', 'image_path', 'service_category_id']),
+            'employees' => Employee::with('services:id')
+                ->orderBy('name')
+                ->get(['id', 'name', 'image_path'])
+                ->map(fn (Employee $e) => [
+                    'id' => $e->id,
+                    'name' => $e->name,
+                    'url' => $e->url,
+                    'service_ids' => $e->services->pluck('id'),
+                ]),
         ]);
     }
 
