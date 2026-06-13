@@ -6,9 +6,15 @@ import '../../../css/reserva/admin.css';
 
 const { t } = useI18n();
 
+interface OptionRef {
+    id: number;
+    name: string;
+}
+
 interface ServiceRef {
     id: number;
     name: string;
+    options: OptionRef[];
 }
 
 interface Category {
@@ -22,6 +28,7 @@ interface Employee {
     name: string;
     url: string | null;
     service_ids: number[];
+    option_ids: number[];
 }
 
 const props = defineProps<{
@@ -81,10 +88,24 @@ function toggleAll(form: { service_ids: number[] }, services: ServiceRef[]): voi
     }
 }
 
+// En marcar una opció, s'assegura que el servei pare també quedi marcat.
+function toggleOption(form: { service_ids: number[]; option_ids: number[] }, optionId: number, serviceId: number): void {
+    const i = form.option_ids.indexOf(optionId);
+    if (i === -1) {
+        form.option_ids.push(optionId);
+        if (!form.service_ids.includes(serviceId)) {
+            form.service_ids.push(serviceId);
+        }
+    } else {
+        form.option_ids.splice(i, 1);
+    }
+}
+
 // --- Crear ---
-const form = useForm<{ name: string; service_ids: number[]; image: File | null }>({
+const form = useForm<{ name: string; service_ids: number[]; option_ids: number[]; image: File | null }>({
     name: '',
     service_ids: [],
+    option_ids: [],
     image: null,
 });
 const newPreview = ref<string | null>(null);
@@ -110,9 +131,10 @@ function create(): void {
 
 // --- Editar ---
 const editId = ref<number | null>(null);
-const editForm = useForm<{ name: string; service_ids: number[]; image: File | null }>({
+const editForm = useForm<{ name: string; service_ids: number[]; option_ids: number[]; image: File | null }>({
     name: '',
     service_ids: [],
+    option_ids: [],
     image: null,
 });
 const editPreview = ref<string | null>(null);
@@ -123,6 +145,7 @@ function startEdit(employee: Employee): void {
     editForm.clearErrors();
     editForm.name = employee.name;
     editForm.service_ids = [...employee.service_ids];
+    editForm.option_ids = [...employee.option_ids];
     editForm.image = null;
     if (editPreview.value) URL.revokeObjectURL(editPreview.value);
     editPreview.value = null;
@@ -201,14 +224,24 @@ function remove(id: number): void {
                                 />
                                 <span>{{ group.name }}</span>
                             </label>
-                            <label v-for="s in group.services" :key="s.id" class="rsv-emp-srv">
-                                <input
-                                    type="checkbox"
-                                    :checked="form.service_ids.includes(s.id)"
-                                    @change="toggleService(form, s.id)"
-                                />
-                                <span>{{ s.name }}</span>
-                            </label>
+                            <div v-for="s in group.services" :key="s.id" class="rsv-emp-srvitem">
+                                <label class="rsv-emp-srv">
+                                    <input
+                                        type="checkbox"
+                                        :checked="form.service_ids.includes(s.id)"
+                                        @change="toggleService(form, s.id)"
+                                    />
+                                    <span>{{ s.name }}</span>
+                                </label>
+                                <label v-for="o in s.options" :key="o.id" class="rsv-emp-opt">
+                                    <input
+                                        type="checkbox"
+                                        :checked="form.option_ids.includes(o.id)"
+                                        @change="toggleOption(form, o.id, s.id)"
+                                    />
+                                    <span>{{ o.name }}</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -270,14 +303,24 @@ function remove(id: number): void {
                                         />
                                         <span>{{ group.name }}</span>
                                     </label>
-                                    <label v-for="s in group.services" :key="s.id" class="rsv-emp-srv">
-                                        <input
-                                            type="checkbox"
-                                            :checked="editForm.service_ids.includes(s.id)"
-                                            @change="toggleService(editForm, s.id)"
-                                        />
-                                        <span>{{ s.name }}</span>
-                                    </label>
+                                    <div v-for="s in group.services" :key="s.id" class="rsv-emp-srvitem">
+                                        <label class="rsv-emp-srv">
+                                            <input
+                                                type="checkbox"
+                                                :checked="editForm.service_ids.includes(s.id)"
+                                                @change="toggleService(editForm, s.id)"
+                                            />
+                                            <span>{{ s.name }}</span>
+                                        </label>
+                                        <label v-for="o in s.options" :key="o.id" class="rsv-emp-opt">
+                                            <input
+                                                type="checkbox"
+                                                :checked="editForm.option_ids.includes(o.id)"
+                                                @change="toggleOption(editForm, o.id, s.id)"
+                                            />
+                                            <span>{{ o.name }}</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -21,6 +21,7 @@ class Reservation extends Model
         'slot_id',
         'user_id',
         'service_id',
+        'service_option_id',
         'employee_id',
         'note',
     ];
@@ -63,5 +64,15 @@ class Reservation extends Model
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    /**
+     * Opció del servei escollida (o cap).
+     *
+     * @return BelongsTo<ServiceOption, $this>
+     */
+    public function serviceOption(): BelongsTo
+    {
+        return $this->belongsTo(ServiceOption::class);
     }
 }

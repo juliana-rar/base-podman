@@ -33,10 +33,10 @@ class SlotController extends Controller
         return Inertia::render('Reservar', [
             'availableSlots' => $available,
             'myReservations' => $myReservations,
-            'services' => Service::with('category:id,name,description,image_path')
+            'services' => Service::with('category:id,name,description,image_path', 'options:id,service_id,name,description,image_path')
                 ->orderBy('name')
                 ->get(['id', 'name', 'price', 'duration_minutes', 'description', 'image_path', 'service_category_id']),
-            'employees' => Employee::with('services:id')
+            'employees' => Employee::with('services:id', 'serviceOptions:id')
                 ->orderBy('name')
                 ->get(['id', 'name', 'image_path'])
                 ->map(fn (Employee $e) => [
@@ -44,6 +44,7 @@ class SlotController extends Controller
                     'name' => $e->name,
                     'url' => $e->url,
                     'service_ids' => $e->services->pluck('id'),
+                    'option_ids' => $e->serviceOptions->pluck('id'),
                 ]),
         ]);
     }

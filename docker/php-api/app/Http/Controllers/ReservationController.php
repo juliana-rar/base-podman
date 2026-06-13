@@ -7,6 +7,7 @@ use App\Models\Reservation;
 use App\Models\Slot;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -34,6 +35,11 @@ class ReservationController extends Controller
         $validated = $request->validate([
             'slot_id' => ['required', 'integer', 'exists:slots,id'],
             'service_id' => ['required', 'integer', 'exists:services,id'],
+            'service_option_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('service_options', 'id')->where('service_id', $request->input('service_id')),
+            ],
             'employee_id' => ['required', 'integer', 'exists:employees,id'],
             'note' => ['required', 'string', 'max:1000'],
         ]);
@@ -50,6 +56,7 @@ class ReservationController extends Controller
             'slot_id' => $slot->id,
             'user_id' => $request->user()->id,
             'service_id' => $validated['service_id'],
+            'service_option_id' => $validated['service_option_id'] ?? null,
             'employee_id' => $validated['employee_id'],
             'note' => $validated['note'],
         ]);

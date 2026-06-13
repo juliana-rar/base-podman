@@ -19,9 +19,10 @@ class ServiceController extends Controller
     {
         return Inertia::render('admin/Serveis', [
             'categories' => ServiceCategory::with(['services' => function ($query) {
-                $query->withCount('reservations')->orderBy('name');
+                $query->withCount('reservations')->with('options')->orderBy('name');
             }])->orderBy('name')->get(['id', 'name', 'description', 'image_path']),
             'uncategorized' => Service::withCount('reservations')
+                ->with('options')
                 ->whereNull('service_category_id')
                 ->orderBy('name')
                 ->get(['id', 'name', 'price', 'duration_minutes', 'description', 'image_path', 'service_category_id']),

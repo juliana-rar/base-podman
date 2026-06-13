@@ -12,6 +12,13 @@ interface Slot {
     notes: string | null;
 }
 
+interface ServiceOption {
+    id: number;
+    name: string;
+    description: string | null;
+    url: string | null;
+}
+
 interface Service {
     id: number;
     name: string;
@@ -20,6 +27,7 @@ interface Service {
     description: string | null;
     url: string | null;
     category: { id: number; name: string; description: string | null; url: string | null } | null;
+    options: ServiceOption[];
 }
 
 interface Employee {
@@ -27,6 +35,7 @@ interface Employee {
     name: string;
     url: string | null;
     service_ids: number[];
+    option_ids: number[];
 }
 
 interface Reservation {
@@ -63,29 +72,52 @@ const visibleServices = computed(() => {
     return props.services.filter((s) => ids.has(s.id));
 });
 
+// Element seleccionable: o bé un servei sense opcions, o bé una opció concreta d'un servei.
+interface Bookable {
+    key: string;
+    service: Service;
+    option: ServiceOption | null;
+}
+
+// Bloc d'un servei dins d'una categoria: el servei i els seus elements seleccionables (opcions o ell mateix).
+interface ServiceBlock {
+    service: Service;
+    hasOptions: boolean;
+    items: Bookable[];
+}
+
+function blockFor(service: Service): ServiceBlock {
+    const hasOptions = service.options.length > 0;
+    const items: Bookable[] = hasOptions
+        ? service.options.map((o) => ({ key: `s${service.id}o${o.id}`, service, option: o }))
+        : [{ key: `s${service.id}`, service, option: null }];
+    return { service, hasOptions, items };
+}
+
 // Serveis agrupats per categoria; el grup sense categoria va al final (sense títol).
 const serviceGroups = computed(() => {
     const byCat = new Map<
         number,
-        { id: number | null; name: string; description: string | null; url: string | null; services: Service[] }
+        { id: number | null; name: string; description: string | null; url: string | null; services: ServiceBlock[] }
     >();
-    const uncategorized: Service[] = [];
+    const uncategorized: ServiceBlock[] = [];
     for (const s of visibleServices.value) {
+        const block = blockFor(s);
         if (s.category) {
             const group = byCat.get(s.category.id);
             if (group) {
-                group.services.push(s);
+                group.services.push(block);
             } else {
                 byCat.set(s.category.id, {
                     id: s.category.id,
                     name: s.category.name,
                     description: s.category.description,
                     url: s.category.url,
-                    services: [s],
+                    services: [block],
                 });
             }
         } else {
-            uncategorized.push(s);
+            uncategorized.push(block);
         }
     }
     const groups = [...byCat.values()].sort((a, b) => a.name.localeCompare(b.name));
@@ -94,6 +126,24 @@ const serviceGroups = computed(() => {
     }
     return groups;
 });
+
+// Camps de presentació d'un bookable (l'opció mana sobre el servei per nom/descripció/imatge).
+function itemName(item: Bookable): string {
+    return item.option ? item.option.name : item.service.name;
+}
+function itemDescription(item: Bookable): string | null {
+    return item.option ? item.option.description : item.service.description;
+}
+function itemUrl(item: Bookable): string | null {
+    return (item.option && item.option.url) || item.service.url;
+}
+function isItemActive(item: Bookable): boolean {
+    return serviceId.value === item.service.id && optionId.value === (item.option ? item.option.id : null);
+}
+function selectItem(item: Bookable): void {
+    serviceId.value = item.service.id;
+    optionId.value = item.option ? item.option.id : null;
+}
 
 // Mostra una durada en minuts com a "1 h 30 min" / "45 min".
 function formatDuration(total: number): string {
@@ -170,6 +220,7 @@ const highlightTimes = computed(() => dayTimes.value.map((entry) => entry.time))
 const time = ref('');
 const note = ref('');
 const serviceId = ref<number | null>(null);
+const optionId = ref<number | null>(null);
 
 const selectedSlotId = computed(
     () => dayTimes.value.find((entry) => entry.time === time.value)?.id ?? null,
@@ -187,11 +238,10 @@ watch(effectiveDay, () => {
     time.value = '';
 });
 
-// Si l'empleat escollit canvia i el servei triat ja no està disponible, es desselecciona.
+// En canviar d'empleat es reinicia la selecció de servei/opció.
 watch(employeeId, () => {
-    if (serviceId.value !== null && !visibleServices.value.some((s) => s.id === serviceId.value)) {
-        serviceId.value = null;
-    }
+    serviceId.value = null;
+    optionId.value = null;
 });
 
 const dayLabel = computed(() =>
@@ -220,7 +270,13 @@ function reserve(): void {
 
     router.post(
         '/reservas',
-        { slot_id: selectedSlotId.value, service_id: serviceId.value, employee_id: employeeId.value, note: note.value },
+        {
+            slot_id: selectedSlotId.value,
+            service_id: serviceId.value,
+            service_option_id: optionId.value,
+            employee_id: employeeId.value,
+            note: note.value,
+        },
         {
             preserveScroll: true,
             onSuccess: () => {
@@ -311,28 +367,31 @@ function confirmCancel(): void {
                             {{ group.name }}
                         </span>
                         <small v-if="group.description" class="rsv-service-catdesc">{{ group.description }}</small>
-                        <div class="rsv-service-chips">
-                            <button
-                                v-for="s in group.services"
-                                :key="s.id"
-                                type="button"
-                                :class="{ 'is-active': serviceId === s.id, 'has-img': s.url }"
-                                @click="serviceId = s.id"
-                            >
-                                <img
-                                    v-if="s.url"
-                                    :src="s.url"
-                                    alt=""
-                                    class="rsv-service-thumb"
-                                    :title="t('res.zoomImg')"
-                                    @click.stop="openImage(s)"
-                                />
-                                <span class="rsv-service-info">
-                                    <span class="rsv-service-name">{{ s.name }}</span>
-                                    <small v-if="serviceMeta(s)" class="rsv-service-meta">{{ serviceMeta(s) }}</small>
-                                    <small v-if="s.description" class="rsv-service-desc">{{ s.description }}</small>
-                                </span>
-                            </button>
+                        <div v-for="block in group.services" :key="block.service.id" class="rsv-service-svcblock">
+                            <span v-if="block.hasOptions" class="rsv-service-svcname">{{ block.service.name }}</span>
+                            <div class="rsv-service-chips">
+                                <button
+                                    v-for="item in block.items"
+                                    :key="item.key"
+                                    type="button"
+                                    :class="{ 'is-active': isItemActive(item), 'has-img': itemUrl(item) }"
+                                    @click="selectItem(item)"
+                                >
+                                    <img
+                                        v-if="itemUrl(item)"
+                                        :src="itemUrl(item) ?? undefined"
+                                        alt=""
+                                        class="rsv-service-thumb"
+                                        :title="t('res.zoomImg')"
+                                        @click.stop="openImageUrl(itemUrl(item))"
+                                    />
+                                    <span class="rsv-service-info">
+                                        <span class="rsv-service-name">{{ itemName(item) }}</span>
+                                        <small v-if="serviceMeta(item.service)" class="rsv-service-meta">{{ serviceMeta(item.service) }}</small>
+                                        <small v-if="itemDescription(item)" class="rsv-service-desc">{{ itemDescription(item) }}</small>
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                         </div>
                     </div>

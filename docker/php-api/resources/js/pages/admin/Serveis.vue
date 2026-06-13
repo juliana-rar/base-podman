@@ -6,6 +6,13 @@ import '../../../css/reserva/admin.css';
 
 const { t } = useI18n();
 
+interface ServiceOption {
+    id: number;
+    name: string;
+    description: string | null;
+    url: string | null;
+}
+
 interface Service {
     id: number;
     name: string;
@@ -15,6 +22,7 @@ interface Service {
     url: string | null;
     reservations_count: number;
     service_category_id: number | null;
+    options: ServiceOption[];
 }
 
 interface Category {
@@ -268,6 +276,104 @@ function cancelEdit(): void {
 function remove(id: number): void {
     router.delete(`/admin/serveis/${id}`, { preserveScroll: true });
 }
+
+// =========================================================================
+//  Opcions dels serveis
+// =========================================================================
+// --- Afegir opció ---
+const optionFor = ref<number | null>(null);
+const optionForm = useForm<{ name: string; description: string; image: File | null }>({
+    name: '',
+    description: '',
+    image: null,
+});
+const optionPreview = ref<string | null>(null);
+
+function startAddOption(serviceId: number): void {
+    optionFor.value = serviceId;
+    optionForm.reset();
+    optionForm.clearErrors();
+    if (optionPreview.value) URL.revokeObjectURL(optionPreview.value);
+    optionPreview.value = null;
+}
+
+function onOptionFile(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+    optionForm.image = file;
+    if (optionPreview.value) URL.revokeObjectURL(optionPreview.value);
+    optionPreview.value = file ? URL.createObjectURL(file) : null;
+}
+
+function saveOption(): void {
+    if (optionFor.value === null) return;
+    optionForm
+        .transform((data) => ({ ...data, service_id: optionFor.value }))
+        .post('/admin/serveis-options', {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                optionFor.value = null;
+                if (optionPreview.value) URL.revokeObjectURL(optionPreview.value);
+                optionPreview.value = null;
+            },
+        });
+}
+
+function cancelAddOption(): void {
+    optionFor.value = null;
+    if (optionPreview.value) URL.revokeObjectURL(optionPreview.value);
+    optionPreview.value = null;
+}
+
+// --- Editar opció ---
+const editOptionId = ref<number | null>(null);
+const editOptionForm = useForm<{ name: string; description: string; image: File | null }>({
+    name: '',
+    description: '',
+    image: null,
+});
+const editOptionPreview = ref<string | null>(null);
+
+function startEditOption(option: ServiceOption): void {
+    editOptionId.value = option.id;
+    editOptionForm.reset();
+    editOptionForm.clearErrors();
+    editOptionForm.name = option.name;
+    editOptionForm.description = option.description ?? '';
+    editOptionForm.image = null;
+    if (editOptionPreview.value) URL.revokeObjectURL(editOptionPreview.value);
+    editOptionPreview.value = null;
+}
+
+function onEditOptionFile(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+    editOptionForm.image = file;
+    if (editOptionPreview.value) URL.revokeObjectURL(editOptionPreview.value);
+    editOptionPreview.value = file ? URL.createObjectURL(file) : null;
+}
+
+function saveEditOption(): void {
+    if (editOptionId.value === null) return;
+    editOptionForm.post(`/admin/serveis-options/${editOptionId.value}`, {
+        preserveScroll: true,
+        forceFormData: true,
+        onSuccess: () => {
+            editOptionId.value = null;
+            if (editOptionPreview.value) URL.revokeObjectURL(editOptionPreview.value);
+            editOptionPreview.value = null;
+        },
+    });
+}
+
+function cancelEditOption(): void {
+    editOptionId.value = null;
+    if (editOptionPreview.value) URL.revokeObjectURL(editOptionPreview.value);
+    editOptionPreview.value = null;
+}
+
+function removeOption(id: number): void {
+    router.delete(`/admin/serveis-options/${id}`, { preserveScroll: true });
+}
 </script>
 
 <template>
@@ -457,6 +563,97 @@ function remove(id: number): void {
                                 <button type="button" class="rsv-edit" @click="startEdit(service)">{{ t('srv.edit') }}</button>
                                 <button type="button" class="rsv-del" @click="remove(service.id)">{{ t('srv.delete') }}</button>
                                 <p v-if="service.description" class="rsv-srv-desc">{{ service.description }}</p>
+
+                                <div class="rsv-srv-options">
+                                    <div class="rsv-srv-opts-head">
+                                        <span>{{ t('srv.options') }}</span>
+                                        <button
+                                            v-if="optionFor !== service.id"
+                                            type="button"
+                                            class="rsv-edit"
+                                            @click="startAddOption(service.id)"
+                                        >
+                                            {{ t('srv.addOption') }}
+                                        </button>
+                                    </div>
+
+                                    <div v-for="opt in service.options" :key="opt.id" class="rsv-srv-opt">
+                                        <template v-if="editOptionId !== opt.id">
+                                            <div class="rsv-srv-thumb rsv-srv-optthumb">
+                                                <img v-if="opt.url" :src="opt.url" alt="" />
+                                                <span v-else class="rsv-srv-noimg">—</span>
+                                            </div>
+                                            <div class="rsv-srv-optinfo">
+                                                <span class="rsv-srv-optname">{{ opt.name }}</span>
+                                                <span v-if="opt.description" class="rsv-srv-optdesc">{{ opt.description }}</span>
+                                            </div>
+                                            <button type="button" class="rsv-edit" @click="startEditOption(opt)">{{ t('srv.edit') }}</button>
+                                            <button type="button" class="rsv-del" @click="removeOption(opt.id)">{{ t('srv.delete') }}</button>
+                                        </template>
+                                        <template v-else>
+                                            <div class="rsv-srv-thumb rsv-srv-optthumb">
+                                                <img v-if="editOptionPreview" :src="editOptionPreview" alt="" />
+                                                <img v-else-if="opt.url" :src="opt.url" alt="" />
+                                                <span v-else class="rsv-srv-noimg">—</span>
+                                            </div>
+                                            <div class="rsv-srv-optfields">
+                                                <input
+                                                    v-model="editOptionForm.name"
+                                                    type="text"
+                                                    maxlength="100"
+                                                    :placeholder="t('srv.optionNamePh')"
+                                                    @keydown.enter.prevent="saveEditOption"
+                                                />
+                                                <textarea
+                                                    v-model="editOptionForm.description"
+                                                    class="rsv-srv-descfield"
+                                                    rows="2"
+                                                    maxlength="2000"
+                                                    :placeholder="t('srv.optionInfoPh')"
+                                                ></textarea>
+                                                <label class="rsv-file">
+                                                    <span>{{ editOptionForm.image ? editOptionForm.image.name : t('srv.changeImage') }}</span>
+                                                    <input type="file" accept="image/*" @change="onEditOptionFile" />
+                                                </label>
+                                                <p v-if="editOptionForm.errors.name" class="rsv-error">{{ editOptionForm.errors.name }}</p>
+                                                <p v-if="editOptionForm.errors.image" class="rsv-error">{{ editOptionForm.errors.image }}</p>
+                                            </div>
+                                            <button type="button" class="rsv-edit" :disabled="editOptionForm.processing" @click="saveEditOption">{{ t('srv.save') }}</button>
+                                            <button type="button" class="rsv-del" @click="cancelEditOption">{{ t('srv.cancel') }}</button>
+                                        </template>
+                                    </div>
+
+                                    <div v-if="optionFor === service.id" class="rsv-srv-opt">
+                                        <div class="rsv-srv-thumb rsv-srv-optthumb">
+                                            <img v-if="optionPreview" :src="optionPreview" alt="" />
+                                            <span v-else class="rsv-srv-noimg">—</span>
+                                        </div>
+                                        <div class="rsv-srv-optfields">
+                                            <input
+                                                v-model="optionForm.name"
+                                                type="text"
+                                                maxlength="100"
+                                                :placeholder="t('srv.optionNamePh')"
+                                                @keydown.enter.prevent="saveOption"
+                                            />
+                                            <textarea
+                                                v-model="optionForm.description"
+                                                class="rsv-srv-descfield"
+                                                rows="2"
+                                                maxlength="2000"
+                                                :placeholder="t('srv.optionInfoPh')"
+                                            ></textarea>
+                                            <label class="rsv-file">
+                                                <span>{{ optionForm.image ? optionForm.image.name : t('srv.imageOpt') }}</span>
+                                                <input type="file" accept="image/*" @change="onOptionFile" />
+                                            </label>
+                                            <p v-if="optionForm.errors.name" class="rsv-error">{{ optionForm.errors.name }}</p>
+                                            <p v-if="optionForm.errors.image" class="rsv-error">{{ optionForm.errors.image }}</p>
+                                        </div>
+                                        <button type="button" class="rsv-edit" :disabled="optionForm.processing" @click="saveOption">{{ t('srv.add') }}</button>
+                                        <button type="button" class="rsv-del" @click="cancelAddOption">{{ t('srv.cancel') }}</button>
+                                    </div>
+                                </div>
                             </template>
 
                             <!-- Vista edició -->

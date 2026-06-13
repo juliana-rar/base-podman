@@ -7,6 +7,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ServiceCategoryController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\ServiceOptionController;
 use App\Http\Controllers\SlideImageController;
 use App\Http\Controllers\SlotController;
 use App\Http\Controllers\TagController;
@@ -65,6 +66,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('serveis-categories', [ServiceCategoryController::class, 'store'])->name('serveis.categories.store');
         Route::post('serveis-categories/{serviceCategory}', [ServiceCategoryController::class, 'update'])->name('serveis.categories.update');
         Route::delete('serveis-categories/{serviceCategory}', [ServiceCategoryController::class, 'destroy'])->name('serveis.categories.destroy');
+
+        // Opcions dels serveis
+        Route::post('serveis-options', [ServiceOptionController::class, 'store'])->name('serveis.options.store');
+        Route::post('serveis-options/{serviceOption}', [ServiceOptionController::class, 'update'])->name('serveis.options.update');
+        Route::delete('serveis-options/{serviceOption}', [ServiceOptionController::class, 'destroy'])->name('serveis.options.destroy');
 
         // Empleats
         Route::get('empleats', [EmployeeController::class, 'index'])->name('empleats');

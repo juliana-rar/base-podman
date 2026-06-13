@@ -18,7 +18,7 @@ class EmployeeController extends Controller
      */
     public function index(): Response
     {
-        $employees = Employee::with('services:id')
+        $employees = Employee::with('services:id', 'serviceOptions:id')
             ->orderBy('name')
             ->get(['id', 'name', 'image_path'])
             ->map(function (Employee $employee) {
@@ -27,23 +27,31 @@ class EmployeeController extends Controller
                     'name' => $employee->name,
                     'url' => $employee->url,
                     'service_ids' => $employee->services->pluck('id'),
+                    'option_ids' => $employee->serviceOptions->pluck('id'),
                 ];
             });
+
+        $mapService = fn (Service $s) => [
+            'id' => $s->id,
+            'name' => $s->name,
+            'options' => $s->options->map(fn ($o) => ['id' => $o->id, 'name' => $o->name]),
+        ];
 
         return Inertia::render('admin/Empleats', [
             'employees' => $employees,
             'categories' => ServiceCategory::with(['services' => function ($query) {
-                $query->orderBy('name');
+                $query->with('options:id,service_id,name')->orderBy('name');
             }])->orderBy('name')->get(['id', 'name'])
                 ->map(fn (ServiceCategory $c) => [
                     'id' => $c->id,
                     'name' => $c->name,
-                    'services' => $c->services->map(fn (Service $s) => ['id' => $s->id, 'name' => $s->name]),
+                    'services' => $c->services->map($mapService),
                 ]),
             'uncategorized' => Service::whereNull('service_category_id')
+                ->with('options:id,service_id,name')
                 ->orderBy('name')
                 ->get(['id', 'name'])
-                ->map(fn (Service $s) => ['id' => $s->id, 'name' => $s->name]),
+                ->map($mapService),
         ]);
     }
 
@@ -62,6 +70,7 @@ class EmployeeController extends Controller
         ]);
 
         $employee->services()->sync($validated['service_ids'] ?? []);
+        $employee->serviceOptions()->sync($validated['option_ids'] ?? []);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Empleat creat.']);
 
@@ -86,6 +95,7 @@ class EmployeeController extends Controller
 
         $employee->save();
         $employee->services()->sync($validated['service_ids'] ?? []);
+        $employee->serviceOptions()->sync($validated['option_ids'] ?? []);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Empleat actualitzat.']);
 
@@ -120,6 +130,8 @@ class EmployeeController extends Controller
             'image' => ['nullable', 'image', 'max:5120'],
             'service_ids' => ['nullable', 'array'],
             'service_ids.*' => ['integer', 'exists:services,id'],
+            'option_ids' => ['nullable', 'array'],
+            'option_ids.*' => ['integer', 'exists:service_options,id'],
         ]);
     }
 }

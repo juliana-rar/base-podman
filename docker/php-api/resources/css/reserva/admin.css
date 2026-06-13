@@ -2619,6 +2619,97 @@
     white-space: pre-line;
 }
 
+/* Opcions del servei */
+#rsv-serveis .rsv-srv-options {
+    flex: 1 1 100%;
+    width: 100%;
+    margin-top: 0.4rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--a-line);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#rsv-serveis .rsv-srv-opts-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--a-muted);
+}
+
+#rsv-serveis .rsv-srv-opts-head .rsv-edit {
+    padding: 0.25rem 0.7rem;
+    font-size: 0.8rem;
+}
+
+#rsv-serveis .rsv-srv-opt {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    border: 1px solid var(--a-line);
+    border-radius: 0.65rem;
+    padding: 0.5rem 0.7rem;
+    background: var(--a-soft);
+}
+
+#rsv-serveis .rsv-srv-optthumb {
+    width: 2.4rem;
+    height: 2.4rem;
+}
+
+#rsv-serveis .rsv-srv-optinfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    flex: 1;
+    min-width: 8rem;
+}
+
+#rsv-serveis .rsv-srv-optname {
+    font-weight: 700;
+}
+
+#rsv-serveis .rsv-srv-optdesc {
+    font-size: 0.82rem;
+    color: var(--a-muted);
+    white-space: pre-line;
+}
+
+#rsv-serveis .rsv-srv-optfields {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 12rem;
+}
+
+#rsv-serveis .rsv-srv-optfields > input[type='text'] {
+    flex: 1;
+    min-width: 9rem;
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-ink);
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.95rem;
+}
+
+#rsv-serveis .rsv-srv-optfields > input[type='text']:focus {
+    outline: none;
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-soft);
+}
+
+#rsv-serveis .rsv-srv-optfields .rsv-error {
+    width: 100%;
+    margin: 0;
+}
+
 #rsv-serveis .rsv-count {
     margin-left: auto;
     font-size: 0.8rem;
@@ -2951,6 +3042,26 @@
     font-size: 0.9rem;
     padding: 0.2rem 0;
     cursor: pointer;
+}
+
+#rsv-empleats .rsv-emp-srvitem {
+    display: flex;
+    flex-direction: column;
+}
+
+#rsv-empleats .rsv-emp-opt {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    color: var(--a-muted);
+    padding: 0.1rem 0 0.1rem 1.4rem;
+    cursor: pointer;
+}
+
+#rsv-empleats .rsv-emp-opt input,
+#rsv-empleats .rsv-emp-srvitem input {
+    accent-color: var(--a-accent);
 }
 
 #rsv-empleats .rsv-emp-srv input,

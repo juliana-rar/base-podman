@@ -222,6 +222,25 @@
     border-radius: 0.7rem;
 }
 
+/* Bloc d'un servei dins la categoria: nom del servei + les seves opcions. */
+#rsv-booking .rsv-service-svcblock {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+#rsv-booking .rsv-service-svcname {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--b-ink);
+}
+
+/* Les opcions queden agrupades visualment sota el nom del servei. */
+#rsv-booking .rsv-service-svcname + .rsv-service-chips {
+    padding-left: 0.75rem;
+    border-left: 2px solid var(--b-line);
+}
+
 #rsv-booking .rsv-service-info {
     display: inline-flex;
     flex-direction: column;

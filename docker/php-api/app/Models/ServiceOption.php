@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
-use Database\Factories\EmployeeFactory;
+use Database\Factories\ServiceOptionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Storage;
 
-class Employee extends Model
+class ServiceOption extends Model
 {
-    /** @use HasFactory<EmployeeFactory> */
+    /** @use HasFactory<ServiceOptionFactory> */
     use HasFactory;
 
     /**
@@ -19,7 +20,9 @@ class Employee extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'service_id',
         'name',
+        'description',
         'image_path',
     ];
 
@@ -33,7 +36,7 @@ class Employee extends Model
     ];
 
     /**
-     * URL pública de la imatge de l'empleat (o null si no en té).
+     * URL pública de la imatge de l'opció (o null si no en té).
      */
     public function getUrlAttribute(): ?string
     {
@@ -41,22 +44,22 @@ class Employee extends Model
     }
 
     /**
-     * Serveis que pot fer aquest empleat.
+     * Servei al qual pertany l'opció.
      *
-     * @return BelongsToMany<Service, $this>
+     * @return BelongsTo<Service, $this>
      */
-    public function services(): BelongsToMany
+    public function service(): BelongsTo
     {
-        return $this->belongsToMany(Service::class);
+        return $this->belongsTo(Service::class);
     }
 
     /**
-     * Opcions de serveis que fa aquest empleat.
+     * Empleats que fan aquesta opció.
      *
-     * @return BelongsToMany<ServiceOption, $this>
+     * @return BelongsToMany<Employee, $this>
      */
-    public function serviceOptions(): BelongsToMany
+    public function employees(): BelongsToMany
     {
-        return $this->belongsToMany(ServiceOption::class);
+        return $this->belongsToMany(Employee::class);
     }
 }

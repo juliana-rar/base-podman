@@ -88,4 +88,14 @@ class Service extends Model
     {
         return $this->belongsToMany(Employee::class);
     }
+
+    /**
+     * Opcions d'aquest servei (cadascuna amb text, imatge i descripció).
+     *
+     * @return HasMany<ServiceOption, $this>
+     */
+    public function options(): HasMany
+    {
+        return $this->hasMany(ServiceOption::class);
+    }
 }
