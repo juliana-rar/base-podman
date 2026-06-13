@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { useI18n } from '@/lib/i18n';
 import '../../../css/reserva/admin.css';
+
+const { t } = useI18n();
 
 interface Tag {
     id: number;
@@ -53,29 +56,29 @@ function remove(id: number): void {
 </script>
 
 <template>
-    <Head title="Etiquetes" />
+    <Head :title="t('tag.title')" />
 
     <div id="rsv-tags">
         <header>
-            <h1>Etiquetes</h1>
-            <p>Crea, acoloreix i elimina les etiquetes que pots assignar als posts.</p>
+            <h1>{{ t('tag.title') }}</h1>
+            <p>{{ t('tag.subtitle') }}</p>
         </header>
 
         <section>
-            <h2>Nova etiqueta</h2>
+            <h2>{{ t('tag.new') }}</h2>
             <div class="rsv-taginput">
                 <input v-model="newColor" type="color" class="rsv-color" aria-label="Color" />
                 <input
                     v-model="newName"
                     type="text"
                     maxlength="30"
-                    placeholder="Nom de l'etiqueta"
+                    :placeholder="t('tag.namePh')"
                     @keydown.enter.prevent="create"
                 />
-                <button type="button" class="rsv-edit" @click="create">Afegir</button>
+                <button type="button" class="rsv-edit" @click="create">{{ t('tag.add') }}</button>
             </div>
 
-            <h2>Catàleg</h2>
+            <h2>{{ t('tag.catalog') }}</h2>
             <div v-if="tags.length" class="rsv-tagrows">
                 <div v-for="tag in tags" :key="tag.id" class="rsv-tagrow">
                     <input
@@ -91,15 +94,15 @@ function remove(id: number): void {
                         maxlength="30"
                         :value="tag.name"
                         :style="{ backgroundColor: tag.color + '22', color: tag.color }"
-                        aria-label="Nom de l'etiqueta"
+                        :aria-label="t('tag.namePh')"
                         @change="updateName(tag.id, $event)"
                         @keydown.enter="($event.target as HTMLInputElement).blur()"
                     />
-                    <span class="rsv-count">{{ tag.posts_count }} {{ tag.posts_count === 1 ? 'post' : 'posts' }}</span>
-                    <button type="button" class="rsv-del" @click="remove(tag.id)">Eliminar</button>
+                    <span class="rsv-count">{{ tag.posts_count }} {{ tag.posts_count === 1 ? t('tag.postOne') : t('tag.postMany') }}</span>
+                    <button type="button" class="rsv-del" @click="remove(tag.id)">{{ t('tag.delete') }}</button>
                 </div>
             </div>
-            <div v-else class="rsv-empty">Encara no hi ha cap etiqueta al catàleg.</div>
+            <div v-else class="rsv-empty">{{ t('tag.empty') }}</div>
         </section>
     </div>
 </template>

@@ -134,6 +134,74 @@
     flex: none;
 }
 
+#rsv-booking .rsv-service-groups {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: 1rem;
+    width: 100%;
+}
+
+#rsv-booking .rsv-service-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    flex: 1 1 13rem;
+    max-width: 18rem;
+    border: 1px solid var(--b-line);
+    border-radius: 1rem;
+    padding: 1rem;
+    background: color-mix(in srgb, var(--b-ink) 3%, transparent);
+}
+
+#rsv-booking .rsv-service-cat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--b-accent);
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid var(--b-line);
+}
+
+#rsv-booking .rsv-service-cat-img {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.5rem;
+    object-fit: cover;
+    flex: none;
+}
+
+/* Dins d'una targeta de categoria els serveis es llisten en columna. */
+#rsv-booking .rsv-service-group .rsv-service-chips {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+}
+
+#rsv-booking .rsv-service-group .rsv-service-chips > button {
+    width: 100%;
+    justify-content: flex-start;
+    border-radius: 0.7rem;
+}
+
+#rsv-booking .rsv-service-info {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.2;
+}
+
+#rsv-booking .rsv-service-meta {
+    font-size: 0.72rem;
+    font-weight: 600;
+    opacity: 0.7;
+}
+
 #rsv-booking .rsv-service-chips > button:hover {
     border-color: var(--b-accent);
 }
@@ -412,6 +480,57 @@
     padding: 1.5rem;
     background: rgba(10, 12, 20, 0.6);
     backdrop-filter: blur(4px);
+}
+
+/* La imatge del servei és clicable per ampliar-la (sense seleccionar). */
+#rsv-booking .rsv-service-thumb {
+    cursor: zoom-in;
+    transition: transform 0.15s ease;
+}
+
+#rsv-booking .rsv-service-thumb:hover {
+    transform: scale(1.08);
+}
+
+/* Visor d'imatge ampliada. */
+.rsv-img-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: rgba(10, 12, 20, 0.82);
+    backdrop-filter: blur(4px);
+}
+
+.rsv-img-zoom {
+    max-width: min(90vw, 600px);
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 1rem;
+    box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.5);
+}
+
+.rsv-img-close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.rsv-img-close:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .rsv-cancel-modal {

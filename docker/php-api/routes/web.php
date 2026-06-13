@@ -4,6 +4,7 @@ use App\Http\Controllers\BusinessHourController;
 use App\Http\Controllers\CancellationController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\ServiceCategoryController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SlideImageController;
 use App\Http\Controllers\SlotController;
@@ -58,6 +59,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('serveis', [ServiceController::class, 'store'])->name('serveis.store');
         Route::post('serveis/{service}', [ServiceController::class, 'update'])->name('serveis.update');
         Route::delete('serveis/{service}', [ServiceController::class, 'destroy'])->name('serveis.destroy');
+
+        // Categories de serveis
+        Route::post('serveis-categories', [ServiceCategoryController::class, 'store'])->name('serveis.categories.store');
+        Route::post('serveis-categories/{serviceCategory}', [ServiceCategoryController::class, 'update'])->name('serveis.categories.update');
+        Route::delete('serveis-categories/{serviceCategory}', [ServiceCategoryController::class, 'destroy'])->name('serveis.categories.destroy');
 
         // Historial de totes les reserves fetes
         Route::get('reserves', [ReservationController::class, 'history'])->name('reserves');

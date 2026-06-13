@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
+import { useI18n } from '@/lib/i18n';
 import '../../../css/reserva/admin.css';
+
+const { t, localeTag } = useI18n();
 
 interface Tag {
     id: number;
@@ -229,7 +232,7 @@ function cancelEdit(): void {
 }
 
 function formatDate(value: string): string {
-    return new Date(value).toLocaleDateString('ca-ES', {
+    return new Date(value).toLocaleDateString(localeTag(), {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -263,41 +266,41 @@ function remove(id: number): void {
 </script>
 
 <template>
-    <Head title="Posts" />
+    <Head :title="t('nav.posts')" />
 
     <div id="rsv-posts">
         <header>
-            <h1>Posts de la presentació</h1>
-            <p>El que publiquis aquí apareixerà a la pàgina pública d'inici, amb les seves imatges i etiquetes.</p>
+            <h1>{{ t('post.title') }}</h1>
+            <p>{{ t('post.subtitle') }}</p>
         </header>
 
         <form @submit.prevent="submit">
-            <h2>{{ isEditing ? 'Editar post' : 'Nou post' }}</h2>
+            <h2>{{ isEditing ? t('post.editPost') : t('post.newPost') }}</h2>
 
-            <label for="title">Títol</label>
+            <label for="title">{{ t('post.fieldTitle') }}</label>
             <input id="title" v-model="form.title" type="text" maxlength="255" required />
             <p v-if="form.errors.title" class="rsv-error">{{ form.errors.title }}</p>
 
-            <label for="body">Contingut</label>
+            <label for="body">{{ t('post.body') }}</label>
             <textarea id="body" v-model="form.body" required></textarea>
             <p v-if="form.errors.body" class="rsv-error">{{ form.errors.body }}</p>
 
-            <label for="body2">Contingut 2 (opcional)</label>
+            <label for="body2">{{ t('post.body2') }}</label>
             <textarea id="body2" v-model="form.body2"></textarea>
             <p v-if="form.errors.body2" class="rsv-error">{{ form.errors.body2 }}</p>
 
-            <label for="summary">Resum (per a la pàgina d'inici)</label>
+            <label for="summary">{{ t('post.summary') }}</label>
             <textarea
                 id="summary"
                 v-model="form.summary"
                 maxlength="500"
                 rows="3"
-                placeholder="Text breu que apareixerà a la targeta de la pàgina de presentació (el contingut complet només es veu al detall del post)."
+                :placeholder="t('post.summaryPh')"
             ></textarea>
             <p class="rsv-tag">{{ form.summary.length }}/500</p>
             <p v-if="form.errors.summary" class="rsv-error">{{ form.errors.summary }}</p>
 
-            <label>Etiquetes</label>
+            <label>{{ t('post.tags') }}</label>
             <div v-if="tagOptions.length" class="rsv-tagpick">
                 <button
                     v-for="name in tagOptions"
@@ -314,42 +317,42 @@ function remove(id: number): void {
                     id="tagfield"
                     v-model="tagInput"
                     type="text"
-                    placeholder="Nova etiqueta i prem Enter"
+                    :placeholder="t('post.newTagPh')"
                     @keydown="onTagKeydown"
                     @blur="addTag"
                 />
             </div>
 
-            <label for="cover">Imatge de portada</label>
+            <label for="cover">{{ t('post.cover') }}</label>
 
             <!-- Portada actual (en edició) -->
             <div v-if="isEditing && editCover && !coverPreview && !form.removeCover" class="rsv-cover-current">
-                <span class="rsv-tag">Portada actual — prem × per treure-la:</span>
+                <span class="rsv-tag">{{ t('post.coverCurrent') }}</span>
                 <div class="rsv-thumb-wrap rsv-thumb-wrap-lg">
-                    <img :src="editCover" alt="Portada actual" />
-                    <button type="button" class="rsv-thumb-x" title="Treure portada" @click="removeCurrentCover">×</button>
+                    <img :src="editCover" alt="" />
+                    <button type="button" class="rsv-thumb-x" @click="removeCurrentCover">×</button>
                 </div>
             </div>
             <p v-else-if="isEditing && form.removeCover && !coverPreview" class="rsv-tag">
-                S'eliminarà la portada en desar. Tria'n una de nova si vols substituir-la.
+                {{ t('post.coverWillRemove') }}
             </p>
 
             <input :key="`cover-${editingId ?? 'new'}`" id="cover" type="file" accept="image/*" @change="onCover" />
             <div v-if="coverPreview" class="rsv-thumb-wrap rsv-thumb-wrap-lg">
-                <img :src="coverPreview" alt="Portada" />
-                <button type="button" class="rsv-thumb-x" title="Treure" @click="clearNewCover">×</button>
+                <img :src="coverPreview" alt="" />
+                <button type="button" class="rsv-thumb-x" @click="clearNewCover">×</button>
             </div>
             <p v-if="form.errors.cover" class="rsv-error">{{ form.errors.cover }}</p>
 
-            <label for="images">Altres imatges (galeria)</label>
+            <label for="images">{{ t('post.gallery') }}</label>
 
             <!-- Imatges actuals del post (en edició) -->
             <div v-if="isEditing && keptExisting.length" class="rsv-gallery-current">
-                <span class="rsv-tag">Imatges actuals — prem × per treure-les:</span>
+                <span class="rsv-tag">{{ t('post.imagesCurrent') }}</span>
                 <div class="rsv-thumbs">
                     <div v-for="img in keptExisting" :key="img.path" class="rsv-thumb-wrap">
                         <img :src="img.url" alt="" />
-                        <button type="button" class="rsv-thumb-x" title="Treure" @click="removeExisting(img.path)">×</button>
+                        <button type="button" class="rsv-thumb-x" @click="removeExisting(img.path)">×</button>
                     </div>
                 </div>
             </div>
@@ -358,25 +361,25 @@ function remove(id: number): void {
             <div v-if="imagePreviews.length" class="rsv-thumbs">
                 <div v-for="(src, i) in imagePreviews" :key="i" class="rsv-thumb-wrap">
                     <img :src="src" alt="" />
-                    <button type="button" class="rsv-thumb-x" title="Treure" @click="removeNewImage(i)">×</button>
+                    <button type="button" class="rsv-thumb-x" @click="removeNewImage(i)">×</button>
                 </div>
             </div>
             <p v-if="form.errors.images" class="rsv-error">{{ form.errors.images }}</p>
 
-            <p v-if="isEditing" class="rsv-tag">Pots triar fitxers diverses vegades; s'aniran acumulant. Les imatges actuals es mantenen tret que les treguis amb ×.</p>
+            <p v-if="isEditing" class="rsv-tag">{{ t('post.imagesHint') }}</p>
 
             <div class="rsv-form-actions">
                 <button type="submit" :disabled="form.processing">
-                    {{ isEditing ? 'Desar canvis' : 'Publicar' }}
+                    {{ isEditing ? t('post.saveChanges') : t('post.publish') }}
                 </button>
-                <button v-if="isEditing" type="button" class="rsv-cancel" @click="cancelEdit">Cancel·lar</button>
+                <button v-if="isEditing" type="button" class="rsv-cancel" @click="cancelEdit">{{ t('post.cancel') }}</button>
             </div>
         </form>
 
         <section>
             <div class="rsv-post-head">
-                <h2>Posts publicats</h2>
-                <input v-model="search" type="search" class="rsv-search" placeholder="Cerca per títol, text o etiqueta…" />
+                <h2>{{ t('post.published') }}</h2>
+                <input v-model="search" type="search" class="rsv-search" :placeholder="t('post.searchPh')" />
             </div>
 
             <div v-if="filteredPosts.length" class="rsv-post-grid">
@@ -384,8 +387,8 @@ function remove(id: number): void {
                     <div>
                         <span>{{ post.title }}</span>
                         <div class="rsv-actions">
-                            <button type="button" class="rsv-edit" @click="startEdit(post)">Editar</button>
-                            <button type="button" class="rsv-del" @click="remove(post.id)">Eliminar</button>
+                            <button type="button" class="rsv-edit" @click="startEdit(post)">{{ t('post.edit') }}</button>
+                            <button type="button" class="rsv-del" @click="remove(post.id)">{{ t('post.delete') }}</button>
                         </div>
                     </div>
                     <img v-if="post.cover_url" :src="post.cover_url" alt="" class="rsv-cover-thumb" />
@@ -398,10 +401,10 @@ function remove(id: number): void {
                         >{{ tag.name }}</span>
                     </div>
                     <p class="rsv-post-body">{{ post.body }}</p>
-                    <span class="rsv-tag">{{ post.author?.name ?? 'Equip' }} · {{ formatDate(post.created_at) }}</span>
+                    <span class="rsv-tag">{{ post.author?.name ?? t('post.team') }} · {{ formatDate(post.created_at) }}</span>
                 </article>
             </div>
-            <div v-else class="rsv-empty">Cap post coincideix amb la cerca.</div>
+            <div v-else class="rsv-empty">{{ t('post.empty') }}</div>
 
             <div v-if="totalPages > 1" class="rsv-pagination">
                 <button type="button" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">‹</button>

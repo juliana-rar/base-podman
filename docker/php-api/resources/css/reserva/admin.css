@@ -2401,12 +2401,17 @@
     margin-top: 1.75rem;
 }
 
+#rsv-serveis .rsv-srv-center {
+    text-align: center;
+}
+
 #rsv-serveis .rsv-srv-form {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 0.5rem;
     max-width: 34rem;
-    margin-bottom: 1rem;
+    margin: 0 auto 1rem;
 }
 
 #rsv-serveis .rsv-srv-form > input {
@@ -2424,6 +2429,64 @@
     outline: none;
     border-color: var(--a-accent);
     box-shadow: 0 0 0 3px var(--a-soft);
+}
+
+/* Camp numèric amb la unitat (€ / min) sempre visible per diferenciar-lo. */
+#rsv-serveis .rsv-srv-num {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1 1 8rem;
+    min-width: 8rem;
+}
+
+#rsv-serveis .rsv-srv-num > input {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-ink);
+    border-radius: 0.75rem;
+    padding: 0.55rem 3rem 0.55rem 0.85rem;
+    font-size: 0.95rem;
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+#rsv-serveis .rsv-srv-num > input::-webkit-outer-spin-button,
+#rsv-serveis .rsv-srv-num > input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+#rsv-serveis .rsv-srv-num > input:focus {
+    outline: none;
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-soft);
+}
+
+#rsv-serveis .rsv-srv-unit {
+    position: absolute;
+    right: 0.75rem;
+    font-style: normal;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--a-muted);
+    pointer-events: none;
+}
+
+/* Durada moderna: hores + minuts un al costat de l'altre. */
+#rsv-serveis .rsv-srv-durfield {
+    display: flex;
+    gap: 0.4rem;
+    flex: 1 1 12rem;
+    min-width: 12rem;
+}
+
+#rsv-serveis .rsv-srv-durfield .rsv-srv-num {
+    flex: 1 1 5.5rem;
+    min-width: 5.5rem;
 }
 
 #rsv-serveis .rsv-edit {
@@ -2449,6 +2512,47 @@
     margin: 0 0 0.75rem;
 }
 
+#rsv-serveis .rsv-srv-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+#rsv-serveis .rsv-srv-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+#rsv-serveis .rsv-srv-grouphead {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid var(--a-line);
+}
+
+#rsv-serveis .rsv-srv-grouphead h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin-right: auto;
+}
+
+#rsv-serveis .rsv-srv-grouphead input {
+    margin-right: auto;
+}
+
+#rsv-serveis .rsv-srv-select {
+    border: 1px solid var(--a-line);
+    border-radius: 0.6rem;
+    padding: 0.45rem 0.6rem;
+    background: var(--a-card, #fff);
+    color: inherit;
+    font: inherit;
+}
+
 #rsv-serveis .rsv-srv-rows {
     display: flex;
     flex-direction: column;
@@ -2469,7 +2573,8 @@
     font-weight: 700;
 }
 
-#rsv-serveis .rsv-srv-price {
+#rsv-serveis .rsv-srv-price,
+#rsv-serveis .rsv-srv-dur {
     font-weight: 600;
     font-size: 0.9rem;
     color: var(--a-muted);
@@ -2538,6 +2643,7 @@
 /* Previsualització en crear */
 #rsv-serveis .rsv-srv-newprev {
     margin-bottom: 1rem;
+    text-align: center;
 }
 
 #rsv-serveis .rsv-srv-newprev > img {

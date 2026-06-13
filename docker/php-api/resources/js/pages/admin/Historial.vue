@@ -2,13 +2,16 @@
 import { Head } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import Calendar from '@/components/Calendar.vue';
+import { useI18n } from '@/lib/i18n';
 import '../../../css/reserva/admin.css';
+
+const { t, localeTag } = useI18n();
 
 interface Reservation {
     id: number;
     note: string | null;
     created_at: string;
-    user: { id: number; name: string; email: string } | null;
+    user: { id: number; name: string; email: string; phone: string | null } | null;
     slot: { id: number; starts_at: string; notes: string | null } | null;
     service: { id: number; name: string } | null;
 }
@@ -31,7 +34,7 @@ function dayKeyOf(iso: string): string {
 }
 
 function slotLabel(iso: string): string {
-    return new Date(iso).toLocaleString('ca-ES', {
+    return new Date(iso).toLocaleString(localeTag(), {
         weekday: 'short',
         day: 'numeric',
         month: 'short',
@@ -41,7 +44,7 @@ function slotLabel(iso: string): string {
 }
 
 function madeLabel(iso: string): string {
-    return new Date(iso).toLocaleString('ca-ES', {
+    return new Date(iso).toLocaleString(localeTag(), {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
@@ -71,6 +74,7 @@ const filtered = computed(() => {
         const haystack = [
             r.user?.name,
             r.user?.email,
+            r.user?.phone,
             r.slot ? slotLabel(r.slot.starts_at) : '',
         ]
             .join(' ')
@@ -81,7 +85,7 @@ const filtered = computed(() => {
 
 const selectedDateLabel = computed(() =>
     selectedDate.value
-        ? new Date(selectedDate.value + 'T00:00:00').toLocaleDateString('ca-ES', {
+        ? new Date(selectedDate.value + 'T00:00:00').toLocaleDateString(localeTag(), {
               day: 'numeric',
               month: 'long',
               year: 'numeric',
@@ -116,51 +120,53 @@ function goToPage(page: number): void {
 </script>
 
 <template>
-    <Head title="Historial de reserves" />
+    <Head :title="t('hist.title')" />
 
     <div id="rsv-history">
         <header>
-            <h1>Historial de reserves</h1>
-            <p>Cerca, filtra per data i consulta totes les reserves fetes.</p>
+            <h1>{{ t('hist.title') }}</h1>
+            <p>{{ t('hist.subtitle') }}</p>
         </header>
 
         <section>
             <aside>
-                <h2>Filtra per data</h2>
+                <h2>{{ t('adm.filterByDate') }}</h2>
                 <Calendar v-model="selectedDate" :highlight-dates="reservationDayKeys" />
                 <button v-if="selectedDate" type="button" class="rsv-clear" @click="clearDate">
-                    Veure totes les dates
+                    {{ t('adm.allDates') }}
                 </button>
             </aside>
 
             <div>
                 <div class="rsv-toolbar">
-                    <input v-model="search" type="search" placeholder="Cerca per usuari, email o hora…" />
-                    <span class="rsv-count">{{ filtered.length }} de {{ reservations.length }}</span>
+                    <input v-model="search" type="search" :placeholder="t('hist.searchPh')" />
+                    <span class="rsv-count">{{ filtered.length }} {{ t('adm.of') }} {{ reservations.length }}</span>
                 </div>
 
                 <div v-if="selectedDate" class="rsv-chip">
-                    Reserves fetes el {{ selectedDateLabel }}
-                    <button type="button" aria-label="Treure filtre" @click="clearDate">×</button>
+                    {{ t('hist.madeOn') }} {{ selectedDateLabel }}
+                    <button type="button" aria-label="×" @click="clearDate">×</button>
                 </div>
 
                 <div v-if="filtered.length" class="rsv-tablewrap">
                     <table>
                         <thead>
                             <tr>
-                                <th>Reserva</th>
-                                <th>Usuari</th>
-                                <th>Email</th>
-                                <th>Servei</th>
-                                <th>Motiu</th>
-                                <th>Feta el</th>
+                                <th>{{ t('hist.colBooking') }}</th>
+                                <th>{{ t('adm.user') }}</th>
+                                <th>{{ t('adm.email') }}</th>
+                                <th>{{ t('adm.phone') }}</th>
+                                <th>{{ t('adm.service') }}</th>
+                                <th>{{ t('hist.colReason') }}</th>
+                                <th>{{ t('hist.colMadeOn') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="r in paged" :key="r.id">
-                                <td>{{ r.slot ? slotLabel(r.slot.starts_at) : 'Franja eliminada' }}</td>
-                                <td>{{ r.user?.name ?? 'Usuari eliminat' }}</td>
+                                <td>{{ r.slot ? slotLabel(r.slot.starts_at) : t('hist.slotDeleted') }}</td>
+                                <td>{{ r.user?.name ?? t('adm.userDeleted') }}</td>
                                 <td>{{ r.user?.email ?? '—' }}</td>
+                                <td>{{ r.user?.phone ?? '—' }}</td>
                                 <td>{{ r.service?.name ?? '—' }}</td>
                                 <td class="rsv-note-cell">{{ r.note ?? '—' }}</td>
                                 <td>{{ madeLabel(r.created_at) }}</td>
@@ -182,7 +188,7 @@ function goToPage(page: number): void {
                         <button type="button" :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">›</button>
                     </div>
                 </div>
-                <div v-else class="rsv-empty">Cap reserva coincideix amb el filtre.</div>
+                <div v-else class="rsv-empty">{{ t('hist.empty') }}</div>
             </div>
         </section>
     </div>

@@ -15,7 +15,10 @@ interface Slot {
 interface Service {
     id: number;
     name: string;
+    price: string;
+    duration_minutes: number;
     url: string | null;
+    category: { id: number; name: string; url: string | null } | null;
 }
 
 interface Reservation {
@@ -39,6 +42,57 @@ defineOptions({
 
 const { t, localeTag } = useI18n();
 const pad = (n: number) => String(n).padStart(2, '0');
+
+// Serveis agrupats per categoria; el grup sense categoria va al final (sense títol).
+const serviceGroups = computed(() => {
+    const byCat = new Map<number, { id: number | null; name: string; url: string | null; services: Service[] }>();
+    const uncategorized: Service[] = [];
+    for (const s of props.services) {
+        if (s.category) {
+            const group = byCat.get(s.category.id);
+            if (group) {
+                group.services.push(s);
+            } else {
+                byCat.set(s.category.id, { id: s.category.id, name: s.category.name, url: s.category.url, services: [s] });
+            }
+        } else {
+            uncategorized.push(s);
+        }
+    }
+    const groups = [...byCat.values()].sort((a, b) => a.name.localeCompare(b.name));
+    if (uncategorized.length) {
+        groups.push({ id: null, name: '', url: null, services: uncategorized });
+    }
+    return groups;
+});
+
+// Mostra una durada en minuts com a "1 h 30 min" / "45 min".
+function formatDuration(total: number): string {
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    if (h && m) return `${h} ${t('srv.hours')} ${m} ${t('srv.minutes')}`;
+    if (h) return `${h} ${t('srv.hours')}`;
+    return `${m} ${t('srv.minutes')}`;
+}
+
+// Línia de preu i durada del servei (omet el que sigui 0).
+function serviceMeta(s: Service): string {
+    const parts: string[] = [];
+    if (Number(s.price) > 0) parts.push(`${s.price} €`);
+    if (s.duration_minutes > 0) parts.push(formatDuration(s.duration_minutes));
+    return parts.join(' · ');
+}
+
+// Visor d'imatge ampliada (clicar la imatge del servei).
+const zoomImage = ref<string | null>(null);
+
+function openImage(s: Service): void {
+    if (s.url) zoomImage.value = s.url;
+}
+
+function closeImage(): void {
+    zoomImage.value = null;
+}
 
 function timeOf(iso: string): string {
     const d = new Date(iso);
@@ -180,17 +234,35 @@ function confirmCancel(): void {
 
             <div v-if="services.length" class="rsv-service-pick">
                 <span class="rsv-service-label">{{ t('res.service') }} *</span>
-                <div class="rsv-service-chips">
-                    <button
-                        v-for="s in services"
-                        :key="s.id"
-                        type="button"
-                        :class="{ 'is-active': serviceId === s.id, 'has-img': s.url }"
-                        @click="serviceId = s.id"
-                    >
-                        <img v-if="s.url" :src="s.url" alt="" />
-                        <span>{{ s.name }}</span>
-                    </button>
+                <div class="rsv-service-groups">
+                    <div v-for="group in serviceGroups" :key="group.id ?? 'none'" class="rsv-service-group">
+                        <span v-if="group.name" class="rsv-service-cat">
+                            <img v-if="group.url" :src="group.url" alt="" class="rsv-service-cat-img" />
+                            {{ group.name }}
+                        </span>
+                        <div class="rsv-service-chips">
+                            <button
+                                v-for="s in group.services"
+                                :key="s.id"
+                                type="button"
+                                :class="{ 'is-active': serviceId === s.id, 'has-img': s.url }"
+                                @click="serviceId = s.id"
+                            >
+                                <img
+                                    v-if="s.url"
+                                    :src="s.url"
+                                    alt=""
+                                    class="rsv-service-thumb"
+                                    :title="t('res.zoomImg')"
+                                    @click.stop="openImage(s)"
+                                />
+                                <span class="rsv-service-info">
+                                    <span class="rsv-service-name">{{ s.name }}</span>
+                                    <small v-if="serviceMeta(s)" class="rsv-service-meta">{{ serviceMeta(s) }}</small>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -255,6 +327,15 @@ function confirmCancel(): void {
             </div>
             <div v-else class="rsv-empty">{{ t('res.capReserva') }}</div>
         </section>
+
+        <Teleport to="body">
+            <transition name="rsv-fade">
+                <div v-if="zoomImage" class="rsv-img-overlay" @click.self="closeImage">
+                    <img :src="zoomImage" alt="" class="rsv-img-zoom" />
+                    <button type="button" class="rsv-img-close" aria-label="×" @click="closeImage">×</button>
+                </div>
+            </transition>
+        </Teleport>
 
         <Teleport to="body">
             <transition name="rsv-fade">

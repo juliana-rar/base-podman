@@ -15,7 +15,7 @@ class CancellationController extends Controller
     {
         return Inertia::render('admin/Cancellacions', [
             'cancellations' => Cancellation::query()
-                ->with('user:id,name,email')
+                ->with('user:id,name,email,phone')
                 ->latest()
                 ->get(['id', 'user_id', 'service_name', 'slot_starts_at', 'note', 'reason', 'created_at']),
         ]);

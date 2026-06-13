@@ -20,7 +20,7 @@ class ReservationController extends Controller
     {
         return Inertia::render('admin/Historial', [
             'reservations' => Reservation::query()
-                ->with(['user:id,name,email', 'slot:id,starts_at,notes', 'service:id,name'])
+                ->with(['user:id,name,email,phone', 'slot:id,starts_at,notes', 'service:id,name'])
                 ->latest()
                 ->get(['id', 'slot_id', 'user_id', 'service_id', 'note', 'created_at']),
         ]);

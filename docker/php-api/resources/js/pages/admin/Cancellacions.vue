@@ -2,11 +2,14 @@
 import { Head } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import Calendar from '@/components/Calendar.vue';
+import { useI18n } from '@/lib/i18n';
 import '../../../css/reserva/admin.css';
+
+const { t, localeTag } = useI18n();
 
 interface Cancellation {
     id: number;
-    user: { id: number; name: string; email: string } | null;
+    user: { id: number; name: string; email: string; phone: string | null } | null;
     service_name: string | null;
     slot_starts_at: string | null;
     note: string | null;
@@ -32,7 +35,7 @@ function dayKeyOf(iso: string): string {
 }
 
 function slotLabel(iso: string): string {
-    return new Date(iso).toLocaleString('ca-ES', {
+    return new Date(iso).toLocaleString(localeTag(), {
         weekday: 'short',
         day: 'numeric',
         month: 'short',
@@ -42,7 +45,7 @@ function slotLabel(iso: string): string {
 }
 
 function madeLabel(iso: string): string {
-    return new Date(iso).toLocaleString('ca-ES', {
+    return new Date(iso).toLocaleString(localeTag(), {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
@@ -68,7 +71,7 @@ const filtered = computed(() => {
         if (!q) {
             return true;
         }
-        const haystack = [c.user?.name, c.user?.email, c.service_name, c.reason]
+        const haystack = [c.user?.name, c.user?.email, c.user?.phone, c.service_name, c.reason]
             .join(' ')
             .toLowerCase();
         return haystack.includes(q);
@@ -77,7 +80,7 @@ const filtered = computed(() => {
 
 const selectedDateLabel = computed(() =>
     selectedDate.value
-        ? new Date(selectedDate.value + 'T00:00:00').toLocaleDateString('ca-ES', {
+        ? new Date(selectedDate.value + 'T00:00:00').toLocaleDateString(localeTag(), {
               day: 'numeric',
               month: 'long',
               year: 'numeric',
@@ -112,51 +115,53 @@ function goToPage(page: number): void {
 </script>
 
 <template>
-    <Head title="Cancel·lacions" />
+    <Head :title="t('can.title')" />
 
     <div id="rsv-history">
         <header>
-            <h1>Cancel·lacions</h1>
-            <p>Reserves que els usuaris han cancel·lat, amb el motiu indicat.</p>
+            <h1>{{ t('can.title') }}</h1>
+            <p>{{ t('can.subtitle') }}</p>
         </header>
 
         <section>
             <aside>
-                <h2>Filtra per data</h2>
+                <h2>{{ t('adm.filterByDate') }}</h2>
                 <Calendar v-model="selectedDate" :highlight-dates="cancellationDayKeys" />
                 <button v-if="selectedDate" type="button" class="rsv-clear" @click="clearDate">
-                    Veure totes les dates
+                    {{ t('adm.allDates') }}
                 </button>
             </aside>
 
             <div>
                 <div class="rsv-toolbar">
-                    <input v-model="search" type="search" placeholder="Cerca per usuari, email, servei o motiu…" />
-                    <span class="rsv-count">{{ filtered.length }} de {{ cancellations.length }}</span>
+                    <input v-model="search" type="search" :placeholder="t('can.searchPh')" />
+                    <span class="rsv-count">{{ filtered.length }} {{ t('adm.of') }} {{ cancellations.length }}</span>
                 </div>
 
                 <div v-if="selectedDate" class="rsv-chip">
-                    Cancel·lades el {{ selectedDateLabel }}
-                    <button type="button" aria-label="Treure filtre" @click="clearDate">×</button>
+                    {{ t('can.cancelledOn') }} {{ selectedDateLabel }}
+                    <button type="button" aria-label="×" @click="clearDate">×</button>
                 </div>
 
                 <div v-if="filtered.length" class="rsv-tablewrap">
                     <table>
                         <thead>
                             <tr>
-                                <th>Cita</th>
-                                <th>Usuari</th>
-                                <th>Email</th>
-                                <th>Servei</th>
-                                <th>Motiu cancel·lació</th>
-                                <th>Cancel·lada el</th>
+                                <th>{{ t('can.colAppt') }}</th>
+                                <th>{{ t('adm.user') }}</th>
+                                <th>{{ t('adm.email') }}</th>
+                                <th>{{ t('adm.phone') }}</th>
+                                <th>{{ t('adm.service') }}</th>
+                                <th>{{ t('can.colReason') }}</th>
+                                <th>{{ t('can.colCancelledOn') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="c in paged" :key="c.id">
                                 <td>{{ c.slot_starts_at ? slotLabel(c.slot_starts_at) : '—' }}</td>
-                                <td>{{ c.user?.name ?? 'Usuari eliminat' }}</td>
+                                <td>{{ c.user?.name ?? t('adm.userDeleted') }}</td>
                                 <td>{{ c.user?.email ?? '—' }}</td>
+                                <td>{{ c.user?.phone ?? '—' }}</td>
                                 <td>{{ c.service_name ?? '—' }}</td>
                                 <td class="rsv-note-cell">{{ c.reason }}</td>
                                 <td>{{ madeLabel(c.created_at) }}</td>
@@ -178,7 +183,7 @@ function goToPage(page: number): void {
                         <button type="button" :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">›</button>
                     </div>
                 </div>
-                <div v-else class="rsv-empty">Encara no hi ha cap cancel·lació.</div>
+                <div v-else class="rsv-empty">{{ t('can.empty') }}</div>
             </div>
         </section>
     </div>

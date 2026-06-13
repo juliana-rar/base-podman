@@ -3,7 +3,10 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import Calendar from '@/components/Calendar.vue';
 import ClockPicker from '@/components/ClockPicker.vue';
+import { useI18n } from '@/lib/i18n';
 import '../../../css/reserva/admin.css';
+
+const { t, localeTag } = useI18n();
 
 interface Slot {
     id: number;
@@ -46,7 +49,7 @@ const existingDayKeys = computed(() => [
 ]);
 
 const dateLabel = computed(() =>
-    new Date(date.value + 'T00:00:00').toLocaleDateString('ca-ES', {
+    new Date(date.value + 'T00:00:00').toLocaleDateString(localeTag(), {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -57,7 +60,7 @@ const form = useForm({ starts_at: '', notes: '' });
 const canSubmit = computed(() => date.value !== '' && time.value !== '');
 
 function dayHeading(iso: string): string {
-    return new Date(iso).toLocaleDateString('ca-ES', {
+    return new Date(iso).toLocaleDateString(localeTag(), {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -190,7 +193,10 @@ const byService = computed(() => {
 const byServiceMax = computed(() => Math.max(1, ...byService.value.map((s) => s.count)));
 
 // Reserves per dia de la setmana (Dl..Dg).
-const weekdayNames = ['Dl', 'Dt', 'Dc', 'Dj', 'Dv', 'Ds', 'Dg'];
+const weekdayNames = computed(() =>
+    // 2024-01-01 va ser dilluns; noms curts localitzats.
+    Array.from({ length: 7 }, (_, i) => new Date(2024, 0, 1 + i).toLocaleDateString(localeTag(), { weekday: 'short' })),
+);
 const byWeekday = computed(() => {
     const counts = [0, 0, 0, 0, 0, 0, 0];
     for (const s of periodSlots.value) {
@@ -199,7 +205,7 @@ const byWeekday = computed(() => {
             counts[idx]++;
         }
     }
-    return weekdayNames.map((name, i) => ({ name, count: counts[i] }));
+    return weekdayNames.value.map((name, i) => ({ name, count: counts[i] }));
 });
 const byWeekdayMax = computed(() => Math.max(1, ...byWeekday.value.map((w) => w.count)));
 
@@ -214,7 +220,17 @@ function exportDetailCsv(): void {
         .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
 
     const lines: string[] = [];
-    lines.push(['Data', 'Hora', 'Client', 'Email', 'Servei', 'Nota reserva', 'Nota franja'].join(','));
+    lines.push(
+        [
+            t('hor.csvDate'),
+            t('hor.csvTime'),
+            t('hor.csvClient'),
+            t('hor.csvEmail'),
+            t('hor.csvService'),
+            t('hor.csvNote'),
+            t('hor.csvSlotNote'),
+        ].join(','),
+    );
     for (const s of rows) {
         const d = new Date(s.starts_at);
         const date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -272,18 +288,18 @@ const agendaSlots = computed(() =>
 
 const agendaLabel = computed(() => {
     const a = new Date(agendaDate.value + 'T00:00:00').getTime();
-    const t = new Date(today + 'T00:00:00').getTime();
-    const diff = Math.round((a - t) / 86400000);
+    const base = new Date(today + 'T00:00:00').getTime();
+    const diff = Math.round((a - base) / 86400000);
     if (diff === 0) {
-        return 'Avui';
+        return t('hor.today');
     }
     if (diff === 1) {
-        return 'Demà';
+        return t('hor.tomorrow');
     }
     if (diff === -1) {
-        return 'Ahir';
+        return t('hor.yesterday');
     }
-    return new Date(agendaDate.value + 'T00:00:00').toLocaleDateString('ca-ES', {
+    return new Date(agendaDate.value + 'T00:00:00').toLocaleDateString(localeTag(), {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -317,7 +333,7 @@ watch(date, (day) => {
 
 const dayFilterLabel = computed(() =>
     dayFilter.value
-        ? new Date(dayFilter.value + 'T00:00:00').toLocaleDateString('ca-ES', {
+        ? new Date(dayFilter.value + 'T00:00:00').toLocaleDateString(localeTag(), {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
@@ -381,72 +397,71 @@ function remove(id: number): void {
 </script>
 
 <template>
-    <Head title="Gestió d'hores" />
+    <Head :title="t('hor.title')" />
 
     <div id="rsv-hours">
         <header>
-            <h1>Gestió d'hores</h1>
-            <p>Tria un dia al calendari i una hora al rellotge per obrir una nova franja reservable.</p>
+            <h1>{{ t('hor.title') }}</h1>
+            <p>{{ t('hor.subtitle') }}</p>
 
             <div class="rsv-summary">
                 <div class="rsv-summary-head">
-                    <h2 class="rsv-summary-title">Resum de reserves</h2>
+                    <h2 class="rsv-summary-title">{{ t('hor.summaryTitle') }}</h2>
                     <div class="rsv-export-group">
-                        <button type="button" class="rsv-export" @click="exportDetailCsv">⬇ Exportar CSV (detall)</button>
+                        <button type="button" class="rsv-export" @click="exportDetailCsv">{{ t('hor.exportCsv') }}</button>
                     </div>
                 </div>
                 <div class="rsv-period">
-                    <button type="button" :class="{ 'is-active': period === 'day' }" @click="period = 'day'">Avui</button>
-                    <button type="button" :class="{ 'is-active': period === 'week' }" @click="period = 'week'">Últims 7 dies</button>
-                    <button type="button" :class="{ 'is-active': period === 'month' }" @click="period = 'month'">Últims 30 dies</button>
+                    <button type="button" :class="{ 'is-active': period === 'day' }" @click="period = 'day'">{{ t('hor.today') }}</button>
+                    <button type="button" :class="{ 'is-active': period === 'week' }" @click="period = 'week'">{{ t('hor.last7') }}</button>
+                    <button type="button" :class="{ 'is-active': period === 'month' }" @click="period = 'month'">{{ t('hor.last30') }}</button>
                 </div>
 
                 <section class="rsv-stats">
                     <div class="rsv-stat">
                         <span class="rsv-stat-num">{{ totalSlots }}</span>
-                        <span class="rsv-stat-label">Franges totals</span>
+                        <span class="rsv-stat-label">{{ t('hor.totalSlots') }}</span>
                     </div>
                     <div class="rsv-stat is-booked">
                         <span class="rsv-stat-num">{{ totalBooked }}</span>
-                        <span class="rsv-stat-label">Reservades</span>
+                        <span class="rsv-stat-label">{{ t('hor.booked') }}</span>
                     </div>
                     <div class="rsv-stat is-free">
                         <span class="rsv-stat-num">{{ totalFree }}</span>
-                        <span class="rsv-stat-label">Lliures</span>
+                        <span class="rsv-stat-label">{{ t('hor.free') }}</span>
                     </div>
                     <div class="rsv-stat">
                         <span class="rsv-stat-num">{{ occupancy }}%</span>
-                        <span class="rsv-stat-label">Ocupació</span>
+                        <span class="rsv-stat-label">{{ t('hor.occupancy') }}</span>
                     </div>
                     <div class="rsv-stat">
                         <span class="rsv-stat-num">{{ todayBooked }}</span>
-                        <span class="rsv-stat-label">Reserves avui</span>
+                        <span class="rsv-stat-label">{{ t('hor.bookedToday') }}</span>
                     </div>
                     <div class="rsv-stat">
                         <span class="rsv-stat-num">{{ uniqueClients }}</span>
-                        <span class="rsv-stat-label">Clients diferents</span>
+                        <span class="rsv-stat-label">{{ t('hor.uniqueClients') }}</span>
                     </div>
                 </section>
 
                 <div class="rsv-summary-row">
                     <div class="rsv-panel is-wide">
                         <h3>
-                            Agenda
+                            {{ t('hor.agenda') }}
                             <span class="rsv-count-badge alt">{{ agendaSlots.length }}</span>
                             <span class="rsv-agenda-nav">
-                                <button type="button" aria-label="Dia anterior" @click="shiftAgenda(-1)">‹</button>
+                                <button type="button" aria-label="‹" @click="shiftAgenda(-1)">‹</button>
                                 <span class="rsv-agenda-day">{{ agendaLabel }}</span>
-                                <button type="button" aria-label="Dia següent" @click="shiftAgenda(1)">›</button>
+                                <button type="button" aria-label="›" @click="shiftAgenda(1)">›</button>
                                 <input
                                     v-model="agendaDate"
                                     type="date"
                                     class="rsv-agenda-date"
                                     :min="agendaMin"
                                     :max="agendaMax"
-                                    aria-label="Tria un dia"
                                 />
                                 <button v-if="agendaDate !== today" type="button" class="rsv-agenda-today" @click="agendaDate = today">
-                                    Avui
+                                    {{ t('hor.today') }}
                                 </button>
                             </span>
                         </h3>
@@ -454,7 +469,7 @@ function remove(id: number): void {
                             <li v-for="s in agendaSlots" :key="s.id" :class="s.reservation ? 'is-booked' : 'is-free'">
                                 <span class="rsv-agenda-time">{{ timeLabel(s.starts_at) }}</span>
                                 <span class="rsv-agenda-status" :class="s.reservation ? 'booked' : 'free'">
-                                    {{ s.reservation ? 'Reservada' : 'Lliure' }}
+                                    {{ s.reservation ? t('hor.reserved') : t('hor.freeStatus') }}
                                 </span>
                                 <span class="rsv-agenda-info">
                                     <template v-if="s.reservation">
@@ -466,12 +481,12 @@ function remove(id: number): void {
                                 </span>
                             </li>
                         </ul>
-                        <p v-else class="rsv-mini-empty">No hi ha cap franja {{ agendaLabel.toLowerCase() }}.</p>
+                        <p v-else class="rsv-mini-empty">{{ t('hor.noSlots') }} {{ agendaLabel.toLowerCase() }}.</p>
                     </div>
 
                     <div class="rsv-panel is-wide">
                         <h3>
-                            Reserves per dia
+                            {{ t('hor.bookingsPerDay') }}
                             <span
                                 class="rsv-trend"
                                 :class="trendPct > 0 ? 'up' : trendPct < 0 ? 'down' : 'flat'"
@@ -505,7 +520,7 @@ function remove(id: number): void {
                     </div>
 
                     <div class="rsv-panel">
-                        <h3>Reserves per servei</h3>
+                        <h3>{{ t('hor.bookingsPerService') }}</h3>
                         <div v-if="byService.length" class="rsv-hbars">
                             <div v-for="s in byService" :key="s.name" class="rsv-hbar">
                                 <span class="rsv-hbar-label">{{ s.name }}</span>
@@ -515,18 +530,18 @@ function remove(id: number): void {
                                 <span class="rsv-hbar-num">{{ s.count }}</span>
                             </div>
                         </div>
-                        <p v-else class="rsv-mini-empty">Cap reserva en aquest període.</p>
+                        <p v-else class="rsv-mini-empty">{{ t('hor.noBookingsPeriod') }}</p>
                     </div>
 
                     <div class="rsv-panel">
-                        <h3>Reserves per dia de la setmana</h3>
+                        <h3>{{ t('hor.bookingsPerWeekday') }}</h3>
                         <div class="rsv-chart">
                             <div v-for="w in byWeekday" :key="w.name" class="rsv-chart-col">
                                 <div class="rsv-chart-track">
                                     <div
                                         class="rsv-chart-bar"
                                         :style="{ height: Math.round((w.count / byWeekdayMax) * 100) + '%' }"
-                                        :title="`${w.count} reserves`"
+                                        :title="`${w.count} ${t('hor.bookings')}`"
                                     >
                                         <span v-if="w.count" class="rsv-chart-val">{{ w.count }}</span>
                                     </div>
@@ -537,7 +552,7 @@ function remove(id: number): void {
                     </div>
 
                     <div class="rsv-panel">
-                        <h3>Pròximes reserves</h3>
+                        <h3>{{ t('hor.upcoming') }}</h3>
                         <ul v-if="next3.length" class="rsv-mini-list">
                             <li v-for="s in next3" :key="s.id">
                                 <span class="t">{{ dayHeading(s.starts_at) }} · {{ timeLabel(s.starts_at) }}</span>
@@ -547,18 +562,18 @@ function remove(id: number): void {
                                 </span>
                             </li>
                         </ul>
-                        <p v-else class="rsv-mini-empty">Cap reserva propera en aquest període.</p>
+                        <p v-else class="rsv-mini-empty">{{ t('hor.noUpcoming') }}</p>
                     </div>
 
                     <div class="rsv-panel">
-                        <h3>Sense servei <span class="rsv-count-badge">{{ noServiceSlots.length }}</span></h3>
+                        <h3>{{ t('hor.noService') }} <span class="rsv-count-badge">{{ noServiceSlots.length }}</span></h3>
                         <ul v-if="noServiceSlots.length" class="rsv-mini-list is-warn">
                             <li v-for="s in noServiceSlots" :key="s.id">
                                 <span class="t">{{ dayHeading(s.starts_at) }} · {{ timeLabel(s.starts_at) }}</span>
                                 <span class="u">👤 {{ s.reservation!.user.name }}</span>
                             </li>
                         </ul>
-                        <p v-else class="rsv-mini-empty">Totes les reserves tenen servei 🎉</p>
+                        <p v-else class="rsv-mini-empty">{{ t('hor.allHaveService') }}</p>
                     </div>
                 </div>
             </div>
@@ -568,43 +583,43 @@ function remove(id: number): void {
             <Calendar v-model="date" :highlight-dates="existingDayKeys" :min-date="today" />
             <ClockPicker v-model="time" />
             <div>
-                <h2>Nova franja</h2>
+                <h2>{{ t('hor.newSlot') }}</h2>
 
                 <p class="rsv-chosen">{{ dateLabel }}<span v-if="time"> · {{ time }}</span></p>
 
-                <label for="time">Hora</label>
+                <label for="time">{{ t('hor.time') }}</label>
                 <input id="time" v-model="time" type="time" step="900" required />
 
-                <label for="notes">Nota (opcional)</label>
-                <input id="notes" v-model="form.notes" type="text" maxlength="255" placeholder="Ex: Visita inicial" />
+                <label for="notes">{{ t('hor.noteOpt') }}</label>
+                <input id="notes" v-model="form.notes" type="text" maxlength="255" :placeholder="t('hor.notePh')" />
 
                 <p v-if="form.errors.starts_at" class="rsv-error">{{ form.errors.starts_at }}</p>
 
-                <button type="submit" :disabled="!canSubmit || form.processing">Afegir franja</button>
+                <button type="submit" :disabled="!canSubmit || form.processing">{{ t('hor.addSlot') }}</button>
             </div>
         </form>
 
         <section>
             <div class="rsv-slot-head">
-                <h2>Franges creades</h2>
+                <h2>{{ t('hor.slotsCreated') }}</h2>
                 <div class="rsv-slot-summary">
-                    <span class="free">{{ freeCount }} lliures</span>
-                    <span class="booked">{{ bookedCount }} reservades</span>
+                    <span class="free">{{ freeCount }} {{ t('hor.freeLower') }}</span>
+                    <span class="booked">{{ bookedCount }} {{ t('hor.bookedLower') }}</span>
                 </div>
                 <button v-if="dayFilter" type="button" class="rsv-dayfilter" @click="clearDayFilter">
                     📅 {{ dayFilterLabel }} <span>✕</span>
                 </button>
                 <div class="rsv-slot-filter">
-                    <button type="button" :class="{ 'is-active': filter === 'all' }" @click="filter = 'all'">Totes</button>
-                    <button type="button" :class="{ 'is-active': filter === 'free' }" @click="filter = 'free'">Lliures</button>
-                    <button type="button" :class="{ 'is-active': filter === 'booked' }" @click="filter = 'booked'">Reservades</button>
+                    <button type="button" :class="{ 'is-active': filter === 'all' }" @click="filter = 'all'">{{ t('hor.all') }}</button>
+                    <button type="button" :class="{ 'is-active': filter === 'free' }" @click="filter = 'free'">{{ t('hor.freeLabel') }}</button>
+                    <button type="button" :class="{ 'is-active': filter === 'booked' }" @click="filter = 'booked'">{{ t('hor.bookedLabel') }}</button>
                 </div>
             </div>
             <div v-if="groupedSlots.length">
                 <div v-for="group in groupedSlots" :key="group.key">
                     <h3 class="rsv-day-label">
                         {{ group.label }}
-                        <span>{{ group.slots.length }} {{ group.slots.length === 1 ? 'franja' : 'franges' }}</span>
+                        <span>{{ group.slots.length }} {{ group.slots.length === 1 ? t('hor.slotOne') : t('hor.slotMany') }}</span>
                     </h3>
                     <div class="rsv-slot-grid">
                         <div
@@ -615,10 +630,10 @@ function remove(id: number): void {
                         >
                             <div class="rsv-slot-top">
                                 <span class="rsv-slot-time">{{ timeLabel(slot.starts_at) }}</span>
-                                <button type="button" class="rsv-del-x" aria-label="Eliminar" @click="remove(slot.id)">×</button>
+                                <button type="button" class="rsv-del-x" aria-label="×" @click="remove(slot.id)">×</button>
                             </div>
                             <span class="rsv-badge" :class="slot.reservation ? 'booked' : 'free'">
-                                {{ slot.reservation ? 'Reservada' : 'Lliure' }}
+                                {{ slot.reservation ? t('hor.reserved') : t('hor.freeStatus') }}
                             </span>
                             <span v-if="slot.reservation" class="rsv-slot-user">👤 {{ slot.reservation.user.name }}</span>
                             <span v-if="slot.reservation?.service" class="rsv-slot-note">🔖 {{ slot.reservation.service.name }}</span>
@@ -629,7 +644,7 @@ function remove(id: number): void {
                 </div>
             </div>
             <div v-else class="rsv-empty">
-                {{ slots.length ? 'Cap franja en aquesta vista.' : 'Encara no has creat cap franja.' }}
+                {{ slots.length ? t('hor.noSlotsView') : t('hor.noSlotsYet') }}
             </div>
         </section>
     </div>

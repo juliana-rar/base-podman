@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use App\Models\ServiceCategory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -12,14 +13,18 @@ use Inertia\Response;
 class ServiceController extends Controller
 {
     /**
-     * Pàgina d'admin: gestió dels serveis.
+     * Pàgina d'admin: gestió dels serveis, agrupats per categoria.
      */
     public function index(): Response
     {
         return Inertia::render('admin/Serveis', [
-            'services' => Service::withCount('reservations')
+            'categories' => ServiceCategory::with(['services' => function ($query) {
+                $query->withCount('reservations')->orderBy('name');
+            }])->orderBy('name')->get(['id', 'name', 'image_path']),
+            'uncategorized' => Service::withCount('reservations')
+                ->whereNull('service_category_id')
                 ->orderBy('name')
-                ->get(['id', 'name', 'price', 'image_path']),
+                ->get(['id', 'name', 'price', 'duration_minutes', 'image_path', 'service_category_id']),
         ]);
     }
 
@@ -31,12 +36,16 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:services,name'],
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'duration_minutes' => ['required', 'integer', 'min:0', 'max:100000'],
+            'service_category_id' => ['nullable', 'integer', 'exists:service_categories,id'],
             'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
         Service::create([
             'name' => trim($validated['name']),
             'price' => $validated['price'],
+            'duration_minutes' => $validated['duration_minutes'],
+            'service_category_id' => $validated['service_category_id'] ?? null,
             'image_path' => $request->hasFile('image')
                 ? $request->file('image')->store('services', 'public')
                 : null,
@@ -55,11 +64,15 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:services,name,'.$service->id],
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'duration_minutes' => ['required', 'integer', 'min:0', 'max:100000'],
+            'service_category_id' => ['nullable', 'integer', 'exists:service_categories,id'],
             'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
         $service->name = trim($validated['name']);
         $service->price = $validated['price'];
+        $service->duration_minutes = $validated['duration_minutes'];
+        $service->service_category_id = $validated['service_category_id'] ?? null;
 
         if ($request->hasFile('image')) {
             if ($service->image_path) {

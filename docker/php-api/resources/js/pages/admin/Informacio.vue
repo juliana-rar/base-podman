@@ -29,7 +29,7 @@ defineOptions({
     },
 });
 
-const { localeTag } = useI18n();
+const { t, localeTag } = useI18n();
 
 function dayName(weekday: number): string {
     // 2024-01-01 va ser dilluns; sumem el dia per obtenir el nom localitzat.
@@ -105,29 +105,29 @@ function submit(): void {
 </script>
 
 <template>
-    <Head title="Informació" />
+    <Head :title="t('info.title')" />
 
     <div id="rsv-horaris">
         <header>
-            <h1>Informació</h1>
-            <p>Defineix l'horari, l'adreça i les dades de contacte que apareixen al footer de la web.</p>
+            <h1>{{ t('info.title') }}</h1>
+            <p>{{ t('info.subtitle') }}</p>
         </header>
 
         <form @submit.prevent="submit">
-            <h2 class="rsv-hr-section">Marca</h2>
+            <h2 class="rsv-hr-section">{{ t('info.brand') }}</h2>
             <div class="rsv-hr-fields">
-                <label for="site_name">Nom (apareix al navbar i al footer)</label>
+                <label for="site_name">{{ t('info.name') }}</label>
                 <input id="site_name" v-model="form.site_name" type="text" maxlength="100" placeholder="ReservaHores" />
 
-                <label>Logo</label>
+                <label>{{ t('info.logo') }}</label>
                 <div class="rsv-logo-row">
                     <div class="rsv-logo-prev">
                         <img v-if="logoPreview" :src="logoPreview" alt="" />
                         <img v-else-if="props.logoUrl && !form.removeLogo" :src="props.logoUrl" alt="" />
-                        <span v-else class="rsv-logo-none">Sense logo</span>
+                        <span v-else class="rsv-logo-none">{{ t('info.noLogo') }}</span>
                     </div>
                     <label class="rsv-file">
-                        <span>{{ form.logo ? form.logo.name : 'Triar imatge' }}</span>
+                        <span>{{ form.logo ? form.logo.name : t('info.chooseImg') }}</span>
                         <input type="file" accept="image/*" @change="onLogo" />
                     </label>
                     <button
@@ -136,19 +136,19 @@ function submit(): void {
                         class="rsv-logo-del"
                         @click="removeLogo"
                     >
-                        Treure
+                        {{ t('info.remove') }}
                     </button>
                 </div>
                 <p v-if="form.errors.logo" class="rsv-error">{{ form.errors.logo }}</p>
             </div>
 
-            <h2 class="rsv-hr-section">Horari d'atenció</h2>
+            <h2 class="rsv-hr-section">{{ t('info.hours') }}</h2>
             <div class="rsv-hr-rows">
                 <div v-for="h in form.hours" :key="h.weekday" class="rsv-hr-row" :class="{ 'is-closed': h.closed }">
                     <span class="rsv-hr-day">{{ dayName(h.weekday) }}</span>
                     <label class="rsv-hr-toggle">
                         <input v-model="h.closed" type="checkbox" />
-                        <span>{{ h.closed ? 'Tancat' : 'Obert' }}</span>
+                        <span>{{ h.closed ? t('info.closed') : t('info.open') }}</span>
                     </label>
                     <div class="rsv-hr-times">
                         <input v-model="h.opens" type="time" step="900" :disabled="h.closed" />
@@ -158,29 +158,29 @@ function submit(): void {
                 </div>
             </div>
 
-            <h2 class="rsv-hr-section">Adreça i contacte</h2>
+            <h2 class="rsv-hr-section">{{ t('info.addrContact') }}</h2>
             <div class="rsv-hr-fields">
-                <label for="address">Adreça (apareix al footer amb un mapa)</label>
-                <input id="address" v-model="form.address" type="text" maxlength="255" placeholder="Ex: Carrer Major 12, Barcelona" />
+                <label for="address">{{ t('info.address') }}</label>
+                <input id="address" v-model="form.address" type="text" maxlength="255" :placeholder="t('info.addressPh')" />
 
-                <label for="email">Correu electrònic</label>
+                <label for="email">{{ t('info.email') }}</label>
                 <input id="email" v-model="form.email" type="email" maxlength="255" placeholder="info@exemple.com" />
                 <p v-if="form.errors.email" class="rsv-error">{{ form.errors.email }}</p>
 
-                <label for="phone">Telèfon</label>
+                <label for="phone">{{ t('info.phone') }}</label>
                 <input id="phone" v-model="form.phone" type="text" maxlength="50" placeholder="+34 600 000 000" />
 
-                <label for="instagram">Instagram (enllaç)</label>
-                <input id="instagram" v-model="form.instagram" type="text" maxlength="255" placeholder="https://instagram.com/el_teu_compte" />
+                <label for="instagram">{{ t('info.instagram') }}</label>
+                <input id="instagram" v-model="form.instagram" type="text" maxlength="255" placeholder="https://instagram.com/..." />
 
-                <label for="facebook">Facebook (enllaç)</label>
-                <input id="facebook" v-model="form.facebook" type="text" maxlength="255" placeholder="https://facebook.com/la_teva_pagina" />
+                <label for="facebook">{{ t('info.facebook') }}</label>
+                <input id="facebook" v-model="form.facebook" type="text" maxlength="255" placeholder="https://facebook.com/..." />
 
-                <label for="linkedin">LinkedIn (enllaç)</label>
+                <label for="linkedin">{{ t('info.linkedin') }}</label>
                 <input id="linkedin" v-model="form.linkedin" type="text" maxlength="255" placeholder="https://linkedin.com/company/..." />
             </div>
 
-            <button type="submit" :disabled="form.processing">Desar</button>
+            <button type="submit" :disabled="form.processing">{{ t('info.save') }}</button>
         </form>
     </div>
 </template>

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { useI18n } from '@/lib/i18n';
 import '../../../css/reserva/admin.css';
+
+const { t } = useI18n();
 
 interface SlideImage {
     id: number;
@@ -47,38 +50,38 @@ function remove(id: number): void {
 </script>
 
 <template>
-    <Head title="Imatges" />
+    <Head :title="t('img.title')" />
 
     <div id="rsv-imatges">
         <header>
-            <h1>Imatges de presentació</h1>
-            <p>Puja imatges per al carrusel de la pàgina d'inici.</p>
+            <h1>{{ t('img.title') }}</h1>
+            <p>{{ t('img.subtitle') }}</p>
         </header>
 
         <section>
-            <h2>Pujar imatges</h2>
+            <h2>{{ t('img.upload') }}</h2>
             <input :key="previews.length" type="file" accept="image/*" multiple @change="onFiles" />
             <div v-if="previews.length" class="rsv-thumbs">
                 <img v-for="(src, i) in previews" :key="i" :src="src" alt="" />
             </div>
             <p v-if="form.errors.images" class="rsv-error">{{ form.errors.images }}</p>
-            <button type="button" :disabled="!form.images.length || form.processing" @click="submit">Pujar</button>
+            <button type="button" :disabled="!form.images.length || form.processing" @click="submit">{{ t('img.uploadBtn') }}</button>
         </section>
 
         <section>
-            <h2>Galeria ({{ images.length }})</h2>
-            <p class="rsv-hint">Totes aquestes imatges surten al carrusel de la pàgina d'inici. Per treure'n una, prem Eliminar.</p>
+            <h2>{{ t('img.gallery') }} ({{ images.length }})</h2>
+            <p class="rsv-hint">{{ t('img.hint') }}</p>
             <div v-if="images.length" class="rsv-img-grid">
                 <div v-for="img in images" :key="img.id" class="rsv-img-card">
                     <div class="rsv-img-thumb">
                         <img :src="img.url" alt="" />
                     </div>
                     <div class="rsv-img-actions">
-                        <button type="button" class="rsv-del" @click="remove(img.id)">Eliminar</button>
+                        <button type="button" class="rsv-del" @click="remove(img.id)">{{ t('img.delete') }}</button>
                     </div>
                 </div>
             </div>
-            <div v-else class="rsv-empty">Encara no hi ha imatges.</div>
+            <div v-else class="rsv-empty">{{ t('img.empty') }}</div>
         </section>
     </div>
 </template>
