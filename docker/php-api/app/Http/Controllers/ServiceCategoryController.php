@@ -18,11 +18,13 @@ class ServiceCategoryController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:service_categories,name'],
+            'description' => ['nullable', 'string', 'max:2000'],
             'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
         ServiceCategory::create([
             'name' => trim($validated['name']),
+            'description' => $validated['description'] ?? null,
             'image_path' => $request->hasFile('image')
                 ? $request->file('image')->store('service-categories', 'public')
                 : null,
@@ -40,10 +42,12 @@ class ServiceCategoryController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', Rule::unique('service_categories', 'name')->ignore($serviceCategory->id)],
+            'description' => ['nullable', 'string', 'max:2000'],
             'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
         $serviceCategory->name = trim($validated['name']);
+        $serviceCategory->description = $validated['description'] ?? null;
 
         if ($request->hasFile('image')) {
             if ($serviceCategory->image_path) {

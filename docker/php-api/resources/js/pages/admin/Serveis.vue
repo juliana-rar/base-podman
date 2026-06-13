@@ -11,6 +11,7 @@ interface Service {
     name: string;
     price: string;
     duration_minutes: number;
+    description: string | null;
     url: string | null;
     reservations_count: number;
     service_category_id: number | null;
@@ -19,6 +20,7 @@ interface Service {
 interface Category {
     id: number;
     name: string;
+    description: string | null;
     url: string | null;
     services: Service[];
 }
@@ -36,16 +38,32 @@ defineOptions({
 
 // Grups que es mostren al catàleg: categories reals + un grup final per als serveis sense categoria.
 const groups = computed(() => [
-    ...props.categories.map((c) => ({ id: c.id as number | null, name: c.name, url: c.url, isReal: true, services: c.services })),
+    ...props.categories.map((c) => ({
+        id: c.id as number | null,
+        name: c.name,
+        description: c.description,
+        url: c.url,
+        isReal: true,
+        services: c.services,
+    })),
     ...(props.uncategorized.length
-        ? [{ id: null as number | null, name: t('srv.noCategory'), url: null as string | null, isReal: false, services: props.uncategorized }]
+        ? [
+              {
+                  id: null as number | null,
+                  name: t('srv.noCategory'),
+                  description: null as string | null,
+                  url: null as string | null,
+                  isReal: false,
+                  services: props.uncategorized,
+              },
+          ]
         : []),
 ]);
 
 // =========================================================================
 //  Categories
 // =========================================================================
-const catForm = useForm<{ name: string; image: File | null }>({ name: '', image: null });
+const catForm = useForm<{ name: string; description: string; image: File | null }>({ name: '', description: '', image: null });
 const newCatPreview = ref<string | null>(null);
 
 function onNewCatFile(event: Event): void {
@@ -68,7 +86,7 @@ function createCategory(): void {
 }
 
 const editCatId = ref<number | null>(null);
-const editCatForm = useForm<{ name: string; image: File | null }>({ name: '', image: null });
+const editCatForm = useForm<{ name: string; description: string; image: File | null }>({ name: '', description: '', image: null });
 const editCatPreview = ref<string | null>(null);
 
 function startEditCategory(category: Category): void {
@@ -76,6 +94,7 @@ function startEditCategory(category: Category): void {
     editCatForm.reset();
     editCatForm.clearErrors();
     editCatForm.name = category.name;
+    editCatForm.description = category.description ?? '';
     editCatForm.image = null;
     if (editCatPreview.value) URL.revokeObjectURL(editCatPreview.value);
     editCatPreview.value = null;
@@ -114,10 +133,18 @@ function removeCategory(id: number): void {
 // =========================================================================
 //  Serveis — crear
 // =========================================================================
-const form = useForm<{ name: string; price: number; duration_minutes: number; service_category_id: number | ''; image: File | null }>({
+const form = useForm<{
+    name: string;
+    price: number;
+    duration_minutes: number;
+    description: string;
+    service_category_id: number | '';
+    image: File | null;
+}>({
     name: '',
     price: 0,
     duration_minutes: 0,
+    description: '',
     service_category_id: '',
     image: null,
 });
@@ -146,10 +173,18 @@ function create(): void {
 //  Serveis — editar
 // =========================================================================
 const editId = ref<number | null>(null);
-const editForm = useForm<{ name: string; price: number; duration_minutes: number; service_category_id: number | ''; image: File | null }>({
+const editForm = useForm<{
+    name: string;
+    price: number;
+    duration_minutes: number;
+    description: string;
+    service_category_id: number | '';
+    image: File | null;
+}>({
     name: '',
     price: 0,
     duration_minutes: 0,
+    description: '',
     service_category_id: '',
     image: null,
 });
@@ -197,6 +232,7 @@ function startEdit(service: Service): void {
     editForm.name = service.name;
     editForm.price = Number(service.price);
     editForm.duration_minutes = service.duration_minutes;
+    editForm.description = service.description ?? '';
     editForm.service_category_id = service.service_category_id ?? '';
     editForm.image = null;
     if (editPreview.value) URL.revokeObjectURL(editPreview.value);
@@ -258,6 +294,13 @@ function remove(id: number): void {
                     <span>{{ catForm.image ? catForm.image.name : t('srv.imageOpt') }}</span>
                     <input type="file" accept="image/*" @change="onNewCatFile" />
                 </label>
+                <textarea
+                    v-model="catForm.description"
+                    class="rsv-srv-descfield"
+                    rows="2"
+                    maxlength="2000"
+                    :placeholder="t('srv.catInfoPh')"
+                ></textarea>
                 <button type="button" class="rsv-edit" :disabled="catForm.processing" @click="createCategory">
                     {{ t('srv.addCategory') }}
                 </button>
@@ -266,6 +309,7 @@ function remove(id: number): void {
                 <img :src="newCatPreview" alt="" />
             </div>
             <p v-if="catForm.errors.name" class="rsv-error">{{ catForm.errors.name }}</p>
+            <p v-if="catForm.errors.description" class="rsv-error">{{ catForm.errors.description }}</p>
             <p v-if="catForm.errors.image" class="rsv-error">{{ catForm.errors.image }}</p>
 
             <!-- ===================== Nou servei ===================== -->
@@ -322,6 +366,13 @@ function remove(id: number): void {
                     <span>{{ form.image ? form.image.name : t('srv.imageOpt') }}</span>
                     <input type="file" accept="image/*" @change="onNewFile" />
                 </label>
+                <textarea
+                    v-model="form.description"
+                    class="rsv-srv-descfield"
+                    rows="2"
+                    maxlength="2000"
+                    :placeholder="t('srv.infoPh')"
+                ></textarea>
                 <button type="button" class="rsv-edit" :disabled="form.processing" @click="create">{{ t('srv.add') }}</button>
             </div>
             <div v-if="newPreview" class="rsv-srv-newprev">
@@ -330,6 +381,7 @@ function remove(id: number): void {
             <p v-if="form.errors.name" class="rsv-error">{{ form.errors.name }}</p>
             <p v-if="form.errors.price" class="rsv-error">{{ form.errors.price }}</p>
             <p v-if="form.errors.duration_minutes" class="rsv-error">{{ form.errors.duration_minutes }}</p>
+            <p v-if="form.errors.description" class="rsv-error">{{ form.errors.description }}</p>
             <p v-if="form.errors.image" class="rsv-error">{{ form.errors.image }}</p>
 
             <!-- ===================== Catàleg per categories ===================== -->
@@ -353,6 +405,13 @@ function remove(id: number): void {
                                 <span>{{ editCatForm.image ? editCatForm.image.name : t('srv.changeImage') }}</span>
                                 <input type="file" accept="image/*" @change="onEditCatFile" />
                             </label>
+                            <textarea
+                                v-model="editCatForm.description"
+                                class="rsv-srv-descfield"
+                                rows="2"
+                                maxlength="2000"
+                                :placeholder="t('srv.catInfoPh')"
+                            ></textarea>
                             <button type="button" class="rsv-edit" :disabled="editCatForm.processing" @click="saveEditCategory">
                                 {{ t('srv.save') }}
                             </button>
@@ -375,7 +434,10 @@ function remove(id: number): void {
                         </template>
                     </div>
                     <p v-if="editCatId === group.id && editCatForm.errors.name" class="rsv-error">{{ editCatForm.errors.name }}</p>
+                    <p v-if="editCatId === group.id && editCatForm.errors.description" class="rsv-error">{{ editCatForm.errors.description }}</p>
                     <p v-if="editCatId === group.id && editCatForm.errors.image" class="rsv-error">{{ editCatForm.errors.image }}</p>
+
+                    <p v-if="group.description && editCatId !== group.id" class="rsv-srv-catdesc">{{ group.description }}</p>
 
                     <div v-if="group.services.length" class="rsv-srv-rows">
                         <div v-for="service in group.services" :key="service.id" class="rsv-srv-row">
@@ -394,6 +456,7 @@ function remove(id: number): void {
                                 </span>
                                 <button type="button" class="rsv-edit" @click="startEdit(service)">{{ t('srv.edit') }}</button>
                                 <button type="button" class="rsv-del" @click="remove(service.id)">{{ t('srv.delete') }}</button>
+                                <p v-if="service.description" class="rsv-srv-desc">{{ service.description }}</p>
                             </template>
 
                             <!-- Vista edició -->
@@ -449,9 +512,17 @@ function remove(id: number): void {
                                         <span>{{ editForm.image ? editForm.image.name : t('srv.changeImage') }}</span>
                                         <input type="file" accept="image/*" @change="onEditFile" />
                                     </label>
+                                    <textarea
+                                        v-model="editForm.description"
+                                        class="rsv-srv-descfield"
+                                        rows="2"
+                                        maxlength="2000"
+                                        :placeholder="t('srv.infoPh')"
+                                    ></textarea>
                                     <p v-if="editForm.errors.name" class="rsv-error">{{ editForm.errors.name }}</p>
                                     <p v-if="editForm.errors.price" class="rsv-error">{{ editForm.errors.price }}</p>
                                     <p v-if="editForm.errors.duration_minutes" class="rsv-error">{{ editForm.errors.duration_minutes }}</p>
+                                    <p v-if="editForm.errors.description" class="rsv-error">{{ editForm.errors.description }}</p>
                                     <p v-if="editForm.errors.image" class="rsv-error">{{ editForm.errors.image }}</p>
                                 </div>
                                 <button type="button" class="rsv-edit" :disabled="editForm.processing" @click="saveEdit">{{ t('srv.save') }}</button>

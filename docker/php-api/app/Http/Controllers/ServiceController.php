@@ -20,11 +20,11 @@ class ServiceController extends Controller
         return Inertia::render('admin/Serveis', [
             'categories' => ServiceCategory::with(['services' => function ($query) {
                 $query->withCount('reservations')->orderBy('name');
-            }])->orderBy('name')->get(['id', 'name', 'image_path']),
+            }])->orderBy('name')->get(['id', 'name', 'description', 'image_path']),
             'uncategorized' => Service::withCount('reservations')
                 ->whereNull('service_category_id')
                 ->orderBy('name')
-                ->get(['id', 'name', 'price', 'duration_minutes', 'image_path', 'service_category_id']),
+                ->get(['id', 'name', 'price', 'duration_minutes', 'description', 'image_path', 'service_category_id']),
         ]);
     }
 
@@ -37,6 +37,7 @@ class ServiceController extends Controller
             'name' => ['required', 'string', 'max:100', 'unique:services,name'],
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'duration_minutes' => ['required', 'integer', 'min:0', 'max:100000'],
+            'description' => ['nullable', 'string', 'max:2000'],
             'service_category_id' => ['nullable', 'integer', 'exists:service_categories,id'],
             'image' => ['nullable', 'image', 'max:5120'],
         ]);
@@ -45,6 +46,7 @@ class ServiceController extends Controller
             'name' => trim($validated['name']),
             'price' => $validated['price'],
             'duration_minutes' => $validated['duration_minutes'],
+            'description' => $validated['description'] ?? null,
             'service_category_id' => $validated['service_category_id'] ?? null,
             'image_path' => $request->hasFile('image')
                 ? $request->file('image')->store('services', 'public')
@@ -65,6 +67,7 @@ class ServiceController extends Controller
             'name' => ['required', 'string', 'max:100', 'unique:services,name,'.$service->id],
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'duration_minutes' => ['required', 'integer', 'min:0', 'max:100000'],
+            'description' => ['nullable', 'string', 'max:2000'],
             'service_category_id' => ['nullable', 'integer', 'exists:service_categories,id'],
             'image' => ['nullable', 'image', 'max:5120'],
         ]);
@@ -72,6 +75,7 @@ class ServiceController extends Controller
         $service->name = trim($validated['name']);
         $service->price = $validated['price'];
         $service->duration_minutes = $validated['duration_minutes'];
+        $service->description = $validated['description'] ?? null;
         $service->service_category_id = $validated['service_category_id'] ?? null;
 
         if ($request->hasFile('image')) {

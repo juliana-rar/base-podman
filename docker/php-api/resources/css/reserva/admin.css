@@ -2581,6 +2581,44 @@
     white-space: nowrap;
 }
 
+/* Camp d'informació del servei (textarea). */
+#rsv-serveis .rsv-srv-descfield {
+    flex: 1 1 100%;
+    width: 100%;
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-ink);
+    border-radius: 0.75rem;
+    padding: 0.55rem 0.85rem;
+    font: inherit;
+    font-size: 0.95rem;
+    resize: vertical;
+}
+
+#rsv-serveis .rsv-srv-descfield:focus {
+    outline: none;
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-soft);
+}
+
+/* Informació mostrada sota la fila del servei. */
+#rsv-serveis .rsv-srv-desc {
+    flex: 1 1 100%;
+    width: 100%;
+    margin: 0.15rem 0 0;
+    font-size: 0.85rem;
+    color: var(--a-muted);
+    white-space: pre-line;
+}
+
+/* Informació de la categoria sota la seva capçalera. */
+#rsv-serveis .rsv-srv-catdesc {
+    margin: 0 0 0.2rem;
+    font-size: 0.85rem;
+    color: var(--a-muted);
+    white-space: pre-line;
+}
+
 #rsv-serveis .rsv-count {
     margin-left: auto;
     font-size: 0.8rem;

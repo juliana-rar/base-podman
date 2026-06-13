@@ -32,9 +32,9 @@ class SlotController extends Controller
         return Inertia::render('Reservar', [
             'availableSlots' => $available,
             'myReservations' => $myReservations,
-            'services' => Service::with('category:id,name,image_path')
+            'services' => Service::with('category:id,name,description,image_path')
                 ->orderBy('name')
-                ->get(['id', 'name', 'price', 'duration_minutes', 'image_path', 'service_category_id']),
+                ->get(['id', 'name', 'price', 'duration_minutes', 'description', 'image_path', 'service_category_id']),
         ]);
     }
 

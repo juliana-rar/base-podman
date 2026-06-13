@@ -17,8 +17,9 @@ interface Service {
     name: string;
     price: string;
     duration_minutes: number;
+    description: string | null;
     url: string | null;
-    category: { id: number; name: string; url: string | null } | null;
+    category: { id: number; name: string; description: string | null; url: string | null } | null;
 }
 
 interface Reservation {
@@ -45,7 +46,10 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
 // Serveis agrupats per categoria; el grup sense categoria va al final (sense títol).
 const serviceGroups = computed(() => {
-    const byCat = new Map<number, { id: number | null; name: string; url: string | null; services: Service[] }>();
+    const byCat = new Map<
+        number,
+        { id: number | null; name: string; description: string | null; url: string | null; services: Service[] }
+    >();
     const uncategorized: Service[] = [];
     for (const s of props.services) {
         if (s.category) {
@@ -53,7 +57,13 @@ const serviceGroups = computed(() => {
             if (group) {
                 group.services.push(s);
             } else {
-                byCat.set(s.category.id, { id: s.category.id, name: s.category.name, url: s.category.url, services: [s] });
+                byCat.set(s.category.id, {
+                    id: s.category.id,
+                    name: s.category.name,
+                    description: s.category.description,
+                    url: s.category.url,
+                    services: [s],
+                });
             }
         } else {
             uncategorized.push(s);
@@ -61,7 +71,7 @@ const serviceGroups = computed(() => {
     }
     const groups = [...byCat.values()].sort((a, b) => a.name.localeCompare(b.name));
     if (uncategorized.length) {
-        groups.push({ id: null, name: '', url: null, services: uncategorized });
+        groups.push({ id: null, name: '', description: null, url: null, services: uncategorized });
     }
     return groups;
 });
@@ -86,8 +96,12 @@ function serviceMeta(s: Service): string {
 // Visor d'imatge ampliada (clicar la imatge del servei).
 const zoomImage = ref<string | null>(null);
 
+function openImageUrl(url: string | null): void {
+    if (url) zoomImage.value = url;
+}
+
 function openImage(s: Service): void {
-    if (s.url) zoomImage.value = s.url;
+    openImageUrl(s.url);
 }
 
 function closeImage(): void {
@@ -234,12 +248,21 @@ function confirmCancel(): void {
 
             <div v-if="services.length" class="rsv-service-pick">
                 <span class="rsv-service-label">{{ t('res.service') }} *</span>
-                <div class="rsv-service-groups">
-                    <div v-for="group in serviceGroups" :key="group.id ?? 'none'" class="rsv-service-group">
+                <div class="rsv-service-scroller">
+                    <div class="rsv-service-groups">
+                        <div v-for="group in serviceGroups" :key="group.id ?? 'none'" class="rsv-service-group">
                         <span v-if="group.name" class="rsv-service-cat">
-                            <img v-if="group.url" :src="group.url" alt="" class="rsv-service-cat-img" />
+                            <img
+                                v-if="group.url"
+                                :src="group.url"
+                                alt=""
+                                class="rsv-service-cat-img"
+                                :title="t('res.zoomImg')"
+                                @click="openImageUrl(group.url)"
+                            />
                             {{ group.name }}
                         </span>
+                        <small v-if="group.description" class="rsv-service-catdesc">{{ group.description }}</small>
                         <div class="rsv-service-chips">
                             <button
                                 v-for="s in group.services"
@@ -259,8 +282,10 @@ function confirmCancel(): void {
                                 <span class="rsv-service-info">
                                     <span class="rsv-service-name">{{ s.name }}</span>
                                     <small v-if="serviceMeta(s)" class="rsv-service-meta">{{ serviceMeta(s) }}</small>
+                                    <small v-if="s.description" class="rsv-service-desc">{{ s.description }}</small>
                                 </span>
                             </button>
+                        </div>
                         </div>
                     </div>
                 </div>

@@ -134,21 +134,35 @@
     flex: none;
 }
 
+/* El bloc de selecció de servei s'eixampla més que la resta de la pàgina. */
+#rsv-booking .rsv-service-pick {
+    width: min(96rem, 100vw - 2rem);
+    max-width: none;
+    margin-left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Contenidor amb desplaçament lateral quan hi ha moltes categories. */
+#rsv-booking .rsv-service-scroller {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
 #rsv-booking .rsv-service-groups {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-wrap: nowrap;
     align-items: stretch;
     gap: 1rem;
-    width: 100%;
+    width: fit-content;
+    margin-inline: auto;
 }
 
 #rsv-booking .rsv-service-group {
     display: flex;
     flex-direction: column;
     gap: 0.7rem;
-    flex: 1 1 13rem;
-    max-width: 18rem;
+    flex: 0 0 16rem;
     border: 1px solid var(--b-line);
     border-radius: 1rem;
     padding: 1rem;
@@ -174,6 +188,19 @@
     border-radius: 0.5rem;
     object-fit: cover;
     flex: none;
+    cursor: zoom-in;
+    transition: transform 0.15s ease;
+}
+
+#rsv-booking .rsv-service-cat-img:hover {
+    transform: scale(1.12);
+}
+
+#rsv-booking .rsv-service-catdesc {
+    font-size: 0.75rem;
+    color: var(--b-muted);
+    white-space: normal;
+    margin-top: -0.2rem;
 }
 
 /* Dins d'una targeta de categoria els serveis es llisten en columna. */
@@ -200,6 +227,14 @@
     font-size: 0.72rem;
     font-weight: 600;
     opacity: 0.7;
+}
+
+#rsv-booking .rsv-service-desc {
+    font-size: 0.72rem;
+    font-weight: 400;
+    opacity: 0.75;
+    white-space: normal;
+    margin-top: 0.15rem;
 }
 
 #rsv-booking .rsv-service-chips > button:hover {

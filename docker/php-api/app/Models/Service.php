@@ -23,6 +23,7 @@ class Service extends Model
         'name',
         'price',
         'duration_minutes',
+        'description',
         'image_path',
         'service_category_id',
     ];

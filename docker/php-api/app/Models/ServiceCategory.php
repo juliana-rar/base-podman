@@ -20,6 +20,7 @@ class ServiceCategory extends Model
      */
     protected $fillable = [
         'name',
+        'description',
         'image_path',
     ];
 
