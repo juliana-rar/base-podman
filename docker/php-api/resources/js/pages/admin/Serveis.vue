@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { useI18n } from '@/lib/i18n';
 import '../../../css/reserva/admin.css';
+
+const { t } = useI18n();
 
 interface Service {
     id: number;
     name: string;
+    price: string;
     url: string | null;
     reservations_count: number;
 }
@@ -21,7 +25,7 @@ defineOptions({
 });
 
 // --- Crear ---
-const form = useForm<{ name: string; image: File | null }>({ name: '', image: null });
+const form = useForm<{ name: string; price: number; image: File | null }>({ name: '', price: 0, image: null });
 const newPreview = ref<string | null>(null);
 
 function onNewFile(event: Event): void {
@@ -45,7 +49,7 @@ function create(): void {
 
 // --- Editar ---
 const editId = ref<number | null>(null);
-const editForm = useForm<{ name: string; image: File | null }>({ name: '', image: null });
+const editForm = useForm<{ name: string; price: number; image: File | null }>({ name: '', price: 0, image: null });
 const editPreview = ref<string | null>(null);
 
 function startEdit(service: Service): void {
@@ -53,6 +57,7 @@ function startEdit(service: Service): void {
     editForm.reset();
     editForm.clearErrors();
     editForm.name = service.name;
+    editForm.price = Number(service.price);
     editForm.image = null;
     if (editPreview.value) URL.revokeObjectURL(editPreview.value);
     editPreview.value = null;
@@ -90,37 +95,46 @@ function remove(id: number): void {
 </script>
 
 <template>
-    <Head title="Serveis" />
+    <Head :title="t('srv.title')" />
 
     <div id="rsv-serveis">
         <header>
-            <h1>Serveis</h1>
-            <p>Crea els serveis que els usuaris poden triar en fer una reserva.</p>
+            <h1>{{ t('srv.title') }}</h1>
+            <p>{{ t('srv.subtitle') }}</p>
         </header>
 
         <section>
-            <h2>Nou servei</h2>
+            <h2>{{ t('srv.new') }}</h2>
             <div class="rsv-srv-form">
                 <input
                     v-model="form.name"
                     type="text"
                     maxlength="100"
-                    placeholder="Nom del servei (ex: Tall de cabell)"
+                    :placeholder="t('srv.namePh')"
+                    @keydown.enter.prevent="create"
+                />
+                <input
+                    v-model.number="form.price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    :placeholder="t('srv.pricePh')"
                     @keydown.enter.prevent="create"
                 />
                 <label class="rsv-file">
-                    <span>{{ form.image ? form.image.name : 'Imatge (opcional)' }}</span>
+                    <span>{{ form.image ? form.image.name : t('srv.imageOpt') }}</span>
                     <input type="file" accept="image/*" @change="onNewFile" />
                 </label>
-                <button type="button" class="rsv-edit" :disabled="form.processing" @click="create">Afegir</button>
+                <button type="button" class="rsv-edit" :disabled="form.processing" @click="create">{{ t('srv.add') }}</button>
             </div>
             <div v-if="newPreview" class="rsv-srv-newprev">
                 <img :src="newPreview" alt="" />
             </div>
             <p v-if="form.errors.name" class="rsv-error">{{ form.errors.name }}</p>
+            <p v-if="form.errors.price" class="rsv-error">{{ form.errors.price }}</p>
             <p v-if="form.errors.image" class="rsv-error">{{ form.errors.image }}</p>
 
-            <h2>Catàleg</h2>
+            <h2>{{ t('srv.catalog') }}</h2>
             <div v-if="services.length" class="rsv-srv-rows">
                 <div v-for="service in services" :key="service.id" class="rsv-srv-row">
                     <!-- Vista normal -->
@@ -130,11 +144,13 @@ function remove(id: number): void {
                             <span v-else class="rsv-srv-noimg">—</span>
                         </div>
                         <span class="rsv-srv-name">{{ service.name }}</span>
+                        <span class="rsv-srv-price">{{ service.price }} €</span>
                         <span class="rsv-count">
-                            {{ service.reservations_count }} {{ service.reservations_count === 1 ? 'reserva' : 'reserves' }}
+                            {{ service.reservations_count }}
+                            {{ service.reservations_count === 1 ? t('srv.reservaOne') : t('srv.reservaMany') }}
                         </span>
-                        <button type="button" class="rsv-edit" @click="startEdit(service)">Editar</button>
-                        <button type="button" class="rsv-del" @click="remove(service.id)">Eliminar</button>
+                        <button type="button" class="rsv-edit" @click="startEdit(service)">{{ t('srv.edit') }}</button>
+                        <button type="button" class="rsv-del" @click="remove(service.id)">{{ t('srv.delete') }}</button>
                     </template>
 
                     <!-- Vista edició -->
@@ -146,19 +162,28 @@ function remove(id: number): void {
                         </div>
                         <div class="rsv-srv-editfields">
                             <input v-model="editForm.name" type="text" maxlength="100" @keydown.enter.prevent="saveEdit" />
+                            <input
+                                v-model.number="editForm.price"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                :placeholder="t('srv.pricePh')"
+                                @keydown.enter.prevent="saveEdit"
+                            />
                             <label class="rsv-file">
-                                <span>{{ editForm.image ? editForm.image.name : 'Canviar imatge' }}</span>
+                                <span>{{ editForm.image ? editForm.image.name : t('srv.changeImage') }}</span>
                                 <input type="file" accept="image/*" @change="onEditFile" />
                             </label>
                             <p v-if="editForm.errors.name" class="rsv-error">{{ editForm.errors.name }}</p>
+                            <p v-if="editForm.errors.price" class="rsv-error">{{ editForm.errors.price }}</p>
                             <p v-if="editForm.errors.image" class="rsv-error">{{ editForm.errors.image }}</p>
                         </div>
-                        <button type="button" class="rsv-edit" :disabled="editForm.processing" @click="saveEdit">Desar</button>
-                        <button type="button" class="rsv-del" @click="cancelEdit">Cancel·lar</button>
+                        <button type="button" class="rsv-edit" :disabled="editForm.processing" @click="saveEdit">{{ t('srv.save') }}</button>
+                        <button type="button" class="rsv-del" @click="cancelEdit">{{ t('srv.cancel') }}</button>
                     </template>
                 </div>
             </div>
-            <div v-else class="rsv-empty">Encara no hi ha cap servei.</div>
+            <div v-else class="rsv-empty">{{ t('srv.empty') }}</div>
         </section>
     </div>
 </template>

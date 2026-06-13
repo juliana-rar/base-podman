@@ -19,7 +19,7 @@ class ServiceController extends Controller
         return Inertia::render('admin/Serveis', [
             'services' => Service::withCount('reservations')
                 ->orderBy('name')
-                ->get(['id', 'name', 'image_path']),
+                ->get(['id', 'name', 'price', 'image_path']),
         ]);
     }
 
@@ -30,11 +30,13 @@ class ServiceController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:services,name'],
+            'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
         Service::create([
             'name' => trim($validated['name']),
+            'price' => $validated['price'],
             'image_path' => $request->hasFile('image')
                 ? $request->file('image')->store('services', 'public')
                 : null,
@@ -52,10 +54,12 @@ class ServiceController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:services,name,'.$service->id],
+            'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
         $service->name = trim($validated['name']);
+        $service->price = $validated['price'];
 
         if ($request->hasFile('image')) {
             if ($service->image_path) {

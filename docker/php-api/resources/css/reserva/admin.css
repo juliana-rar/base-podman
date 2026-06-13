@@ -2469,6 +2469,13 @@
     font-weight: 700;
 }
 
+#rsv-serveis .rsv-srv-price {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--a-muted);
+    white-space: nowrap;
+}
+
 #rsv-serveis .rsv-count {
     margin-left: auto;
     font-size: 0.8rem;
