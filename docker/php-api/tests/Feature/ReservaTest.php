@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Employee;
 use App\Models\Post;
 use App\Models\Reservation;
+use App\Models\Service;
 use App\Models\Slot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,14 +31,23 @@ class ReservaTest extends TestCase
     {
         $user = User::factory()->create();
         $slot = Slot::factory()->create();
+        $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
+        $employee = Employee::create(['name' => 'Anna']);
 
         $this->actingAs($user)
-            ->post(route('reservas.store'), ['slot_id' => $slot->id])
+            ->post(route('reservas.store'), [
+                'slot_id' => $slot->id,
+                'service_id' => $service->id,
+                'employee_id' => $employee->id,
+                'note' => 'Primera visita',
+            ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('reservations', [
             'slot_id' => $slot->id,
             'user_id' => $user->id,
+            'service_id' => $service->id,
+            'employee_id' => $employee->id,
         ]);
     }
 
@@ -44,9 +55,16 @@ class ReservaTest extends TestCase
     {
         $slot = Slot::factory()->create();
         Reservation::factory()->create(['slot_id' => $slot->id]);
+        $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
+        $employee = Employee::create(['name' => 'Anna']);
 
         $this->actingAs(User::factory()->create())
-            ->post(route('reservas.store'), ['slot_id' => $slot->id])
+            ->post(route('reservas.store'), [
+                'slot_id' => $slot->id,
+                'service_id' => $service->id,
+                'employee_id' => $employee->id,
+                'note' => 'Hola',
+            ])
             ->assertSessionHasErrors('slot_id');
 
         $this->assertSame(1, Reservation::where('slot_id', $slot->id)->count());
@@ -58,7 +76,7 @@ class ReservaTest extends TestCase
         $reservation = Reservation::factory()->create(['user_id' => $user->id]);
 
         $this->actingAs($user)
-            ->delete(route('reservas.destroy', $reservation))
+            ->delete(route('reservas.destroy', $reservation), ['reason' => 'No hi puc anar'])
             ->assertRedirect();
 
         $this->assertDatabaseMissing('reservations', ['id' => $reservation->id]);

@@ -1,19 +1,29 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, type Ref } from 'vue';
+import ImagesField, { type ImageItem } from '@/components/ImagesField.vue';
 import { useI18n } from '@/lib/i18n';
 import '../../../css/reserva/admin.css';
 
 const { t } = useI18n();
 
-interface ServiceOption {
+// Entitat que té galeria d'imatges (per construir l'editor i el payload).
+interface WithImages {
+    image_path: string | null;
+    images: string[] | null;
+    image_urls: string[];
+}
+
+interface ServiceOption extends WithImages {
     id: number;
     name: string;
+    price: string;
+    duration_minutes: number;
     description: string | null;
     url: string | null;
 }
 
-interface Service {
+interface Service extends WithImages {
     id: number;
     name: string;
     price: string;
@@ -25,12 +35,52 @@ interface Service {
     options: ServiceOption[];
 }
 
-interface Category {
+interface Category extends WithImages {
     id: number;
     name: string;
     description: string | null;
     url: string | null;
     services: Service[];
+}
+
+// --- Galeria d'imatges (compartit pels formularis de categoria, servei i opció) ---
+
+// Construeix la llista inicial d'imatges existents d'una entitat.
+function imagesOf(entity: WithImages): ImageItem[] {
+    const paths = entity.images && entity.images.length ? entity.images : entity.image_path ? [entity.image_path] : [];
+    return paths.map((path, i) => ({ path, url: entity.image_urls[i] ?? '' }));
+}
+
+// Converteix la llista de l'editor en el payload que espera el servidor.
+// `order` viatja com a string JSON perquè un array buit no es perdria en multipart.
+function imagesPayload(items: ImageItem[]): { images: File[]; order: string } {
+    const images: File[] = [];
+    const order: string[] = [];
+    for (const item of items) {
+        if (item.file) {
+            order.push(`new:${images.length}`);
+            images.push(item.file);
+        } else if (item.path) {
+            order.push(item.path);
+        }
+    }
+    return { images, order: JSON.stringify(order) };
+}
+
+// Allibera els object URLs de les imatges noves i buida la llista.
+function clearImages(list: Ref<ImageItem[]>): void {
+    for (const item of list.value) {
+        if (item.file && item.url.startsWith('blob:')) {
+            URL.revokeObjectURL(item.url);
+        }
+    }
+    list.value = [];
+}
+
+// Primer error de validació relacionat amb la galeria (clau `images` o `images.N`).
+function imageError(errors: Record<string, string>): string | null {
+    const key = Object.keys(errors).find((k) => k === 'images' || k.startsWith('images.'));
+    return key ? errors[key] : null;
 }
 
 const props = defineProps<{
@@ -51,6 +101,9 @@ const groups = computed(() => [
         name: c.name,
         description: c.description,
         url: c.url,
+        image_path: c.image_path,
+        images: c.images,
+        image_urls: c.image_urls,
         isReal: true,
         services: c.services,
     })),
@@ -61,6 +114,9 @@ const groups = computed(() => [
                   name: t('srv.noCategory'),
                   description: null as string | null,
                   url: null as string | null,
+                  image_path: null as string | null,
+                  images: null as string[] | null,
+                  image_urls: [] as string[],
                   isReal: false,
                   services: props.uncategorized,
               },
@@ -71,31 +127,24 @@ const groups = computed(() => [
 // =========================================================================
 //  Categories
 // =========================================================================
-const catForm = useForm<{ name: string; description: string; image: File | null }>({ name: '', description: '', image: null });
-const newCatPreview = ref<string | null>(null);
-
-function onNewCatFile(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    catForm.image = file;
-    if (newCatPreview.value) URL.revokeObjectURL(newCatPreview.value);
-    newCatPreview.value = file ? URL.createObjectURL(file) : null;
-}
+const catForm = useForm<{ name: string; description: string }>({ name: '', description: '' });
+const catImages = ref<ImageItem[]>([]);
 
 function createCategory(): void {
-    catForm.post('/admin/serveis-categories', {
+    const { images, order } = imagesPayload(catImages.value);
+    catForm.transform((data) => ({ ...data, images, order })).post('/admin/serveis-categories', {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
             catForm.reset();
-            if (newCatPreview.value) URL.revokeObjectURL(newCatPreview.value);
-            newCatPreview.value = null;
+            clearImages(catImages);
         },
     });
 }
 
 const editCatId = ref<number | null>(null);
-const editCatForm = useForm<{ name: string; description: string; image: File | null }>({ name: '', description: '', image: null });
-const editCatPreview = ref<string | null>(null);
+const editCatForm = useForm<{ name: string; description: string }>({ name: '', description: '' });
+const editCatImages = ref<ImageItem[]>([]);
 
 function startEditCategory(category: Category): void {
     editCatId.value = category.id;
@@ -103,35 +152,26 @@ function startEditCategory(category: Category): void {
     editCatForm.clearErrors();
     editCatForm.name = category.name;
     editCatForm.description = category.description ?? '';
-    editCatForm.image = null;
-    if (editCatPreview.value) URL.revokeObjectURL(editCatPreview.value);
-    editCatPreview.value = null;
-}
-
-function onEditCatFile(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    editCatForm.image = file;
-    if (editCatPreview.value) URL.revokeObjectURL(editCatPreview.value);
-    editCatPreview.value = file ? URL.createObjectURL(file) : null;
+    clearImages(editCatImages);
+    editCatImages.value = imagesOf(category);
 }
 
 function saveEditCategory(): void {
     if (editCatId.value === null) return;
-    editCatForm.post(`/admin/serveis-categories/${editCatId.value}`, {
+    const { images, order } = imagesPayload(editCatImages.value);
+    editCatForm.transform((data) => ({ ...data, images, order })).post(`/admin/serveis-categories/${editCatId.value}`, {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
             editCatId.value = null;
-            if (editCatPreview.value) URL.revokeObjectURL(editCatPreview.value);
-            editCatPreview.value = null;
+            clearImages(editCatImages);
         },
     });
 }
 
 function cancelEditCategory(): void {
     editCatId.value = null;
-    if (editCatPreview.value) URL.revokeObjectURL(editCatPreview.value);
-    editCatPreview.value = null;
+    clearImages(editCatImages);
 }
 
 function removeCategory(id: number): void {
@@ -147,32 +187,23 @@ const form = useForm<{
     duration_minutes: number;
     description: string;
     service_category_id: number | '';
-    image: File | null;
 }>({
     name: '',
     price: 0,
     duration_minutes: 0,
     description: '',
     service_category_id: '',
-    image: null,
 });
-const newPreview = ref<string | null>(null);
-
-function onNewFile(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    form.image = file;
-    if (newPreview.value) URL.revokeObjectURL(newPreview.value);
-    newPreview.value = file ? URL.createObjectURL(file) : null;
-}
+const newImages = ref<ImageItem[]>([]);
 
 function create(): void {
-    form.post('/admin/serveis', {
+    const { images, order } = imagesPayload(newImages.value);
+    form.transform((data) => ({ ...data, images, order })).post('/admin/serveis', {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
             form.reset();
-            if (newPreview.value) URL.revokeObjectURL(newPreview.value);
-            newPreview.value = null;
+            clearImages(newImages);
         },
     });
 }
@@ -187,16 +218,14 @@ const editForm = useForm<{
     duration_minutes: number;
     description: string;
     service_category_id: number | '';
-    image: File | null;
 }>({
     name: '',
     price: 0,
     duration_minutes: 0,
     description: '',
     service_category_id: '',
-    image: null,
 });
-const editPreview = ref<string | null>(null);
+const editImages = ref<ImageItem[]>([]);
 
 // Durada repartida en hores i minuts; es desa sempre com a total de minuts.
 const newHours = computed({
@@ -242,35 +271,26 @@ function startEdit(service: Service): void {
     editForm.duration_minutes = service.duration_minutes;
     editForm.description = service.description ?? '';
     editForm.service_category_id = service.service_category_id ?? '';
-    editForm.image = null;
-    if (editPreview.value) URL.revokeObjectURL(editPreview.value);
-    editPreview.value = null;
-}
-
-function onEditFile(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    editForm.image = file;
-    if (editPreview.value) URL.revokeObjectURL(editPreview.value);
-    editPreview.value = file ? URL.createObjectURL(file) : null;
+    clearImages(editImages);
+    editImages.value = imagesOf(service);
 }
 
 function saveEdit(): void {
     if (editId.value === null) return;
-    editForm.post(`/admin/serveis/${editId.value}`, {
+    const { images, order } = imagesPayload(editImages.value);
+    editForm.transform((data) => ({ ...data, images, order })).post(`/admin/serveis/${editId.value}`, {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
             editId.value = null;
-            if (editPreview.value) URL.revokeObjectURL(editPreview.value);
-            editPreview.value = null;
+            clearImages(editImages);
         },
     });
 }
 
 function cancelEdit(): void {
     editId.value = null;
-    if (editPreview.value) URL.revokeObjectURL(editPreview.value);
-    editPreview.value = null;
+    clearImages(editImages);
 }
 
 function remove(id: number): void {
@@ -282,98 +302,110 @@ function remove(id: number): void {
 // =========================================================================
 // --- Afegir opció ---
 const optionFor = ref<number | null>(null);
-const optionForm = useForm<{ name: string; description: string; image: File | null }>({
+const optionForm = useForm<{ name: string; price: number; duration_minutes: number; description: string }>({
     name: '',
+    price: 0,
+    duration_minutes: 0,
     description: '',
-    image: null,
 });
-const optionPreview = ref<string | null>(null);
+const optionImages = ref<ImageItem[]>([]);
 
 function startAddOption(serviceId: number): void {
     optionFor.value = serviceId;
     optionForm.reset();
     optionForm.clearErrors();
-    if (optionPreview.value) URL.revokeObjectURL(optionPreview.value);
-    optionPreview.value = null;
-}
-
-function onOptionFile(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    optionForm.image = file;
-    if (optionPreview.value) URL.revokeObjectURL(optionPreview.value);
-    optionPreview.value = file ? URL.createObjectURL(file) : null;
+    clearImages(optionImages);
 }
 
 function saveOption(): void {
     if (optionFor.value === null) return;
+    const { images, order } = imagesPayload(optionImages.value);
     optionForm
-        .transform((data) => ({ ...data, service_id: optionFor.value }))
+        .transform((data) => ({ ...data, service_id: optionFor.value, images, order }))
         .post('/admin/serveis-options', {
             preserveScroll: true,
             forceFormData: true,
             onSuccess: () => {
                 optionFor.value = null;
-                if (optionPreview.value) URL.revokeObjectURL(optionPreview.value);
-                optionPreview.value = null;
+                clearImages(optionImages);
             },
         });
 }
 
 function cancelAddOption(): void {
     optionFor.value = null;
-    if (optionPreview.value) URL.revokeObjectURL(optionPreview.value);
-    optionPreview.value = null;
+    clearImages(optionImages);
 }
 
 // --- Editar opció ---
 const editOptionId = ref<number | null>(null);
-const editOptionForm = useForm<{ name: string; description: string; image: File | null }>({
+const editOptionForm = useForm<{ name: string; price: number; duration_minutes: number; description: string }>({
     name: '',
+    price: 0,
+    duration_minutes: 0,
     description: '',
-    image: null,
 });
-const editOptionPreview = ref<string | null>(null);
+const editOptionImages = ref<ImageItem[]>([]);
 
 function startEditOption(option: ServiceOption): void {
     editOptionId.value = option.id;
     editOptionForm.reset();
     editOptionForm.clearErrors();
     editOptionForm.name = option.name;
+    editOptionForm.price = Number(option.price);
+    editOptionForm.duration_minutes = option.duration_minutes;
     editOptionForm.description = option.description ?? '';
-    editOptionForm.image = null;
-    if (editOptionPreview.value) URL.revokeObjectURL(editOptionPreview.value);
-    editOptionPreview.value = null;
-}
-
-function onEditOptionFile(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    editOptionForm.image = file;
-    if (editOptionPreview.value) URL.revokeObjectURL(editOptionPreview.value);
-    editOptionPreview.value = file ? URL.createObjectURL(file) : null;
+    clearImages(editOptionImages);
+    editOptionImages.value = imagesOf(option);
 }
 
 function saveEditOption(): void {
     if (editOptionId.value === null) return;
-    editOptionForm.post(`/admin/serveis-options/${editOptionId.value}`, {
+    const { images, order } = imagesPayload(editOptionImages.value);
+    editOptionForm.transform((data) => ({ ...data, images, order })).post(`/admin/serveis-options/${editOptionId.value}`, {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
             editOptionId.value = null;
-            if (editOptionPreview.value) URL.revokeObjectURL(editOptionPreview.value);
-            editOptionPreview.value = null;
+            clearImages(editOptionImages);
         },
     });
 }
 
 function cancelEditOption(): void {
     editOptionId.value = null;
-    if (editOptionPreview.value) URL.revokeObjectURL(editOptionPreview.value);
-    editOptionPreview.value = null;
+    clearImages(editOptionImages);
 }
 
 function removeOption(id: number): void {
     router.delete(`/admin/serveis-options/${id}`, { preserveScroll: true });
 }
+
+// Durada de les opcions repartida en hores i minuts.
+const optHours = computed({
+    get: () => Math.floor(optionForm.duration_minutes / 60),
+    set: (h: number) => {
+        optionForm.duration_minutes = (Number(h) || 0) * 60 + (optionForm.duration_minutes % 60);
+    },
+});
+const optMinutes = computed({
+    get: () => optionForm.duration_minutes % 60,
+    set: (m: number) => {
+        optionForm.duration_minutes = Math.floor(optionForm.duration_minutes / 60) * 60 + (Number(m) || 0);
+    },
+});
+const editOptHours = computed({
+    get: () => Math.floor(editOptionForm.duration_minutes / 60),
+    set: (h: number) => {
+        editOptionForm.duration_minutes = (Number(h) || 0) * 60 + (editOptionForm.duration_minutes % 60);
+    },
+});
+const editOptMinutes = computed({
+    get: () => editOptionForm.duration_minutes % 60,
+    set: (m: number) => {
+        editOptionForm.duration_minutes = Math.floor(editOptionForm.duration_minutes / 60) * 60 + (Number(m) || 0);
+    },
+});
 </script>
 
 <template>
@@ -396,10 +428,6 @@ function removeOption(id: number): void {
                     :placeholder="t('srv.categoryNamePh')"
                     @keydown.enter.prevent="createCategory"
                 />
-                <label class="rsv-file">
-                    <span>{{ catForm.image ? catForm.image.name : t('srv.imageOpt') }}</span>
-                    <input type="file" accept="image/*" @change="onNewCatFile" />
-                </label>
                 <textarea
                     v-model="catForm.description"
                     class="rsv-srv-descfield"
@@ -411,12 +439,10 @@ function removeOption(id: number): void {
                     {{ t('srv.addCategory') }}
                 </button>
             </div>
-            <div v-if="newCatPreview" class="rsv-srv-newprev">
-                <img :src="newCatPreview" alt="" />
-            </div>
+            <ImagesField v-model="catImages" class="rsv-imgs-centered" />
             <p v-if="catForm.errors.name" class="rsv-error">{{ catForm.errors.name }}</p>
             <p v-if="catForm.errors.description" class="rsv-error">{{ catForm.errors.description }}</p>
-            <p v-if="catForm.errors.image" class="rsv-error">{{ catForm.errors.image }}</p>
+            <p v-if="imageError(catForm.errors)" class="rsv-error">{{ imageError(catForm.errors) }}</p>
 
             <!-- ===================== Nou servei ===================== -->
             <h2 class="rsv-srv-center">{{ t('srv.new') }}</h2>
@@ -468,10 +494,6 @@ function removeOption(id: number): void {
                     <option value="">{{ t('srv.noCategory') }}</option>
                     <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
                 </select>
-                <label class="rsv-file">
-                    <span>{{ form.image ? form.image.name : t('srv.imageOpt') }}</span>
-                    <input type="file" accept="image/*" @change="onNewFile" />
-                </label>
                 <textarea
                     v-model="form.description"
                     class="rsv-srv-descfield"
@@ -481,14 +503,12 @@ function removeOption(id: number): void {
                 ></textarea>
                 <button type="button" class="rsv-edit" :disabled="form.processing" @click="create">{{ t('srv.add') }}</button>
             </div>
-            <div v-if="newPreview" class="rsv-srv-newprev">
-                <img :src="newPreview" alt="" />
-            </div>
+            <ImagesField v-model="newImages" class="rsv-imgs-centered" />
             <p v-if="form.errors.name" class="rsv-error">{{ form.errors.name }}</p>
             <p v-if="form.errors.price" class="rsv-error">{{ form.errors.price }}</p>
             <p v-if="form.errors.duration_minutes" class="rsv-error">{{ form.errors.duration_minutes }}</p>
             <p v-if="form.errors.description" class="rsv-error">{{ form.errors.description }}</p>
-            <p v-if="form.errors.image" class="rsv-error">{{ form.errors.image }}</p>
+            <p v-if="imageError(form.errors)" class="rsv-error">{{ imageError(form.errors) }}</p>
 
             <!-- ===================== Catàleg per categories ===================== -->
             <h2>{{ t('srv.catalog') }}</h2>
@@ -496,21 +516,13 @@ function removeOption(id: number): void {
                 <div v-for="group in groups" :key="group.id ?? 'none'" class="rsv-srv-group">
                     <div class="rsv-srv-grouphead">
                         <template v-if="group.isReal && editCatId === group.id">
-                            <div class="rsv-srv-thumb">
-                                <img v-if="editCatPreview" :src="editCatPreview" alt="" />
-                                <img v-else-if="group.url" :src="group.url" alt="" />
-                                <span v-else class="rsv-srv-noimg">—</span>
-                            </div>
                             <input
                                 v-model="editCatForm.name"
                                 type="text"
                                 maxlength="100"
                                 @keydown.enter.prevent="saveEditCategory"
                             />
-                            <label class="rsv-file">
-                                <span>{{ editCatForm.image ? editCatForm.image.name : t('srv.changeImage') }}</span>
-                                <input type="file" accept="image/*" @change="onEditCatFile" />
-                            </label>
+                            <ImagesField v-model="editCatImages" />
                             <textarea
                                 v-model="editCatForm.description"
                                 class="rsv-srv-descfield"
@@ -541,7 +553,7 @@ function removeOption(id: number): void {
                     </div>
                     <p v-if="editCatId === group.id && editCatForm.errors.name" class="rsv-error">{{ editCatForm.errors.name }}</p>
                     <p v-if="editCatId === group.id && editCatForm.errors.description" class="rsv-error">{{ editCatForm.errors.description }}</p>
-                    <p v-if="editCatId === group.id && editCatForm.errors.image" class="rsv-error">{{ editCatForm.errors.image }}</p>
+                    <p v-if="editCatId === group.id && imageError(editCatForm.errors)" class="rsv-error">{{ imageError(editCatForm.errors) }}</p>
 
                     <p v-if="group.description && editCatId !== group.id" class="rsv-srv-catdesc">{{ group.description }}</p>
 
@@ -556,10 +568,7 @@ function removeOption(id: number): void {
                                 <span class="rsv-srv-name">{{ service.name }}</span>
                                 <span class="rsv-srv-price">{{ service.price }} €</span>
                                 <span class="rsv-srv-dur">{{ formatDuration(service.duration_minutes) }}</span>
-                                <span class="rsv-count">
-                                    {{ service.reservations_count }}
-                                    {{ service.reservations_count === 1 ? t('srv.reservaOne') : t('srv.reservaMany') }}
-                                </span>
+                                <span class="rsv-srv-spacer"></span>
                                 <button type="button" class="rsv-edit" @click="startEdit(service)">{{ t('srv.edit') }}</button>
                                 <button type="button" class="rsv-del" @click="remove(service.id)">{{ t('srv.delete') }}</button>
                                 <p v-if="service.description" class="rsv-srv-desc">{{ service.description }}</p>
@@ -585,17 +594,16 @@ function removeOption(id: number): void {
                                             </div>
                                             <div class="rsv-srv-optinfo">
                                                 <span class="rsv-srv-optname">{{ opt.name }}</span>
+                                                <span class="rsv-srv-optmeta">
+                                                    <span v-if="Number(opt.price) > 0">{{ opt.price }} €</span>
+                                                    <span v-if="opt.duration_minutes > 0">{{ formatDuration(opt.duration_minutes) }}</span>
+                                                </span>
                                                 <span v-if="opt.description" class="rsv-srv-optdesc">{{ opt.description }}</span>
                                             </div>
                                             <button type="button" class="rsv-edit" @click="startEditOption(opt)">{{ t('srv.edit') }}</button>
                                             <button type="button" class="rsv-del" @click="removeOption(opt.id)">{{ t('srv.delete') }}</button>
                                         </template>
                                         <template v-else>
-                                            <div class="rsv-srv-thumb rsv-srv-optthumb">
-                                                <img v-if="editOptionPreview" :src="editOptionPreview" alt="" />
-                                                <img v-else-if="opt.url" :src="opt.url" alt="" />
-                                                <span v-else class="rsv-srv-noimg">—</span>
-                                            </div>
                                             <div class="rsv-srv-optfields">
                                                 <input
                                                     v-model="editOptionForm.name"
@@ -604,6 +612,20 @@ function removeOption(id: number): void {
                                                     :placeholder="t('srv.optionNamePh')"
                                                     @keydown.enter.prevent="saveEditOption"
                                                 />
+                                                <span class="rsv-srv-num">
+                                                    <input v-model.number="editOptionForm.price" type="number" min="0" step="0.01" :placeholder="t('srv.pricePh')" />
+                                                    <i class="rsv-srv-unit">€</i>
+                                                </span>
+                                                <div class="rsv-srv-durfield" :title="t('srv.durationPh')">
+                                                    <span class="rsv-srv-num">
+                                                        <input v-model.number="editOptHours" type="number" min="0" step="1" placeholder="0" />
+                                                        <i class="rsv-srv-unit">{{ t('srv.hours') }}</i>
+                                                    </span>
+                                                    <span class="rsv-srv-num">
+                                                        <input v-model.number="editOptMinutes" type="number" min="0" max="59" step="5" placeholder="0" />
+                                                        <i class="rsv-srv-unit">{{ t('srv.minutes') }}</i>
+                                                    </span>
+                                                </div>
                                                 <textarea
                                                     v-model="editOptionForm.description"
                                                     class="rsv-srv-descfield"
@@ -611,12 +633,9 @@ function removeOption(id: number): void {
                                                     maxlength="2000"
                                                     :placeholder="t('srv.optionInfoPh')"
                                                 ></textarea>
-                                                <label class="rsv-file">
-                                                    <span>{{ editOptionForm.image ? editOptionForm.image.name : t('srv.changeImage') }}</span>
-                                                    <input type="file" accept="image/*" @change="onEditOptionFile" />
-                                                </label>
+                                                <ImagesField v-model="editOptionImages" />
                                                 <p v-if="editOptionForm.errors.name" class="rsv-error">{{ editOptionForm.errors.name }}</p>
-                                                <p v-if="editOptionForm.errors.image" class="rsv-error">{{ editOptionForm.errors.image }}</p>
+                                                <p v-if="imageError(editOptionForm.errors)" class="rsv-error">{{ imageError(editOptionForm.errors) }}</p>
                                             </div>
                                             <button type="button" class="rsv-edit" :disabled="editOptionForm.processing" @click="saveEditOption">{{ t('srv.save') }}</button>
                                             <button type="button" class="rsv-del" @click="cancelEditOption">{{ t('srv.cancel') }}</button>
@@ -624,10 +643,6 @@ function removeOption(id: number): void {
                                     </div>
 
                                     <div v-if="optionFor === service.id" class="rsv-srv-opt">
-                                        <div class="rsv-srv-thumb rsv-srv-optthumb">
-                                            <img v-if="optionPreview" :src="optionPreview" alt="" />
-                                            <span v-else class="rsv-srv-noimg">—</span>
-                                        </div>
                                         <div class="rsv-srv-optfields">
                                             <input
                                                 v-model="optionForm.name"
@@ -636,6 +651,20 @@ function removeOption(id: number): void {
                                                 :placeholder="t('srv.optionNamePh')"
                                                 @keydown.enter.prevent="saveOption"
                                             />
+                                            <span class="rsv-srv-num">
+                                                <input v-model.number="optionForm.price" type="number" min="0" step="0.01" :placeholder="t('srv.pricePh')" />
+                                                <i class="rsv-srv-unit">€</i>
+                                            </span>
+                                            <div class="rsv-srv-durfield" :title="t('srv.durationPh')">
+                                                <span class="rsv-srv-num">
+                                                    <input v-model.number="optHours" type="number" min="0" step="1" placeholder="0" />
+                                                    <i class="rsv-srv-unit">{{ t('srv.hours') }}</i>
+                                                </span>
+                                                <span class="rsv-srv-num">
+                                                    <input v-model.number="optMinutes" type="number" min="0" max="59" step="5" placeholder="0" />
+                                                    <i class="rsv-srv-unit">{{ t('srv.minutes') }}</i>
+                                                </span>
+                                            </div>
                                             <textarea
                                                 v-model="optionForm.description"
                                                 class="rsv-srv-descfield"
@@ -643,12 +672,9 @@ function removeOption(id: number): void {
                                                 maxlength="2000"
                                                 :placeholder="t('srv.optionInfoPh')"
                                             ></textarea>
-                                            <label class="rsv-file">
-                                                <span>{{ optionForm.image ? optionForm.image.name : t('srv.imageOpt') }}</span>
-                                                <input type="file" accept="image/*" @change="onOptionFile" />
-                                            </label>
+                                            <ImagesField v-model="optionImages" />
                                             <p v-if="optionForm.errors.name" class="rsv-error">{{ optionForm.errors.name }}</p>
-                                            <p v-if="optionForm.errors.image" class="rsv-error">{{ optionForm.errors.image }}</p>
+                                            <p v-if="imageError(optionForm.errors)" class="rsv-error">{{ imageError(optionForm.errors) }}</p>
                                         </div>
                                         <button type="button" class="rsv-edit" :disabled="optionForm.processing" @click="saveOption">{{ t('srv.add') }}</button>
                                         <button type="button" class="rsv-del" @click="cancelAddOption">{{ t('srv.cancel') }}</button>
@@ -658,11 +684,6 @@ function removeOption(id: number): void {
 
                             <!-- Vista edició -->
                             <template v-else>
-                                <div class="rsv-srv-thumb">
-                                    <img v-if="editPreview" :src="editPreview" alt="" />
-                                    <img v-else-if="service.url" :src="service.url" alt="" />
-                                    <span v-else class="rsv-srv-noimg">—</span>
-                                </div>
                                 <div class="rsv-srv-editfields">
                                     <input v-model="editForm.name" type="text" maxlength="100" @keydown.enter.prevent="saveEdit" />
                                     <span class="rsv-srv-num">
@@ -705,10 +726,7 @@ function removeOption(id: number): void {
                                         <option value="">{{ t('srv.noCategory') }}</option>
                                         <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
                                     </select>
-                                    <label class="rsv-file">
-                                        <span>{{ editForm.image ? editForm.image.name : t('srv.changeImage') }}</span>
-                                        <input type="file" accept="image/*" @change="onEditFile" />
-                                    </label>
+                                    <ImagesField v-model="editImages" />
                                     <textarea
                                         v-model="editForm.description"
                                         class="rsv-srv-descfield"
@@ -720,7 +738,7 @@ function removeOption(id: number): void {
                                     <p v-if="editForm.errors.price" class="rsv-error">{{ editForm.errors.price }}</p>
                                     <p v-if="editForm.errors.duration_minutes" class="rsv-error">{{ editForm.errors.duration_minutes }}</p>
                                     <p v-if="editForm.errors.description" class="rsv-error">{{ editForm.errors.description }}</p>
-                                    <p v-if="editForm.errors.image" class="rsv-error">{{ editForm.errors.image }}</p>
+                                    <p v-if="imageError(editForm.errors)" class="rsv-error">{{ imageError(editForm.errors) }}</p>
                                 </div>
                                 <button type="button" class="rsv-edit" :disabled="editForm.processing" @click="saveEdit">{{ t('srv.save') }}</button>
                                 <button type="button" class="rsv-del" @click="cancelEdit">{{ t('srv.cancel') }}</button>

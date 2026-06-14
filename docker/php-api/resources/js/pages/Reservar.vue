@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import Calendar from '@/components/Calendar.vue';
 import ClockPicker from '@/components/ClockPicker.vue';
 import { useI18n } from '@/lib/i18n';
@@ -15,8 +15,11 @@ interface Slot {
 interface ServiceOption {
     id: number;
     name: string;
+    price: string;
+    duration_minutes: number;
     description: string | null;
     url: string | null;
+    image_urls: string[];
 }
 
 interface Service {
@@ -26,7 +29,8 @@ interface Service {
     duration_minutes: number;
     description: string | null;
     url: string | null;
-    category: { id: number; name: string; description: string | null; url: string | null } | null;
+    image_urls: string[];
+    category: { id: number; name: string; description: string | null; url: string | null; image_urls: string[] } | null;
     options: ServiceOption[];
 }
 
@@ -98,7 +102,7 @@ function blockFor(service: Service): ServiceBlock {
 const serviceGroups = computed(() => {
     const byCat = new Map<
         number,
-        { id: number | null; name: string; description: string | null; url: string | null; services: ServiceBlock[] }
+        { id: number | null; name: string; description: string | null; url: string | null; image_urls: string[]; services: ServiceBlock[] }
     >();
     const uncategorized: ServiceBlock[] = [];
     for (const s of visibleServices.value) {
@@ -113,6 +117,7 @@ const serviceGroups = computed(() => {
                     name: s.category.name,
                     description: s.category.description,
                     url: s.category.url,
+                    image_urls: s.category.image_urls,
                     services: [block],
                 });
             }
@@ -122,7 +127,7 @@ const serviceGroups = computed(() => {
     }
     const groups = [...byCat.values()].sort((a, b) => a.name.localeCompare(b.name));
     if (uncategorized.length) {
-        groups.push({ id: null, name: '', description: null, url: null, services: uncategorized });
+        groups.push({ id: null, name: '', description: null, url: null, image_urls: [], services: uncategorized });
     }
     return groups;
 });
@@ -136,6 +141,23 @@ function itemDescription(item: Bookable): string | null {
 }
 function itemUrl(item: Bookable): string | null {
     return (item.option && item.option.url) || item.service.url;
+}
+// Galeria completa d'un bookable: la de l'opció si en té, si no la del servei.
+function itemImages(item: Bookable): string[] {
+    if (item.option && item.option.image_urls.length) {
+        return item.option.image_urls;
+    }
+    return item.service.image_urls;
+}
+
+// Preu i durada d'un bookable: els de l'opció si en té (>0), si no els del servei.
+function itemMeta(item: Bookable): string {
+    const price = item.option && Number(item.option.price) > 0 ? item.option.price : item.service.price;
+    const duration = item.option && item.option.duration_minutes > 0 ? item.option.duration_minutes : item.service.duration_minutes;
+    const parts: string[] = [];
+    if (Number(price) > 0) parts.push(`${price} €`);
+    if (duration > 0) parts.push(formatDuration(duration));
+    return parts.join(' · ');
 }
 function isItemActive(item: Bookable): boolean {
     return serviceId.value === item.service.id && optionId.value === (item.option ? item.option.id : null);
@@ -162,19 +184,58 @@ function serviceMeta(s: Service): string {
     return parts.join(' · ');
 }
 
-// Visor d'imatge ampliada (clicar la imatge del servei).
-const zoomImage = ref<string | null>(null);
+// Visor de galeria ampliada: una sola imatge a la vista petita; al clicar es pot
+// desplaçar (fletxes, swipe tàctil o teclat) per veure la resta.
+const galleryImages = ref<string[]>([]);
+const galleryIndex = ref(0);
 
-function openImageUrl(url: string | null): void {
-    if (url) zoomImage.value = url;
+function openGallery(urls: string[], start = 0): void {
+    if (!urls.length) return;
+    galleryImages.value = urls;
+    galleryIndex.value = Math.min(start, urls.length - 1);
 }
 
-function openImage(s: Service): void {
-    openImageUrl(s.url);
+function closeGallery(): void {
+    galleryImages.value = [];
+    galleryIndex.value = 0;
 }
 
-function closeImage(): void {
-    zoomImage.value = null;
+function nextImage(): void {
+    if (galleryImages.value.length) {
+        galleryIndex.value = (galleryIndex.value + 1) % galleryImages.value.length;
+    }
+}
+
+function prevImage(): void {
+    if (galleryImages.value.length) {
+        galleryIndex.value = (galleryIndex.value - 1 + galleryImages.value.length) % galleryImages.value.length;
+    }
+}
+
+// Navegació amb teclat mentre el visor és obert.
+function onGalleryKey(event: KeyboardEvent): void {
+    if (!galleryImages.value.length) return;
+    if (event.key === 'ArrowRight') nextImage();
+    else if (event.key === 'ArrowLeft') prevImage();
+    else if (event.key === 'Escape') closeGallery();
+}
+
+onMounted(() => window.addEventListener('keydown', onGalleryKey));
+onUnmounted(() => window.removeEventListener('keydown', onGalleryKey));
+
+// Swipe tàctil sobre la imatge ampliada.
+let touchStartX = 0;
+
+function onTouchStart(event: TouchEvent): void {
+    touchStartX = event.changedTouches[0].clientX;
+}
+
+function onTouchEnd(event: TouchEvent): void {
+    const delta = event.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(delta) > 40) {
+        if (delta < 0) nextImage();
+        else prevImage();
+    }
 }
 
 function timeOf(iso: string): string {
@@ -362,13 +423,23 @@ function confirmCancel(): void {
                                 alt=""
                                 class="rsv-service-cat-img"
                                 :title="t('res.zoomImg')"
-                                @click="openImageUrl(group.url)"
+                                @click="openGallery(group.image_urls)"
                             />
                             {{ group.name }}
                         </span>
                         <small v-if="group.description" class="rsv-service-catdesc">{{ group.description }}</small>
                         <div v-for="block in group.services" :key="block.service.id" class="rsv-service-svcblock">
-                            <span v-if="block.hasOptions" class="rsv-service-svcname">{{ block.service.name }}</span>
+                            <span v-if="block.hasOptions" class="rsv-service-svcname">
+                                <img
+                                    v-if="block.service.url"
+                                    :src="block.service.url"
+                                    alt=""
+                                    class="rsv-service-svcimg"
+                                    :title="t('res.zoomImg')"
+                                    @click="openGallery(block.service.image_urls)"
+                                />
+                                {{ block.service.name }}
+                            </span>
                             <div class="rsv-service-chips">
                                 <button
                                     v-for="item in block.items"
@@ -383,11 +454,11 @@ function confirmCancel(): void {
                                         alt=""
                                         class="rsv-service-thumb"
                                         :title="t('res.zoomImg')"
-                                        @click.stop="openImageUrl(itemUrl(item))"
+                                        @click.stop="openGallery(itemImages(item))"
                                     />
                                     <span class="rsv-service-info">
                                         <span class="rsv-service-name">{{ itemName(item) }}</span>
-                                        <small v-if="serviceMeta(item.service)" class="rsv-service-meta">{{ serviceMeta(item.service) }}</small>
+                                        <small v-if="itemMeta(item)" class="rsv-service-meta">{{ itemMeta(item) }}</small>
                                         <small v-if="itemDescription(item)" class="rsv-service-desc">{{ itemDescription(item) }}</small>
                                     </span>
                                 </button>
@@ -462,9 +533,43 @@ function confirmCancel(): void {
 
         <Teleport to="body">
             <transition name="rsv-fade">
-                <div v-if="zoomImage" class="rsv-img-overlay" @click.self="closeImage">
-                    <img :src="zoomImage" alt="" class="rsv-img-zoom" />
-                    <button type="button" class="rsv-img-close" aria-label="×" @click="closeImage">×</button>
+                <div v-if="galleryImages.length" class="rsv-img-overlay" @click.self="closeGallery">
+                    <button
+                        v-if="galleryImages.length > 1"
+                        type="button"
+                        class="rsv-img-nav rsv-img-prev"
+                        :aria-label="t('res.prevImg')"
+                        @click.stop="prevImage"
+                    >
+                        ‹
+                    </button>
+                    <img
+                        :src="galleryImages[galleryIndex]"
+                        alt=""
+                        class="rsv-img-zoom"
+                        @touchstart.passive="onTouchStart"
+                        @touchend="onTouchEnd"
+                    />
+                    <button
+                        v-if="galleryImages.length > 1"
+                        type="button"
+                        class="rsv-img-nav rsv-img-next"
+                        :aria-label="t('res.nextImg')"
+                        @click.stop="nextImage"
+                    >
+                        ›
+                    </button>
+                    <button type="button" class="rsv-img-close" aria-label="×" @click="closeGallery">×</button>
+                    <div v-if="galleryImages.length > 1" class="rsv-img-dots">
+                        <button
+                            v-for="(url, i) in galleryImages"
+                            :key="i"
+                            type="button"
+                            :class="{ 'is-active': i === galleryIndex }"
+                            :aria-label="`${i + 1}`"
+                            @click.stop="galleryIndex = i"
+                        ></button>
+                    </div>
                 </div>
             </transition>
         </Teleport>

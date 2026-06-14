@@ -168,11 +168,12 @@
     display: flex;
     flex-direction: column;
     gap: 0.7rem;
-    flex: 0 0 16rem;
+    flex: 0 0 19rem;
     border: 1px solid var(--b-line);
     border-radius: 1rem;
     padding: 1rem;
     background: color-mix(in srgb, var(--b-ink) 3%, transparent);
+    text-align: left;
 }
 
 #rsv-booking .rsv-service-cat {
@@ -230,9 +231,26 @@
 }
 
 #rsv-booking .rsv-service-svcname {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 0.85rem;
     font-weight: 700;
     color: var(--b-ink);
+}
+
+#rsv-booking .rsv-service-svcimg {
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 0.4rem;
+    object-fit: cover;
+    flex: none;
+    cursor: zoom-in;
+    transition: transform 0.15s ease;
+}
+
+#rsv-booking .rsv-service-svcimg:hover {
+    transform: scale(1.12);
 }
 
 /* Les opcions queden agrupades visualment sota el nom del servei. */
@@ -591,6 +609,82 @@
 
 .rsv-img-close:hover {
     background: rgba(255, 255, 255, 0.3);
+}
+
+/* Fletxes de navegació de la galeria. */
+.rsv-img-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3rem;
+    height: 3rem;
+    border-radius: 999px;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+}
+
+.rsv-img-nav:hover {
+    background: rgba(255, 255, 255, 0.32);
+}
+
+.rsv-img-prev {
+    left: 1rem;
+}
+
+.rsv-img-next {
+    right: 1rem;
+}
+
+/* Punts indicadors de posició dins la galeria. */
+.rsv-img-dots {
+    position: absolute;
+    bottom: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.45rem;
+}
+
+.rsv-img-dots > button {
+    width: 0.6rem;
+    height: 0.6rem;
+    padding: 0;
+    border-radius: 999px;
+    border: none;
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        transform 0.15s ease;
+}
+
+.rsv-img-dots > button.is-active {
+    background: #fff;
+    transform: scale(1.25);
+}
+
+@media (max-width: 480px) {
+    .rsv-img-nav {
+        width: 2.4rem;
+        height: 2.4rem;
+        font-size: 1.6rem;
+    }
+
+    .rsv-img-prev {
+        left: 0.4rem;
+    }
+
+    .rsv-img-next {
+        right: 0.4rem;
+    }
 }
 
 .rsv-cancel-modal {

@@ -33,9 +33,9 @@ class SlotController extends Controller
         return Inertia::render('Reservar', [
             'availableSlots' => $available,
             'myReservations' => $myReservations,
-            'services' => Service::with('category:id,name,description,image_path', 'options:id,service_id,name,description,image_path')
+            'services' => Service::with('category:id,name,description,image_path,images', 'options:id,service_id,name,price,duration_minutes,description,image_path,images')
                 ->orderBy('name')
-                ->get(['id', 'name', 'price', 'duration_minutes', 'description', 'image_path', 'service_category_id']),
+                ->get(['id', 'name', 'price', 'duration_minutes', 'description', 'image_path', 'images', 'service_category_id']),
             'employees' => Employee::with('services:id', 'serviceOptions:id')
                 ->orderBy('name')
                 ->get(['id', 'name', 'image_path'])
@@ -56,14 +56,14 @@ class SlotController extends Controller
     {
         // Només les franges d'avui en endavant; les de dies passats no es mostren.
         $slots = Slot::query()
-            ->with('reservation.user:id,name,email', 'reservation.service:id,name')
+            ->with('reservation.user:id,name,email', 'reservation.service:id,name', 'reservation.employee:id,name')
             ->whereDate('starts_at', '>=', now()->toDateString())
             ->orderBy('starts_at')
             ->get();
 
         // Franges per al resum/estadístiques: finestra amb passat i futur.
         $statsSlots = Slot::query()
-            ->with('reservation.user:id,name,email', 'reservation.service:id,name')
+            ->with('reservation.user:id,name,email', 'reservation.service:id,name', 'reservation.employee:id,name')
             ->whereBetween('starts_at', [now()->subDays(61)->startOfDay(), now()->addDays(62)->endOfDay()])
             ->orderBy('starts_at')
             ->get();

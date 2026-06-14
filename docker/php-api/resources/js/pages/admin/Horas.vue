@@ -16,6 +16,7 @@ interface Slot {
         id: number;
         note: string | null;
         service: { id: number; name: string } | null;
+        employee: { id: number; name: string } | null;
         user: { id: number; name: string; email: string };
     } | null;
 }
@@ -226,6 +227,7 @@ function exportDetailCsv(): void {
             t('hor.csvTime'),
             t('hor.csvClient'),
             t('hor.csvEmail'),
+            t('hor.csvEmployee'),
             t('hor.csvService'),
             t('hor.csvNote'),
             t('hor.csvSlotNote'),
@@ -241,6 +243,7 @@ function exportDetailCsv(): void {
                 timeLabel(s.starts_at),
                 csvCell(r.user.name),
                 csvCell(r.user.email),
+                csvCell(r.employee?.name ?? ''),
                 csvCell(r.service?.name ?? ''),
                 csvCell(r.note ?? ''),
                 csvCell(s.notes ?? ''),
@@ -474,6 +477,7 @@ function remove(id: number): void {
                                 <span class="rsv-agenda-info">
                                     <template v-if="s.reservation">
                                         👤 {{ s.reservation.user.name }}
+                                        <template v-if="s.reservation.employee"> · 💈 {{ s.reservation.employee.name }}</template>
                                         <template v-if="s.reservation.service"> · 🔖 {{ s.reservation.service.name }}</template>
                                         <template v-if="s.reservation.note"> · 💬 {{ s.reservation.note }}</template>
                                     </template>
@@ -558,6 +562,7 @@ function remove(id: number): void {
                                 <span class="t">{{ dayHeading(s.starts_at) }} · {{ timeLabel(s.starts_at) }}</span>
                                 <span class="u">
                                     👤 {{ s.reservation!.user.name }}
+                                    <template v-if="s.reservation!.employee"> · 💈 {{ s.reservation!.employee.name }}</template>
                                     <template v-if="s.reservation!.service"> · 🔖 {{ s.reservation!.service.name }}</template>
                                 </span>
                             </li>
@@ -636,6 +641,7 @@ function remove(id: number): void {
                                 {{ slot.reservation ? t('hor.reserved') : t('hor.freeStatus') }}
                             </span>
                             <span v-if="slot.reservation" class="rsv-slot-user">👤 {{ slot.reservation.user.name }}</span>
+                            <span v-if="slot.reservation?.employee" class="rsv-slot-note">💈 {{ slot.reservation.employee.name }}</span>
                             <span v-if="slot.reservation?.service" class="rsv-slot-note">🔖 {{ slot.reservation.service.name }}</span>
                             <span v-if="slot.reservation?.note" class="rsv-slot-note">💬 {{ slot.reservation.note }}</span>
                             <span v-if="slot.notes" class="rsv-slot-note">📝 {{ slot.notes }}</span>

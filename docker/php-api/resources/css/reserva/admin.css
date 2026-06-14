@@ -1712,21 +1712,33 @@
 /* Graella d'hores del dia */
 #rsv-hours .rsv-slot-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
-    gap: 0.6rem;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: 0.75rem;
 }
 
 /* Targeta de franja */
 #rsv-hours .rsv-slot {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    align-items: flex-start;
+    text-align: left;
+    gap: 0.45rem;
     min-width: 0;
     background: var(--a-card);
     border: 1px solid var(--a-line);
     border-left: 3px solid var(--a-line);
-    border-radius: 0.85rem;
-    padding: 0.75rem 0.85rem;
+    border-radius: 1rem;
+    padding: 0.85rem 0.95rem;
+    box-shadow: 0 1px 2px rgba(20, 20, 50, 0.04);
+    transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        border-color 0.16s ease;
+}
+
+#rsv-hours .rsv-slot:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.8rem 1.7rem -0.85rem rgba(30, 27, 46, 0.4);
 }
 
 #rsv-hours .rsv-slot.is-free {
@@ -1735,33 +1747,39 @@
 
 #rsv-hours .rsv-slot.is-booked {
     border-left-color: var(--a-accent-2);
+    background: linear-gradient(180deg, rgba(13, 148, 136, 0.05), transparent 2.5rem);
 }
 
 #rsv-hours .rsv-slot-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    width: 100%;
 }
 
 #rsv-hours .rsv-slot-time {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: 1.3rem;
+    font-weight: 800;
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
     color: var(--a-ink);
 }
 
 /* Botó eliminar petit (×) */
 #rsv-hours .rsv-del-x {
-    width: 1.5rem;
-    height: 1.5rem;
+    flex: none;
+    width: 1.6rem;
+    height: 1.6rem;
     border: none;
     background: transparent;
     color: var(--a-muted);
     font-size: 1.15rem;
     line-height: 1;
-    border-radius: 0.4rem;
+    border-radius: 0.5rem;
     cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
 }
 
 #rsv-hours .rsv-del-x:hover {
@@ -1772,8 +1790,10 @@
 /* Insígnia d'estat */
 #rsv-hours .rsv-badge {
     align-self: flex-start;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
     padding: 0.15rem 0.6rem;
     border-radius: 999px;
 }
@@ -1788,17 +1808,25 @@
     color: #0f766e;
 }
 
-#rsv-hours .rsv-slot-user {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--a-ink);
+/* Detalls de la reserva: llista vertical alineada a l'esquerra */
+#rsv-hours .rsv-slot-user,
+#rsv-hours .rsv-slot-note {
+    width: 100%;
+    text-align: left;
     overflow-wrap: anywhere;
+    line-height: 1.35;
+}
+
+#rsv-hours .rsv-slot-user {
+    margin-top: 0.1rem;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--a-ink);
 }
 
 #rsv-hours .rsv-slot-note {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     color: var(--a-muted);
-    overflow-wrap: anywhere;
 }
 
 .dark #rsv-hours .rsv-badge.free {
@@ -2515,13 +2543,18 @@
 #rsv-serveis .rsv-srv-groups {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 3.5rem;
 }
 
 #rsv-serveis .rsv-srv-group {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.7rem;
+    border: 1px solid var(--a-line);
+    border-radius: 1.1rem;
+    padding: 1.35rem 1.4rem 1.5rem;
+    background: var(--a-card);
+    box-shadow: 0 1rem 2.5rem -1.1rem rgba(30, 27, 46, 0.35);
 }
 
 #rsv-serveis .rsv-srv-grouphead {
@@ -2529,7 +2562,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 0.6rem;
-    padding-bottom: 0.4rem;
+    padding-bottom: 0.6rem;
     border-bottom: 2px solid var(--a-line);
 }
 
@@ -2571,6 +2604,10 @@
 
 #rsv-serveis .rsv-srv-name {
     font-weight: 700;
+}
+
+#rsv-serveis .rsv-srv-spacer {
+    margin-left: auto;
 }
 
 #rsv-serveis .rsv-srv-price,
@@ -2623,11 +2660,12 @@
 #rsv-serveis .rsv-srv-options {
     flex: 1 1 100%;
     width: 100%;
-    margin-top: 0.4rem;
-    padding-left: 1rem;
-    border-left: 2px solid var(--a-line);
+    margin-top: 0.55rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid var(--a-line);
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 0.5rem;
 }
 
@@ -2635,8 +2673,11 @@
     display: flex;
     align-items: center;
     gap: 0.6rem;
+    width: 100%;
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     color: var(--a-muted);
 }
 
@@ -2650,6 +2691,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 0.6rem;
+    width: 100%;
     border: 1px solid var(--a-line);
     border-radius: 0.65rem;
     padding: 0.5rem 0.7rem;
@@ -2664,6 +2706,8 @@
 #rsv-serveis .rsv-srv-optinfo {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
     gap: 0.1rem;
     flex: 1;
     min-width: 8rem;
@@ -2671,6 +2715,15 @@
 
 #rsv-serveis .rsv-srv-optname {
     font-weight: 700;
+}
+
+#rsv-serveis .rsv-srv-optmeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--a-muted);
 }
 
 #rsv-serveis .rsv-srv-optdesc {
@@ -3157,4 +3210,139 @@
 #rsv-empleats .rsv-emp-editactions {
     display: flex;
     gap: 0.5rem;
+}
+
+/* =====================================================================
+   Editor de galeria d'imatges (ImagesField): categories, serveis i opcions
+   ===================================================================== */
+#rsv-serveis .rsv-imgs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: flex-start;
+    margin: 0.25rem 0 1rem;
+}
+
+/* Variant centrada: als formularis de crear (categoria i nou servei). */
+#rsv-serveis .rsv-imgs-centered {
+    justify-content: center;
+}
+
+/* Dins de l'edició al catàleg la galeria ocupa la seva pròpia fila, separada
+   de la resta de camps perquè es llegeixi millor. */
+#rsv-serveis .rsv-srv-editfields > .rsv-imgs,
+#rsv-serveis .rsv-srv-optfields > .rsv-imgs,
+#rsv-serveis .rsv-srv-grouphead > .rsv-imgs {
+    flex-basis: 100%;
+    width: 100%;
+    justify-content: center;
+    margin: 0.2rem 0 0;
+    padding-top: 0.7rem;
+    border-top: 1px dashed var(--a-line);
+}
+
+#rsv-serveis .rsv-imgs-item {
+    position: relative;
+    width: 5rem;
+    height: 5rem;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid var(--a-line);
+    background: var(--a-soft);
+}
+
+#rsv-serveis .rsv-imgs-item > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Distintiu de la imatge de portada (la primera). */
+#rsv-serveis .rsv-imgs-cover {
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 999px;
+    background: var(--a-accent);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+/* Barra d'accions a sota de cada imatge (reordenar i treure). */
+#rsv-serveis .rsv-imgs-actions {
+    position: absolute;
+    inset: auto 0 0 0;
+    display: flex;
+    justify-content: center;
+    gap: 0.15rem;
+    padding: 0.2rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+}
+
+#rsv-serveis .rsv-imgs-actions > button {
+    width: 1.4rem;
+    height: 1.4rem;
+    border: none;
+    border-radius: 0.45rem;
+    background: rgba(255, 255, 255, 0.85);
+    color: #1f2430;
+    font-size: 0.9rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+}
+
+#rsv-serveis .rsv-imgs-actions > button:hover:not(:disabled) {
+    background: #fff;
+}
+
+#rsv-serveis .rsv-imgs-actions > button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+#rsv-serveis .rsv-imgs-actions > .rsv-imgs-del {
+    background: rgba(220, 38, 38, 0.9);
+    color: #fff;
+}
+
+#rsv-serveis .rsv-imgs-actions > .rsv-imgs-del:hover {
+    background: #dc2626;
+}
+
+/* Botó d'afegir més imatges. */
+#rsv-serveis .rsv-imgs-add {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 0.75rem;
+    border: 1px dashed var(--a-line);
+    background: transparent;
+    color: var(--a-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3rem;
+    cursor: pointer;
+    transition:
+        border-color 0.15s ease,
+        color 0.15s ease;
+}
+
+#rsv-serveis .rsv-imgs-add:hover {
+    border-color: var(--a-accent);
+    color: var(--a-accent);
+}
+
+#rsv-serveis .rsv-imgs-add > input {
+    display: none;
 }
