@@ -3,7 +3,7 @@
 Totes les comandes s'executen des de la carpeta **`php-infraestructura/`** (on hi ha el `docker-compose.yml` i el `.env`):
 
 ```bash
-cd docker/php-infraestructura
+cd podman/php-infraestructura
 ```
 
 > Recordatori de serveis: `api` (Laravel + Vue/Inertia · 8000), `admin` (Vue · 8001), `db` (MySQL · 8002).
@@ -85,7 +85,7 @@ Aquestes afecten **tot Podman**, no només aquest projecte:
 ## Recepta ràpida del dia a dia
 
 ```bash
-cd docker/php-infraestructura
+cd podman/php-infraestructura
 podman compose up -d --build     # arrencar
 podman compose ps                # comprovar que estan amunt
 podman compose logs -f           # mirar què passa

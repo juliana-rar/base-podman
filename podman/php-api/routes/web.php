@@ -51,8 +51,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('posts/{post}', [PostController::class, 'update'])->name('posts.update');
         Route::delete('posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
 
-        // Catàleg d'etiquetes
-        Route::get('etiquetes', [TagController::class, 'index'])->name('etiquetes');
+        // Catàleg d'etiquetes (gestionat des de la pàgina de Posts)
         Route::post('tags', [TagController::class, 'store'])->name('tags.store');
         Route::put('tags/{tag}', [TagController::class, 'update'])->name('tags.update');
         Route::delete('tags/{tag}', [TagController::class, 'destroy'])->name('tags.destroy');

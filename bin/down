@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 # atura tot (manté volums)
 set -euo pipefail
-cd "$(dirname "$0")/../docker/php-infraestructura"
+cd "$(dirname "$0")/../podman/php-infraestructura"
 podman compose --env-file .env down "$@"

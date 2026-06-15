@@ -39,7 +39,7 @@ class PostController extends Controller
             'posts' => Post::with('author:id,name', 'tags:id,name,color')
                 ->latest()
                 ->get($this->columns),
-            'allTags' => Tag::orderBy('name')->get(['id', 'name', 'color']),
+            'allTags' => Tag::withCount('posts')->orderBy('name')->get(['id', 'name', 'color']),
         ]);
     }
 

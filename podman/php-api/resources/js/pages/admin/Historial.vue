@@ -33,24 +33,10 @@ function dayKeyOf(iso: string): string {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-function slotLabel(iso: string): string {
-    return new Date(iso).toLocaleString(localeTag(), {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
-
-function madeLabel(iso: string): string {
-    return new Date(iso).toLocaleString(localeTag(), {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
+// Format de data fix: 15/06/2026. 01:17
+function dateLabel(iso: string): string {
+    const d = new Date(iso);
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}. ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 const search = ref('');
@@ -75,7 +61,7 @@ const filtered = computed(() => {
             r.user?.name,
             r.user?.email,
             r.user?.phone,
-            r.slot ? slotLabel(r.slot.starts_at) : '',
+            dateLabel(r.created_at),
         ]
             .join(' ')
             .toLowerCase();
@@ -152,24 +138,22 @@ function goToPage(page: number): void {
                     <table>
                         <thead>
                             <tr>
-                                <th>{{ t('hist.colBooking') }}</th>
+                                <th class="rsv-when-cell">{{ t('hist.colMadeOn') }}</th>
                                 <th>{{ t('adm.user') }}</th>
                                 <th>{{ t('adm.email') }}</th>
                                 <th>{{ t('adm.phone') }}</th>
                                 <th>{{ t('adm.service') }}</th>
-                                <th>{{ t('hist.colReason') }}</th>
-                                <th>{{ t('hist.colMadeOn') }}</th>
+                                <th class="rsv-note-cell">{{ t('hist.colReason') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="r in paged" :key="r.id">
-                                <td>{{ r.slot ? slotLabel(r.slot.starts_at) : t('hist.slotDeleted') }}</td>
+                                <td class="rsv-when-cell">{{ dateLabel(r.created_at) }}</td>
                                 <td>{{ r.user?.name ?? t('adm.userDeleted') }}</td>
                                 <td>{{ r.user?.email ?? '—' }}</td>
                                 <td>{{ r.user?.phone ?? '—' }}</td>
                                 <td>{{ r.service?.name ?? '—' }}</td>
                                 <td class="rsv-note-cell">{{ r.note ?? '—' }}</td>
-                                <td>{{ madeLabel(r.created_at) }}</td>
                             </tr>
                         </tbody>
                     </table>

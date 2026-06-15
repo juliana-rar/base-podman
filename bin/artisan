@@ -2,7 +2,7 @@
 # php artisan dins d'admin o api
 # ús: ./bin/artisan api migrate   |   ./bin/artisan admin route:list
 set -euo pipefail
-cd "$(dirname "$0")/../docker/php-infraestructura"
+cd "$(dirname "$0")/../podman/php-infraestructura"
 target="${1:?cal indicar admin|api}"
 shift
 podman compose --env-file .env exec "$target" php artisan "$@"

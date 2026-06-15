@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Models\Reservation;
 use App\Models\Service;
 use App\Models\Slot;
+use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -152,5 +153,31 @@ class ReservaTest extends TestCase
         Post::factory()->create(['title' => 'Novetat important']);
 
         $this->get(route('home'))->assertOk();
+    }
+
+    public function test_admin_posts_page_lists_tag_catalog_with_post_counts(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $tag = Tag::create(['name' => 'Novetats', 'color' => '#ff0000']);
+        Post::factory()->create()->tags()->attach($tag);
+
+        $this->actingAs($admin)
+            ->get(route('admin.posts'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/Posts')
+                ->where('allTags.0.name', 'Novetats')
+                ->where('allTags.0.posts_count', 1)
+            );
+    }
+
+    public function test_admin_can_create_a_tag_from_posts(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->post(route('admin.tags.store'), ['name' => 'Oferta', 'color' => '#00ff00'])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('tags', ['name' => 'Oferta', 'color' => '#00ff00']);
     }
 }

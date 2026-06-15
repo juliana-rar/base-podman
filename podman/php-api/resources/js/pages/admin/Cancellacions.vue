@@ -34,24 +34,10 @@ function dayKeyOf(iso: string): string {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+// Format de data fix: 13/06/2026, 03:00
 function slotLabel(iso: string): string {
-    return new Date(iso).toLocaleString(localeTag(), {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
-
-function madeLabel(iso: string): string {
-    return new Date(iso).toLocaleString(localeTag(), {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
+    const d = new Date(iso);
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 const search = ref('');
@@ -152,8 +138,7 @@ function goToPage(page: number): void {
                                 <th>{{ t('adm.email') }}</th>
                                 <th>{{ t('adm.phone') }}</th>
                                 <th>{{ t('adm.service') }}</th>
-                                <th>{{ t('can.colReason') }}</th>
-                                <th>{{ t('can.colCancelledOn') }}</th>
+                                <th class="rsv-note-cell">{{ t('can.colReason') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -164,7 +149,6 @@ function goToPage(page: number): void {
                                 <td>{{ c.user?.phone ?? '—' }}</td>
                                 <td>{{ c.service_name ?? '—' }}</td>
                                 <td class="rsv-note-cell">{{ c.reason }}</td>
-                                <td>{{ madeLabel(c.created_at) }}</td>
                             </tr>
                         </tbody>
                     </table>

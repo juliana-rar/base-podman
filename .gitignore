@@ -17,15 +17,15 @@ vendor/
 # -------- Artefactes de build --------
 dist/
 dist-ssr/
-/docker/php-api/public/build/
-/docker/php-api/public/hot
-/docker/php-api/public/storage
+/podman/php-api/public/build/
+/podman/php-api/public/hot
+/podman/php-api/public/storage
 
 # -------- Laravel: emmagatzematge i cache --------
-/docker/php-api/storage/*.key
-/docker/php-api/storage/pail
-/docker/php-api/.phpunit.cache
-/docker/php-api/.phpunit.result.cache
+/podman/php-api/storage/*.key
+/podman/php-api/storage/pail
+/podman/php-api/.phpunit.cache
+/podman/php-api/.phpunit.result.cache
 
 # -------- Logs --------
 *.log

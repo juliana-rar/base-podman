@@ -7,22 +7,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
-use Inertia\Response;
 
 class TagController extends Controller
 {
-    /**
-     * Pàgina de gestió del catàleg d'etiquetes.
-     */
-    public function index(): Response
-    {
-        return Inertia::render('admin/Tags', [
-            'tags' => Tag::withCount('posts')
-                ->orderBy('name')
-                ->get(['id', 'name', 'color']),
-        ]);
-    }
-
     /**
      * Crea una etiqueta nova al catàleg (si no existeix ja).
      */

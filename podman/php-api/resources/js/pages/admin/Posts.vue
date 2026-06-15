@@ -12,6 +12,10 @@ interface Tag {
     color: string;
 }
 
+interface CatalogTag extends Tag {
+    posts_count: number;
+}
+
 interface Post {
     id: number;
     title: string;
@@ -28,7 +32,7 @@ interface Post {
 
 const props = defineProps<{
     posts: Post[];
-    allTags: Tag[];
+    allTags: CatalogTag[];
 }>();
 
 defineOptions({
@@ -263,6 +267,38 @@ function remove(id: number): void {
     }
     router.delete(`/admin/posts/${id}`, { preserveScroll: true });
 }
+
+// --- Gestió del catàleg d'etiquetes (crear, recolorar, renombrar, eliminar) ---
+const newTagName = ref('');
+const newTagColor = ref('#4f46e5');
+
+function createTag(): void {
+    const name = newTagName.value.trim();
+    if (!name) {
+        return;
+    }
+    router.post(
+        '/admin/tags',
+        { name, color: newTagColor.value },
+        { preserveScroll: true, onSuccess: () => (newTagName.value = '') },
+    );
+}
+
+function updateTagColor(id: number, event: Event): void {
+    const color = (event.target as HTMLInputElement).value;
+    router.put(`/admin/tags/${id}`, { color }, { preserveScroll: true });
+}
+
+function updateTagName(id: number, event: Event): void {
+    const name = (event.target as HTMLInputElement).value.trim();
+    if (name) {
+        router.put(`/admin/tags/${id}`, { name }, { preserveScroll: true });
+    }
+}
+
+function removeTag(id: number): void {
+    router.delete(`/admin/tags/${id}`, { preserveScroll: true });
+}
 </script>
 
 <template>
@@ -281,14 +317,6 @@ function remove(id: number): void {
             <input id="title" v-model="form.title" type="text" maxlength="255" required />
             <p v-if="form.errors.title" class="rsv-error">{{ form.errors.title }}</p>
 
-            <label for="body">{{ t('post.body') }}</label>
-            <textarea id="body" v-model="form.body" required></textarea>
-            <p v-if="form.errors.body" class="rsv-error">{{ form.errors.body }}</p>
-
-            <label for="body2">{{ t('post.body2') }}</label>
-            <textarea id="body2" v-model="form.body2"></textarea>
-            <p v-if="form.errors.body2" class="rsv-error">{{ form.errors.body2 }}</p>
-
             <label for="summary">{{ t('post.summary') }}</label>
             <textarea
                 id="summary"
@@ -299,6 +327,14 @@ function remove(id: number): void {
             ></textarea>
             <p class="rsv-tag">{{ form.summary.length }}/500</p>
             <p v-if="form.errors.summary" class="rsv-error">{{ form.errors.summary }}</p>
+
+            <label for="body">{{ t('post.body') }}</label>
+            <textarea id="body" v-model="form.body" required></textarea>
+            <p v-if="form.errors.body" class="rsv-error">{{ form.errors.body }}</p>
+
+            <label for="body2">{{ t('post.body2') }}</label>
+            <textarea id="body2" v-model="form.body2"></textarea>
+            <p v-if="form.errors.body2" class="rsv-error">{{ form.errors.body2 }}</p>
 
             <label>{{ t('post.tags') }}</label>
             <div v-if="tagOptions.length" class="rsv-tagpick">
@@ -419,6 +455,50 @@ function remove(id: number): void {
                 </button>
                 <button type="button" :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">›</button>
             </div>
+        </section>
+
+        <section class="rsv-tagmanage">
+            <div class="rsv-post-head">
+                <h2>{{ t('tag.catalog') }}</h2>
+            </div>
+            <p class="rsv-tag">{{ t('tag.subtitle') }}</p>
+
+            <div class="rsv-taginput">
+                <input v-model="newTagColor" type="color" class="rsv-color" aria-label="Color" />
+                <input
+                    v-model="newTagName"
+                    type="text"
+                    maxlength="30"
+                    :placeholder="t('tag.namePh')"
+                    @keydown.enter.prevent="createTag"
+                />
+                <button type="button" class="rsv-edit" @click="createTag">{{ t('tag.add') }}</button>
+            </div>
+
+            <div v-if="allTags.length" class="rsv-tagrows">
+                <div v-for="tag in allTags" :key="tag.id" class="rsv-tagrow">
+                    <input
+                        type="color"
+                        class="rsv-color"
+                        :value="tag.color"
+                        aria-label="Color"
+                        @change="updateTagColor(tag.id, $event)"
+                    />
+                    <input
+                        class="rsv-tagname"
+                        type="text"
+                        maxlength="30"
+                        :value="tag.name"
+                        :style="{ backgroundColor: tag.color + '22', color: tag.color }"
+                        :aria-label="t('tag.namePh')"
+                        @change="updateTagName(tag.id, $event)"
+                        @keydown.enter="($event.target as HTMLInputElement).blur()"
+                    />
+                    <span class="rsv-count">{{ tag.posts_count }} {{ tag.posts_count === 1 ? t('tag.postOne') : t('tag.postMany') }}</span>
+                    <button type="button" class="rsv-del" @click="removeTag(tag.id)">{{ t('tag.delete') }}</button>
+                </div>
+            </div>
+            <div v-else class="rsv-empty">{{ t('tag.empty') }}</div>
         </section>
     </div>
 </template>

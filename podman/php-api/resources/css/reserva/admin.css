@@ -1197,7 +1197,7 @@
     box-shadow: 0 0 0 3px var(--a-soft);
 }
 
-#rsv-posts .rsv-taginput > input {
+#rsv-posts .rsv-taginput > input[type='text'] {
     flex: 1;
     min-width: 8rem;
     border: none;
@@ -1208,7 +1208,7 @@
     font-size: 0.9rem;
 }
 
-#rsv-posts .rsv-taginput > input:focus {
+#rsv-posts .rsv-taginput > input[type='text']:focus {
     outline: none;
 }
 
@@ -1288,6 +1288,33 @@
 
 #rsv-posts .rsv-tagrow > .rsv-tagchip {
     margin-right: auto;
+}
+
+/* Nom editable de l'etiqueta dins del catàleg */
+#rsv-posts .rsv-tagname {
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-width: 6rem;
+    max-width: 14rem;
+}
+
+#rsv-posts .rsv-tagname:hover {
+    border-color: var(--a-line);
+}
+
+#rsv-posts .rsv-tagname:focus {
+    outline: none;
+    border-color: currentColor;
+}
+
+#rsv-posts .rsv-tagrow > .rsv-count {
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: var(--a-muted);
+    white-space: nowrap;
 }
 
 #rsv-hours .rsv-empty,
@@ -1440,6 +1467,12 @@
     flex-direction: column;
     gap: 1.5rem;
     color: var(--a-ink);
+
+    /* Trenca el max-width de 78rem del <main> per donar molt més espai al contingut
+       (el calendari es manté a 20rem; només creix la columna de la taula). */
+    --rsv-hist-wide: min(105rem, calc(100vw - 2rem));
+    width: var(--rsv-hist-wide);
+    margin-inline: calc(50% - var(--rsv-hist-wide) / 2);
 }
 
 .dark #rsv-history {
@@ -1624,9 +1657,15 @@
 }
 
 #rsv-history .rsv-note-cell {
-    max-width: 22rem;
+    min-width: 26rem;
+    max-width: 48rem;
     white-space: normal;
     overflow-wrap: anywhere;
+}
+
+/* La data ('Feta el') no s'ha de partir en dues línies */
+#rsv-history .rsv-when-cell {
+    white-space: nowrap;
 }
 
 #rsv-history .rsv-empty {
