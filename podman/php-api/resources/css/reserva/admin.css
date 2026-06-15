@@ -1497,7 +1497,7 @@
 }
 
 /* Disposició: calendari | taula */
-#rsv-history > :nth-child(2) {
+#rsv-history .rsv-history-grid {
     display: grid;
     grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
     gap: 1.5rem;
@@ -1505,13 +1505,13 @@
 }
 
 @media (max-width: 56rem) {
-    #rsv-history > :nth-child(2) {
+    #rsv-history .rsv-history-grid {
         grid-template-columns: 1fr;
     }
 }
 
 /* Panells */
-#rsv-history > :nth-child(2) > * {
+#rsv-history .rsv-history-grid > * {
     background: var(--a-card);
     border: 1px solid var(--a-line);
     border-radius: 1.25rem;
@@ -1666,6 +1666,258 @@
 /* La data ('Feta el') no s'ha de partir en dues línies */
 #rsv-history .rsv-when-cell {
     white-space: nowrap;
+}
+
+/* ---------- Facturació mensual ---------- */
+#rsv-history .rsv-billing {
+    background: var(--a-card);
+    border: 1px solid var(--a-line);
+    border-radius: 1.25rem;
+    padding: 1.25rem 1.5rem 1.5rem;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 16px rgba(16, 24, 40, 0.05);
+    text-align: left;
+}
+
+#rsv-history .rsv-billing-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+#rsv-history .rsv-billing-head h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+#rsv-history .rsv-billing-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+/* Selector de mes modern */
+#rsv-history .rsv-monthpick {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+#rsv-history .rsv-month-arrow {
+    width: 2.1rem;
+    height: 2.1rem;
+    flex: 0 0 auto;
+    border: 1px solid var(--a-line);
+    border-radius: 0.6rem;
+    background: var(--a-card);
+    color: var(--a-ink);
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+#rsv-history .rsv-month-arrow:hover {
+    border-color: var(--a-accent);
+    color: var(--a-accent);
+}
+
+#rsv-history .rsv-month-trigger {
+    min-width: 9.5rem;
+    border: 1px solid var(--a-line);
+    border-radius: 0.7rem;
+    background: var(--a-card);
+    color: var(--a-ink);
+    padding: 0.5rem 0.9rem;
+    font: inherit;
+    font-weight: 700;
+    text-transform: capitalize;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#rsv-history .rsv-month-trigger:hover,
+#rsv-history .rsv-month-trigger[aria-expanded='true'] {
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-soft);
+}
+
+#rsv-history .rsv-month-pop {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    right: 0;
+    z-index: 30;
+    width: 16rem;
+    background: var(--a-card);
+    border: 1px solid var(--a-line);
+    border-radius: 1rem;
+    box-shadow: 0 16px 40px -10px rgba(16, 24, 40, 0.35);
+    padding: 0.8rem;
+}
+
+#rsv-history .rsv-month-pop-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.65rem;
+    font-weight: 700;
+}
+
+#rsv-history .rsv-month-pop-head button {
+    width: 1.9rem;
+    height: 1.9rem;
+    border: 1px solid var(--a-line);
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--a-ink);
+    cursor: pointer;
+    line-height: 1;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+#rsv-history .rsv-month-pop-head button:hover {
+    border-color: var(--a-accent);
+    color: var(--a-accent);
+}
+
+#rsv-history .rsv-month-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+}
+
+#rsv-history .rsv-month-grid button {
+    border: 1px solid transparent;
+    border-radius: 0.6rem;
+    background: var(--a-soft);
+    color: var(--a-ink);
+    padding: 0.55rem 0;
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: capitalize;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#rsv-history .rsv-month-grid button:hover {
+    border-color: var(--a-accent);
+}
+
+#rsv-history .rsv-month-grid button.on {
+    background: var(--a-accent);
+    color: #fff;
+}
+
+#rsv-history .rsv-billing-export {
+    border: none;
+    border-radius: 0.7rem;
+    padding: 0.5rem 1.1rem;
+    background: var(--a-accent);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.15s ease, opacity 0.15s ease;
+}
+
+#rsv-history .rsv-billing-export:hover:not(:disabled) {
+    filter: brightness(1.08);
+}
+
+#rsv-history .rsv-billing-export:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#rsv-history .rsv-billing-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+}
+
+#rsv-history .rsv-bill-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1rem 1.15rem;
+    border: 1px solid var(--a-line);
+    border-radius: 1rem;
+    background: linear-gradient(180deg, rgba(127, 127, 160, 0.05), transparent);
+}
+
+#rsv-history .rsv-bill-stat.is-primary {
+    border-color: transparent;
+    background: var(--a-accent);
+    color: #fff;
+}
+
+#rsv-history .rsv-bill-num {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+#rsv-history .rsv-bill-label {
+    font-size: 0.8rem;
+    color: var(--a-muted);
+}
+
+#rsv-history .rsv-bill-stat.is-primary .rsv-bill-label {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+#rsv-history .rsv-bill-bars > h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0 0 0.75rem;
+}
+
+#rsv-history .rsv-bill-bar {
+    display: grid;
+    grid-template-columns: minmax(7rem, 12rem) 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+#rsv-history .rsv-bill-bar-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#rsv-history .rsv-bill-bar-track {
+    height: 0.6rem;
+    border-radius: 999px;
+    background: var(--a-soft);
+    overflow: hidden;
+}
+
+#rsv-history .rsv-bill-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--a-accent);
+}
+
+#rsv-history .rsv-bill-bar-val {
+    font-size: 0.82rem;
+    color: var(--a-muted);
+    white-space: nowrap;
+}
+
+#rsv-history .rsv-bill-empty {
+    color: var(--a-muted);
+    margin: 0;
 }
 
 #rsv-history .rsv-empty {

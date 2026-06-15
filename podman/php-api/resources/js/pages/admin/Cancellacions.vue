@@ -109,7 +109,7 @@ function goToPage(page: number): void {
             <p>{{ t('can.subtitle') }}</p>
         </header>
 
-        <section>
+        <section class="rsv-history-grid">
             <aside>
                 <h2>{{ t('adm.filterByDate') }}</h2>
                 <Calendar v-model="selectedDate" :highlight-dates="cancellationDayKeys" />

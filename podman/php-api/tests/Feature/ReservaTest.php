@@ -180,4 +180,19 @@ class ReservaTest extends TestCase
 
         $this->assertDatabaseHas('tags', ['name' => 'Oferta', 'color' => '#00ff00']);
     }
+
+    public function test_admin_history_exposes_service_price_for_billing(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $service = Service::create(['name' => 'Tall', 'price' => 25, 'duration_minutes' => 30]);
+        $slot = Slot::factory()->create();
+        Reservation::factory()->create(['slot_id' => $slot->id, 'service_id' => $service->id]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.reserves'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/Historial')
+                ->where('reservations.0.service.price', '25.00')
+            );
+    }
 }
