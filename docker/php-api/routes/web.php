@@ -30,7 +30,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Reserva d'hores (usuari normal)
     Route::get('reservar', [SlotController::class, 'index'])->name('reservar');
+    Route::get('reserves', [SlotController::class, 'reserves'])->name('reserves');
+
+    // Valoracions fetes pels usuaris (només admin).
+    Route::get('reserves-admin', [ReservationController::class, 'reviews'])->middleware('admin')->name('reserves-admin');
+    Route::post('reserves-admin/{reservation}/publica', [ReservationController::class, 'toggleReviewPublished'])
+        ->middleware('admin')->name('reserves-admin.toggle');
     Route::post('reservas', [ReservationController::class, 'store'])->name('reservas.store');
+    Route::post('reservas/{reservation}/valoracio', [ReservationController::class, 'review'])->name('reservas.review');
     Route::delete('reservas/{reservation}', [ReservationController::class, 'destroy'])->name('reservas.destroy');
 
     // Panell d'administració (només admin)

@@ -9,6 +9,7 @@ use App\Models\Service;
 use App\Models\Slot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ReservaTest extends TestCase
@@ -98,6 +99,21 @@ class ReservaTest extends TestCase
         $this->actingAs(User::factory()->create())
             ->get(route('admin.horas'))
             ->assertForbidden();
+    }
+
+    public function test_admin_horas_page_exposes_reserved_service_duration(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 45]);
+        $slot = Slot::factory()->create(['starts_at' => now()->addDay()]);
+        Reservation::factory()->create(['slot_id' => $slot->id, 'service_id' => $service->id]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.horas'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/Horas')
+                ->where('slots.0.reservation.service.duration_minutes', 45)
+            );
     }
 
     public function test_admin_can_create_a_slot(): void

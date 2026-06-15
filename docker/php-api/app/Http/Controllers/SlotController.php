@@ -50,20 +50,38 @@ class SlotController extends Controller
     }
 
     /**
+     * Pàgina d'usuari: historial de reserves ja fetes (franges ja passades).
+     */
+    public function reserves(Request $request): Response
+    {
+        $reservations = $request->user()
+            ->reservations()
+            ->whereHas('slot', fn ($query) => $query->where('starts_at', '<', now()))
+            ->with('slot:id,starts_at,notes', 'service:id,name')
+            ->get()
+            ->sortByDesc('slot.starts_at')
+            ->values();
+
+        return Inertia::render('Reserves', [
+            'reservations' => $reservations,
+        ]);
+    }
+
+    /**
      * Pàgina d'admin: gestió de totes les franges horàries.
      */
     public function manage(): Response
     {
         // Només les franges d'avui en endavant; les de dies passats no es mostren.
         $slots = Slot::query()
-            ->with('reservation.user:id,name,email', 'reservation.service:id,name', 'reservation.employee:id,name')
+            ->with('reservation.user:id,name,email', 'reservation.service:id,name,duration_minutes', 'reservation.serviceOption:id,duration_minutes', 'reservation.employee:id,name')
             ->whereDate('starts_at', '>=', now()->toDateString())
             ->orderBy('starts_at')
             ->get();
 
         // Franges per al resum/estadístiques: finestra amb passat i futur.
         $statsSlots = Slot::query()
-            ->with('reservation.user:id,name,email', 'reservation.service:id,name', 'reservation.employee:id,name')
+            ->with('reservation.user:id,name,email', 'reservation.service:id,name,duration_minutes', 'reservation.serviceOption:id,duration_minutes', 'reservation.employee:id,name')
             ->whereBetween('starts_at', [now()->subDays(61)->startOfDay(), now()->addDays(62)->endOfDay()])
             ->orderBy('starts_at')
             ->get();

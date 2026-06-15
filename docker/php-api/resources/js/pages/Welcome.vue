@@ -25,14 +25,176 @@ interface Slide {
     url: string;
 }
 
+interface ServiceOption {
+    id: number;
+    name: string;
+    price: string;
+    duration_minutes: number;
+    description: string | null;
+    url: string | null;
+    image_urls: string[];
+}
+
+interface Service {
+    id: number;
+    name: string;
+    price: string;
+    duration_minutes: number;
+    description: string | null;
+    url: string | null;
+    image_urls: string[];
+    category: { id: number; name: string; url: string | null; image_urls: string[] } | null;
+    options: ServiceOption[];
+}
+
+// Element seleccionable: un servei sense opcions, o una opció concreta d'un servei.
+interface Bookable {
+    key: string;
+    service: Service;
+    option: ServiceOption | null;
+}
+
+// Bloc d'un servei dins d'una categoria: el servei i els seus elements (opcions o ell mateix).
+interface ServiceBlock {
+    service: Service;
+    hasOptions: boolean;
+    items: Bookable[];
+}
+
+interface Review {
+    id: number;
+    rating: number;
+    review: string | null;
+    review_images: string[] | null;
+    review_image_urls: string[];
+    user: { id: number; name: string } | null;
+    service: { id: number; name: string } | null;
+    employee: { id: number; name: string } | null;
+    slot: { id: number; starts_at: string } | null;
+}
+
 const props = defineProps<{
     posts: Post[];
     slides: Slide[];
+    services: Service[];
+    reviews: Review[];
 }>();
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
-const { t } = useI18n();
+const { t, localeTag } = useI18n();
+
+// Data d'una opinió (dia de la cita).
+function reviewDate(iso: string): string {
+    return new Date(iso).toLocaleDateString(localeTag(), { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// Durada en minuts mostrada com a "1 h 30 min" / "45 min".
+function formatDuration(total: number): string {
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    if (h && m) return `${h} ${t('srv.hours')} ${m} ${t('srv.minutes')}`;
+    if (h) return `${h} ${t('srv.hours')}`;
+    return `${m} ${t('srv.minutes')}`;
+}
+
+// Bloc d'un servei: ell mateix (si no té opcions) o un element per opció.
+function blockFor(service: Service): ServiceBlock {
+    const hasOptions = service.options.length > 0;
+    const items: Bookable[] = hasOptions
+        ? service.options.map((o) => ({ key: `s${service.id}o${o.id}`, service, option: o }))
+        : [{ key: `s${service.id}`, service, option: null }];
+    return { service, hasOptions, items };
+}
+
+// Camps de presentació d'un element (l'opció mana sobre el servei).
+function itemName(item: Bookable): string {
+    return item.option ? item.option.name : item.service.name;
+}
+function itemDescription(item: Bookable): string | null {
+    return item.option ? item.option.description : item.service.description;
+}
+function itemUrl(item: Bookable): string | null {
+    return (item.option && item.option.url) || item.service.url;
+}
+function itemImages(item: Bookable): string[] {
+    if (item.option && item.option.image_urls.length) return item.option.image_urls;
+    return item.service.image_urls;
+}
+
+// Preu i durada d'un element: els de l'opció si en té (>0), si no els del servei.
+function itemMeta(item: Bookable): string {
+    const price = item.option && Number(item.option.price) > 0 ? item.option.price : item.service.price;
+    const duration = item.option && item.option.duration_minutes > 0 ? item.option.duration_minutes : item.service.duration_minutes;
+    const parts: string[] = [];
+    if (Number(price) > 0) parts.push(`${price} €`);
+    if (duration > 0) parts.push(formatDuration(duration));
+    return parts.join(' · ');
+}
+
+// Enllaç a /reservar amb el servei (i l'opció, si n'hi ha) preseleccionats.
+function itemHref(item: Bookable): string {
+    return item.option
+        ? `/reservar?service=${item.service.id}&option=${item.option.id}`
+        : `/reservar?service=${item.service.id}`;
+}
+
+// Serveis agrupats per categoria (igual que a /reservar); els sense categoria al final.
+const serviceGroups = computed(() => {
+    const byCat = new Map<number, { id: number | null; name: string; url: string | null; image_urls: string[]; services: ServiceBlock[] }>();
+    const uncategorized: ServiceBlock[] = [];
+    for (const s of props.services) {
+        const block = blockFor(s);
+        if (s.category) {
+            const group = byCat.get(s.category.id);
+            if (group) {
+                group.services.push(block);
+            } else {
+                byCat.set(s.category.id, {
+                    id: s.category.id,
+                    name: s.category.name,
+                    url: s.category.url,
+                    image_urls: s.category.image_urls,
+                    services: [block],
+                });
+            }
+        } else {
+            uncategorized.push(block);
+        }
+    }
+    const groups = [...byCat.values()].sort((a, b) => a.name.localeCompare(b.name));
+    if (uncategorized.length) {
+        groups.push({ id: null, name: t('srv.noCategory'), url: null, image_urls: [], services: uncategorized });
+    }
+    return groups;
+});
+
+// --- Cercador de serveis: desplaça el carrusel fins al servei trobat ---
+const serviceSearch = ref('');
+const highlightId = ref<number | null>(null);
+let highlightTimer: ReturnType<typeof setTimeout> | undefined;
+
+function findAndScroll(): void {
+    const query = serviceSearch.value.trim().toLowerCase();
+    if (!query) {
+        highlightId.value = null;
+        return;
+    }
+    const match = props.services.find(
+        (s) => s.name.toLowerCase().includes(query) || s.options.some((o) => o.name.toLowerCase().includes(query)),
+    );
+    if (!match) {
+        return;
+    }
+    const el = document.getElementById(`home-svc-${match.id}`);
+    if (!el) {
+        return;
+    }
+    el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    highlightId.value = match.id;
+    clearTimeout(highlightTimer);
+    highlightTimer = setTimeout(() => (highlightId.value = null), 1600);
+}
 
 // --- Carrusel d'imatges de presentació (4 visibles, bucle infinit, auto-play) ---
 const slidePerView = ref(4);
@@ -88,15 +250,24 @@ function restartAuto(): void {
     }
 }
 
-// --- Lightbox: veure la imatge en gran ---
-const lightbox = ref<string | null>(null);
+// --- Visor d'imatges en gran (slides i galeries de serveis/categories) ---
+const lightbox = ref<string[]>([]);
 
 function openLightbox(url: string): void {
-    lightbox.value = url;
+    lightbox.value = [url];
+}
+
+// Obre la galeria amb totes les imatges (com a /reservar). Accepta el cover de
+// reserva com a alternativa si encara no s'ha carregat la galeria.
+function openImages(urls: string[], fallback?: string | null): void {
+    const images = urls.length ? urls : fallback ? [fallback] : [];
+    if (images.length) {
+        lightbox.value = images;
+    }
 }
 
 function closeLightbox(): void {
-    lightbox.value = null;
+    lightbox.value = [];
 }
 
 function onKeydown(event: KeyboardEvent): void {
@@ -111,7 +282,7 @@ const perView = ref(3);
 
 function updatePerView(): void {
     const w = window.innerWidth;
-    perView.value = w < 540 ? 1 : w < 820 ? 2 : 3;
+    perView.value = w < 540 ? 1 : w < 820 ? 2 : w < 1100 ? 3 : 4;
     slidePerView.value = w < 540 ? 1 : w < 820 ? 2 : w < 1100 ? 3 : 4;
 }
 
@@ -169,6 +340,7 @@ onBeforeUnmount(() => {
     window.removeEventListener('resize', updatePerView);
     window.removeEventListener('keydown', onKeydown);
     clearInterval(slideTimer);
+    clearTimeout(highlightTimer);
 });
 </script>
 
@@ -205,6 +377,79 @@ onBeforeUnmount(() => {
             </div>
         </section>
 
+        <section class="rsv-services" aria-labelledby="rsv-services-title">
+            <h2 id="rsv-services-title">{{ t('welcome.services') }}</h2>
+            <div v-if="serviceGroups.length" class="rsv-svc-search">
+                <span class="rsv-svc-search-icon">🔍</span>
+                <input
+                    v-model="serviceSearch"
+                    type="search"
+                    :placeholder="t('welcome.searchService')"
+                    @input="findAndScroll"
+                    @keydown.enter.prevent="findAndScroll"
+                />
+            </div>
+            <div v-if="serviceGroups.length" class="rsv-service-scroller">
+                <div class="rsv-service-groups">
+                    <div v-for="group in serviceGroups" :key="group.id ?? 'none'" class="rsv-service-group">
+                        <span v-if="group.name" class="rsv-service-cat">
+                            <img
+                                v-if="group.url"
+                                :src="group.url"
+                                alt=""
+                                class="rsv-service-cat-img"
+                                :title="t('res.zoomImg')"
+                                @click="openImages(group.image_urls, group.url)"
+                            />
+                            {{ group.name }}
+                        </span>
+                        <div
+                            v-for="block in group.services"
+                            :id="`home-svc-${block.service.id}`"
+                            :key="block.service.id"
+                            class="rsv-service-svcblock"
+                            :class="{ 'is-found': highlightId === block.service.id }"
+                        >
+                            <span v-if="block.hasOptions" class="rsv-service-svcname">
+                                <img
+                                    v-if="block.service.url"
+                                    :src="block.service.url"
+                                    alt=""
+                                    class="rsv-service-svcimg"
+                                    :title="t('res.zoomImg')"
+                                    @click="openImages(block.service.image_urls, block.service.url)"
+                                />
+                                {{ block.service.name }}
+                            </span>
+                            <div class="rsv-service-chips">
+                                <Link
+                                    v-for="item in block.items"
+                                    :key="item.key"
+                                    :href="itemHref(item)"
+                                    :class="{ 'has-img': itemUrl(item) }"
+                                >
+                                    <img
+                                        v-if="itemUrl(item)"
+                                        :src="itemUrl(item) ?? undefined"
+                                        alt=""
+                                        class="rsv-service-thumb"
+                                        :title="t('res.zoomImg')"
+                                        @click.prevent.stop="openImages(itemImages(item), itemUrl(item))"
+                                    />
+                                    <span class="rsv-service-info">
+                                        <span class="rsv-service-name">{{ itemName(item) }}</span>
+                                        <small v-if="itemMeta(item)" class="rsv-service-meta">{{ itemMeta(item) }}</small>
+                                        <small v-if="itemDescription(item)" class="rsv-service-desc">{{ itemDescription(item) }}</small>
+                                    </span>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div v-else class="rsv-empty">{{ t('welcome.servicesEmpty') }}</div>
+        </section>
+
         <section>
             <h2>{{ t('welcome.novetats') }}</h2>
             <div v-if="posts.length" class="rsv-carousel" :style="{ '--per': perView }">
@@ -236,13 +481,51 @@ onBeforeUnmount(() => {
             <div v-else class="rsv-empty">{{ t('welcome.empty') }}</div>
         </section>
 
+        <section v-if="reviews.length" class="rsv-reviews" aria-labelledby="rsv-reviews-title">
+            <h2 id="rsv-reviews-title">{{ t('welcome.reviews') }}</h2>
+            <div class="rsv-rev-grid">
+                <div v-for="review in reviews" :key="review.id" class="rsv-rev-card">
+                    <div class="rsv-rev-stars" :aria-label="`${review.rating}/5`">
+                        <span v-for="n in 5" :key="n" :class="{ on: n <= review.rating }">★</span>
+                    </div>
+
+                    <span class="rsv-rev-author">{{ review.user?.name }}</span>
+
+                    <div class="rsv-rev-fields">
+                        <span v-if="review.service">
+                            <span class="rsv-rev-lbl">{{ t('rev.byService') }}:</span> {{ review.service.name }}
+                        </span>
+                        <span v-if="review.employee">
+                            <span class="rsv-rev-lbl">{{ t('rev.byEmployee') }}:</span> {{ review.employee.name }}
+                        </span>
+                        <span v-if="review.slot" class="rsv-rev-date">📅 {{ reviewDate(review.slot.starts_at) }}</span>
+                    </div>
+
+                    <p v-if="review.review" class="rsv-rev-text">{{ review.review }}</p>
+
+                    <div v-if="review.review_image_urls.length" class="rsv-rev-imgs">
+                        <img
+                            v-for="(url, i) in review.review_image_urls"
+                            :key="i"
+                            :src="url"
+                            alt=""
+                            :title="t('res.zoomImg')"
+                            @click="openImages(review.review_image_urls)"
+                        />
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <AppFooter />
 
         <Teleport to="body">
             <transition name="rsv-lb">
-                <div v-if="lightbox" class="rsv-lightbox" @click="closeLightbox">
+                <div v-if="lightbox.length" class="rsv-lightbox" @click="closeLightbox">
                     <button type="button" class="rsv-lb-close" aria-label="Tancar" @click="closeLightbox">×</button>
-                    <img :src="lightbox" alt="" @click.stop />
+                    <div class="rsv-lb-gallery" :class="{ 'is-single': lightbox.length === 1 }" @click.stop>
+                        <img v-for="(url, i) in lightbox" :key="i" :src="url" alt="" />
+                    </div>
                 </div>
             </transition>
         </Teleport>

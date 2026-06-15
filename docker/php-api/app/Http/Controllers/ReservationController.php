@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ManagesImages;
 use App\Models\Cancellation;
 use App\Models\Reservation;
 use App\Models\Slot;
@@ -14,6 +15,8 @@ use Inertia\Response;
 
 class ReservationController extends Controller
 {
+    use ManagesImages;
+
     /**
      * Historial de totes les reserves fetes (només admin).
      */
@@ -62,6 +65,76 @@ class ReservationController extends Controller
         ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Reserva feta!']);
+
+        return back();
+    }
+
+    /**
+     * Llistat de valoracions fetes pels usuaris (només admin).
+     */
+    public function reviews(): Response
+    {
+        return Inertia::render('admin/ReservesAdmin', [
+            'reviews' => Reservation::query()
+                ->whereNotNull('rating')
+                ->with(['user:id,name,email', 'slot:id,starts_at', 'service:id,name'])
+                ->orderByDesc('updated_at')
+                ->paginate(10, ['id', 'user_id', 'slot_id', 'service_id', 'rating', 'review', 'review_images', 'review_published', 'note', 'updated_at'])
+                ->withQueryString(),
+        ]);
+    }
+
+    /**
+     * L'admin decideix si una valoració es mostra (o no) a la pàgina d'inici.
+     */
+    public function toggleReviewPublished(Reservation $reservation): RedirectResponse
+    {
+        if ($reservation->rating === null) {
+            abort(404);
+        }
+
+        $reservation->review_published = ! $reservation->review_published;
+        $reservation->save();
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => $reservation->review_published ? 'Valoració publicada a l\'inici.' : 'Valoració retirada de l\'inici.',
+        ]);
+
+        return back();
+    }
+
+    /**
+     * L'usuari valora una reserva ja feta: puntuació, comentari i imatges.
+     */
+    public function review(Request $request, Reservation $reservation): RedirectResponse
+    {
+        if ($reservation->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $reservation->loadMissing('slot:id,starts_at');
+
+        if (! $reservation->slot || $reservation->slot->starts_at->isFuture()) {
+            throw ValidationException::withMessages([
+                'rating' => 'Només es poden valorar les reserves ja fetes.',
+            ]);
+        }
+
+        $validated = $request->validate([
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'review' => ['nullable', 'string', 'max:2000'],
+            ...$this->imageRules(),
+        ]);
+
+        $paths = $this->syncImages($request, 'reviews', $reservation->review_images ?? []);
+
+        $reservation->rating = $validated['rating'];
+        $reservation->review = $validated['review'] ?? null;
+        $reservation->review_images = $paths ?: null;
+        $reservation->save();
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Valoració desada.']);
 
         return back();
     }

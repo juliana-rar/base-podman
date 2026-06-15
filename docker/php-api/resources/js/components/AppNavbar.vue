@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import {
+    CalendarCheck,
     CalendarClock,
     ChevronDown,
     Clock,
@@ -39,8 +40,9 @@ const items = computed<NavItem[]>(() => {
         { title: 'nav.reservar', href: '/reservar', icon: CalendarClock },
     ];
 
-    // Els usuaris amb sessió tenen accés al seu perfil.
+    // Els usuaris amb sessió poden veure les seves reserves fetes i el seu perfil.
     if (user.value) {
+        base.push({ title: 'nav.reserves', href: '/reserves', icon: CalendarCheck });
         base.push({ title: 'nav.perfil', href: '/settings/profile', icon: User });
     }
 

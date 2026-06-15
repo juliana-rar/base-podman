@@ -6,6 +6,7 @@ use Database\Factories\ReservationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Reservation extends Model
 {
@@ -24,7 +25,47 @@ class Reservation extends Model
         'service_option_id',
         'employee_id',
         'note',
+        'rating',
+        'review',
+        'review_images',
+        'review_published',
     ];
+
+    /**
+     * Conversió de tipus dels atributs.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'rating' => 'integer',
+            'review_images' => 'array',
+            'review_published' => 'boolean',
+        ];
+    }
+
+    /**
+     * Atributs calculats afegits a la serialització.
+     *
+     * @var list<string>
+     */
+    protected $appends = [
+        'review_image_urls',
+    ];
+
+    /**
+     * URLs públiques de les imatges de la valoració, en ordre.
+     *
+     * @return list<string>
+     */
+    public function getReviewImageUrlsAttribute(): array
+    {
+        return collect($this->review_images ?? [])
+            ->map(fn (string $path): string => Storage::url($path))
+            ->values()
+            ->all();
+    }
 
     /**
      * Franja reservada.

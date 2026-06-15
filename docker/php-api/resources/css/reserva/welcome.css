@@ -195,22 +195,24 @@
 }
 
 /* --- 3r: secció de posts --- */
-#rsv-welcome > :nth-child(3) {
-    max-width: 72rem;
+/* Més ample que la resta perquè hi càpiguen 4 targetes amb la mateixa mida
+   que abans en tenien 3 (overhead fix de 14.5rem: padding + fletxes + gaps). */
+#rsv-welcome > :nth-child(4) {
+    max-width: 91.2rem;
     width: 100%;
     margin: 0 auto;
     padding: 2rem clamp(1rem, 5vw, 4rem) 4rem;
     flex: 1;
 }
 
-#rsv-welcome > :nth-child(3) > :nth-child(1) {
+#rsv-welcome > :nth-child(4) > :nth-child(1) {
     font-size: 1.5rem;
     font-weight: 700;
     margin: 0 0 1.5rem;
 }
 
-/* Carrusel de posts (3 visibles, bucle infinit) */
-#rsv-welcome > :nth-child(3) > :nth-child(2) {
+/* Carrusel de posts (4 visibles, bucle infinit) */
+#rsv-welcome > :nth-child(4) > :nth-child(2) {
     display: flex;
     align-items: stretch;
     gap: 0.5rem;
@@ -352,7 +354,7 @@
 }
 
 /* Estat buit (quan no hi ha posts) */
-#rsv-welcome > :nth-child(3) > .rsv-empty {
+#rsv-welcome > :nth-child(4) > .rsv-empty {
     text-align: center;
     color: var(--w-muted);
     padding: 3rem 1rem;
@@ -370,19 +372,37 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: clamp(1rem, 3vw, 2.5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     background: rgba(10, 12, 20, 0.88);
     backdrop-filter: blur(4px);
     cursor: zoom-out;
 }
 
-.rsv-lightbox > img {
-    max-width: 92vw;
-    max-height: 90vh;
+/* Galeria: totes les imatges alhora (com a /reservar). */
+.rsv-lb-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    cursor: default;
+}
+
+.rsv-lb-gallery > img {
+    flex: 0 1 auto;
+    max-width: min(90vw, 440px);
+    max-height: 82vh;
     object-fit: contain;
     border-radius: 0.85rem;
     box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.5);
-    cursor: default;
+}
+
+.rsv-lb-gallery.is-single > img {
+    max-width: 92vw;
+    max-height: 90vh;
 }
 
 .rsv-lb-close {
@@ -413,4 +433,372 @@
 .rsv-lb-enter-from,
 .rsv-lb-leave-to {
     opacity: 0;
+}
+
+/* =====================================================================
+   Serveis a la presentació: mateix aspecte que el selector de /reservar
+   (targetes de categoria amb "chips" que porten a /reservar?service=ID)
+   ===================================================================== */
+/* Secció molt més ampla que la resta: trenca el límit i ocupa gairebé tot el viewport. */
+#rsv-welcome .rsv-services {
+    width: min(110rem, 100vw - 2rem);
+    max-width: none;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    padding: 0 clamp(1rem, 4vw, 3rem) 4rem;
+}
+
+#rsv-welcome .rsv-services > h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+}
+
+#rsv-welcome .rsv-service-scroller {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+#rsv-welcome .rsv-service-groups {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 1rem;
+    width: fit-content;
+    margin-inline: auto;
+}
+
+#rsv-welcome .rsv-service-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    flex: 0 0 19rem;
+    border: 1px solid rgba(127, 127, 160, 0.16);
+    border-radius: 1rem;
+    padding: 1rem;
+    background: var(--w-card);
+    box-shadow: 0 0.5rem 1.5rem -0.75rem rgba(30, 27, 46, 0.2);
+    text-align: left;
+}
+
+#rsv-welcome .rsv-service-cat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--w-accent);
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid rgba(127, 127, 160, 0.16);
+}
+
+/* Bloc d'un servei dins la categoria: nom del servei + les seves opcions. */
+#rsv-welcome .rsv-service-svcblock {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+#rsv-welcome .rsv-service-svcname {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--w-ink);
+}
+
+#rsv-welcome .rsv-service-svcimg {
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 0.4rem;
+    object-fit: cover;
+    flex: none;
+    cursor: zoom-in;
+    transition: transform 0.15s ease;
+}
+
+#rsv-welcome .rsv-service-svcimg:hover {
+    transform: scale(1.12);
+}
+
+/* Les opcions queden agrupades visualment sota el nom del servei. */
+#rsv-welcome .rsv-service-svcname + .rsv-service-chips {
+    padding-left: 0.75rem;
+    border-left: 2px solid rgba(127, 127, 160, 0.16);
+}
+
+#rsv-welcome .rsv-service-cat-img {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.5rem;
+    object-fit: cover;
+    flex: none;
+    cursor: zoom-in;
+    transition: transform 0.15s ease;
+}
+
+#rsv-welcome .rsv-service-cat-img:hover {
+    transform: scale(1.12);
+}
+
+#rsv-welcome .rsv-service-chips {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+#rsv-welcome .rsv-service-chips > a {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.55rem;
+    width: 100%;
+    border: 1px solid rgba(127, 127, 160, 0.16);
+    background: transparent;
+    color: var(--w-ink);
+    border-radius: 0.7rem;
+    padding: 0.4rem 1rem 0.4rem 0.4rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease,
+        transform 0.15s ease;
+}
+
+#rsv-welcome .rsv-service-chips > a:hover {
+    border-color: var(--w-accent);
+    background: rgba(79, 70, 229, 0.06);
+    transform: translateY(-1px);
+}
+
+.dark #rsv-welcome .rsv-service-chips > a:hover {
+    background: rgba(129, 140, 248, 0.12);
+}
+
+#rsv-welcome .rsv-service-thumb {
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 0.55rem;
+    object-fit: cover;
+    flex: none;
+    cursor: zoom-in;
+    transition: transform 0.15s ease;
+}
+
+#rsv-welcome .rsv-service-thumb:hover {
+    transform: scale(1.12);
+}
+
+#rsv-welcome .rsv-service-info {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.05rem;
+    line-height: 1.25;
+}
+
+#rsv-welcome .rsv-service-name {
+    font-weight: 700;
+}
+
+#rsv-welcome .rsv-service-meta {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--w-muted);
+}
+
+#rsv-welcome .rsv-service-desc {
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: var(--w-muted);
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Cercador de serveis a la presentació */
+#rsv-welcome .rsv-svc-search {
+    position: relative;
+    max-width: 26rem;
+    margin: 0 auto 1.25rem;
+}
+
+#rsv-welcome .rsv-svc-search-icon {
+    position: absolute;
+    left: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.95rem;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+#rsv-welcome .rsv-svc-search > input {
+    width: 100%;
+    border: 1px solid rgba(127, 127, 160, 0.22);
+    background: var(--w-card);
+    color: var(--w-ink);
+    border-radius: 999px;
+    padding: 0.6rem 1rem 0.6rem 2.4rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+}
+
+#rsv-welcome .rsv-svc-search > input:focus {
+    outline: none;
+    border-color: var(--w-accent);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+/* Ressaltat temporal del servei trobat */
+#rsv-welcome .rsv-service-svcblock.is-found {
+    border-radius: 0.6rem;
+    animation: rsv-svc-found 1.6s ease;
+}
+
+@keyframes rsv-svc-found {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 transparent;
+        background: transparent;
+    }
+    20%,
+    60% {
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.35);
+        background: rgba(79, 70, 229, 0.08);
+    }
+}
+
+/* =====================================================================
+   Opinions dels clients (valoracions publicades per l'admin)
+   ===================================================================== */
+/* Secció molt més ampla: trenca el límit i ocupa gairebé tot el viewport. */
+#rsv-welcome .rsv-reviews {
+    width: min(110rem, 100vw - 2rem);
+    max-width: none;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    padding: 0 clamp(1rem, 4vw, 3rem) 4rem;
+}
+
+#rsv-welcome .rsv-reviews > h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+}
+
+/* Una sola fila amb desplaçament lateral si hi ha moltes opinions. */
+#rsv-welcome .rsv-rev-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.75rem;
+}
+
+#rsv-welcome .rsv-rev-card {
+    flex: 0 0 19rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    text-align: left;
+    background: var(--w-card);
+    border: 1px solid rgba(127, 127, 160, 0.16);
+    border-radius: 1.1rem;
+    padding: 1.25rem 1.35rem;
+    box-shadow: 0 0.5rem 1.5rem -0.75rem rgba(30, 27, 46, 0.22);
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+#rsv-welcome .rsv-rev-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 1rem 2.5rem -0.75rem rgba(17, 24, 39, 0.4);
+}
+
+#rsv-welcome .rsv-rev-stars {
+    display: inline-flex;
+    gap: 0.1rem;
+    font-size: 1.15rem;
+    line-height: 1;
+    color: #d8d8e0;
+}
+
+#rsv-welcome .rsv-rev-stars > span.on {
+    color: #f5b301;
+}
+
+#rsv-welcome .rsv-rev-text {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--w-ink);
+}
+
+#rsv-welcome .rsv-rev-imgs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+#rsv-welcome .rsv-rev-imgs > img {
+    width: 3.5rem;
+    height: 3.5rem;
+    object-fit: cover;
+    border-radius: 0.55rem;
+    border: 1px solid rgba(127, 127, 160, 0.16);
+    cursor: zoom-in;
+    transition: transform 0.15s ease;
+}
+
+#rsv-welcome .rsv-rev-imgs > img:hover {
+    transform: scale(1.06);
+}
+
+#rsv-welcome .rsv-rev-author {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--w-ink);
+    letter-spacing: -0.01em;
+}
+
+#rsv-welcome .rsv-rev-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.85rem;
+    color: var(--w-muted);
+}
+
+#rsv-welcome .rsv-rev-lbl {
+    font-weight: 700;
+    color: var(--w-ink);
+}
+
+#rsv-welcome .rsv-rev-date {
+    font-size: 0.8rem;
+    opacity: 0.85;
+}
+
+/* El comentari, destacat amb una vora d'accent a l'esquerra. */
+#rsv-welcome .rsv-rev-text {
+    margin: 0.2rem 0 0;
+    padding-left: 0.7rem;
+    border-left: 3px solid var(--w-accent);
+    font-style: italic;
+}
+
+#rsv-welcome .rsv-rev-imgs {
+    margin-top: auto;
+    padding-top: 0.2rem;
 }

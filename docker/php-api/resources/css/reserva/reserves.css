@@ -1,0 +1,460 @@
+/*
+ * Pàgina d'historial de reserves ja fetes (usuari). Dins del NavbarLayout.
+ * Etiqueta base: #rsv-reserves.
+ */
+
+#rsv-reserves {
+    --r-card: #ffffff;
+    --r-ink: #1f2430;
+    --r-muted: #6b7280;
+    --r-line: #e5e7eb;
+
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    color: var(--r-ink);
+}
+
+.dark #rsv-reserves {
+    --r-card: #14171f;
+    --r-ink: #e7e9ee;
+    --r-muted: #9aa0ac;
+    --r-line: rgba(255, 255, 255, 0.08);
+}
+
+#rsv-reserves > header > h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.25rem;
+}
+
+#rsv-reserves > header > p {
+    color: var(--r-muted);
+    margin: 0;
+}
+
+#rsv-reserves .rsv-rsv-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+#rsv-reserves .rsv-rsv-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    text-align: left;
+    background: var(--r-card);
+    border: 1px solid var(--r-line);
+    border-left: 4px solid var(--r-muted);
+    border-radius: 0.9rem;
+    padding: 0.85rem 1.1rem;
+}
+
+#rsv-reserves .rsv-rsv-date {
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+#rsv-reserves .rsv-rsv-note {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--r-muted);
+    overflow-wrap: anywhere;
+}
+
+#rsv-reserves .rsv-rsv-empty {
+    color: var(--r-muted);
+}
+
+/* --- Valoració: estrelles, comentari i imatges --- */
+#rsv-reserves .rsv-rsv-review {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px dashed var(--r-line);
+}
+
+#rsv-reserves .rsv-stars,
+#rsv-reserves .rsv-stars-pick {
+    display: inline-flex;
+    gap: 0.15rem;
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+#rsv-reserves .rsv-stars > span {
+    color: var(--r-line);
+}
+
+#rsv-reserves .rsv-stars > span.on {
+    color: #f5b301;
+}
+
+#rsv-reserves .rsv-stars-pick > button {
+    border: none;
+    background: transparent;
+    padding: 0;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    color: #d8d8e0;
+    transition: transform 0.12s ease, color 0.12s ease;
+}
+
+#rsv-reserves .rsv-stars-pick > button.on {
+    color: #f5b301;
+}
+
+#rsv-reserves .rsv-stars-pick > button:hover {
+    transform: scale(1.15);
+}
+
+#rsv-reserves .rsv-rsv-reviewtext {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--r-ink);
+    white-space: pre-line;
+}
+
+#rsv-reserves .rsv-rsv-thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+#rsv-reserves .rsv-rsv-thumbs > img {
+    width: 4rem;
+    height: 4rem;
+    object-fit: cover;
+    border-radius: 0.6rem;
+    border: 1px solid var(--r-line);
+    cursor: zoom-in;
+    transition: transform 0.15s ease;
+}
+
+#rsv-reserves .rsv-rsv-thumbs > img:hover {
+    transform: scale(1.05);
+}
+
+/* --- Formulari de valoració --- */
+#rsv-reserves .rsv-rsv-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px dashed var(--r-line);
+}
+
+#rsv-reserves .rsv-rsv-textarea {
+    width: 100%;
+    resize: vertical;
+    border: 1px solid var(--r-line);
+    background: transparent;
+    color: inherit;
+    border-radius: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+#rsv-reserves .rsv-rsv-textarea:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+#rsv-reserves .rsv-rsv-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#rsv-reserves .rsv-rsv-btn {
+    border: 1px solid var(--r-line);
+    background: transparent;
+    color: inherit;
+    border-radius: 0.7rem;
+    padding: 0.45rem 0.95rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#rsv-reserves .rsv-rsv-btn:hover {
+    border-color: #4f46e5;
+}
+
+#rsv-reserves .rsv-rsv-btn.primary {
+    background: #4f46e5;
+    border-color: #4f46e5;
+    color: #fff;
+}
+
+#rsv-reserves .rsv-rsv-btn.primary:hover:not(:disabled) {
+    filter: brightness(1.08);
+}
+
+#rsv-reserves .rsv-rsv-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#rsv-reserves .rsv-rsv-err {
+    margin: 0;
+    color: #dc2626;
+    font-size: 0.82rem;
+}
+
+/* --- Visor d'imatges ampliades --- */
+.rsv-img-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1rem, 3vw, 2.5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: rgba(10, 12, 20, 0.82);
+    backdrop-filter: blur(4px);
+}
+
+.rsv-img-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+}
+
+.rsv-img-gallery > .rsv-img-zoom {
+    flex: 0 1 auto;
+    max-width: min(90vw, 440px);
+    max-height: 82vh;
+    object-fit: contain;
+    border-radius: 0.85rem;
+    box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.5);
+}
+
+.rsv-img-gallery.is-single > .rsv-img-zoom {
+    max-width: 92vw;
+    max-height: 90vh;
+}
+
+.rsv-img-close {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+    border: none;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.rsv-img-close:hover {
+    background: rgba(255, 255, 255, 0.32);
+}
+
+.rsv-fade-enter-active,
+.rsv-fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.rsv-fade-enter-from,
+.rsv-fade-leave-to {
+    opacity: 0;
+}
+
+/* --- Editor de galeria d'imatges (ImagesField) dins la valoració --- */
+#rsv-reserves .rsv-imgs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+
+#rsv-reserves .rsv-imgs-item {
+    position: relative;
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 0.7rem;
+    overflow: hidden;
+    border: 1px solid var(--r-line);
+    background: rgba(127, 127, 160, 0.08);
+}
+
+#rsv-reserves .rsv-imgs-item > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+#rsv-reserves .rsv-imgs-cover {
+    position: absolute;
+    top: 0.2rem;
+    left: 0.2rem;
+    padding: 0.05rem 0.35rem;
+    border-radius: 999px;
+    background: #4f46e5;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+}
+
+#rsv-reserves .rsv-imgs-actions {
+    position: absolute;
+    inset: auto 0 0 0;
+    display: flex;
+    justify-content: center;
+    gap: 0.15rem;
+    padding: 0.18rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+}
+
+#rsv-reserves .rsv-imgs-actions > button {
+    width: 1.3rem;
+    height: 1.3rem;
+    border: none;
+    border-radius: 0.4rem;
+    background: rgba(255, 255, 255, 0.85);
+    color: #1f2430;
+    font-size: 0.85rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+}
+
+#rsv-reserves .rsv-imgs-actions > button:hover:not(:disabled) {
+    background: #fff;
+}
+
+#rsv-reserves .rsv-imgs-actions > button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+#rsv-reserves .rsv-imgs-actions > .rsv-imgs-del {
+    background: rgba(220, 38, 38, 0.9);
+    color: #fff;
+}
+
+#rsv-reserves .rsv-imgs-add {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 0.7rem;
+    border: 1px dashed var(--r-line);
+    background: transparent;
+    color: var(--r-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.3rem;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+#rsv-reserves .rsv-imgs-add:hover {
+    border-color: #4f46e5;
+    color: #4f46e5;
+}
+
+#rsv-reserves .rsv-imgs-add > input {
+    display: none;
+}
+
+/* --- Publicar valoració a l'inici (admin) --- */
+#rsv-reserves .rsv-rev-publish {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.3rem;
+}
+
+#rsv-reserves .rsv-rev-state {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(127, 127, 160, 0.15);
+    color: var(--r-muted);
+}
+
+#rsv-reserves .rsv-rev-state.on {
+    background: rgba(22, 163, 74, 0.15);
+    color: #15803d;
+}
+
+.dark #rsv-reserves .rsv-rev-state.on {
+    color: #4ade80;
+}
+
+/* --- Paginació de valoracions --- */
+#rsv-reserves .rsv-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 1.5rem;
+}
+
+#rsv-reserves .rsv-page-btn,
+#rsv-reserves .rsv-page-num {
+    border: 1px solid var(--r-line);
+    background: transparent;
+    color: inherit;
+    border-radius: 0.7rem;
+    padding: 0.4rem 0.85rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#rsv-reserves .rsv-page-btn:hover,
+#rsv-reserves .rsv-page-num:hover {
+    border-color: #4f46e5;
+}
+
+#rsv-reserves .rsv-page-num.on {
+    background: #4f46e5;
+    border-color: #4f46e5;
+    color: #fff;
+    cursor: default;
+}
+
+#rsv-reserves .rsv-page-btn.is-disabled,
+#rsv-reserves .rsv-page-num.is-gap {
+    opacity: 0.45;
+    cursor: default;
+}
+
+#rsv-reserves .rsv-page-btn.is-disabled:hover,
+#rsv-reserves .rsv-page-num.is-gap:hover {
+    border-color: var(--r-line);
+}

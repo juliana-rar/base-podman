@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import Calendar from '@/components/Calendar.vue';
 import ClockPicker from '@/components/ClockPicker.vue';
 import { useI18n } from '@/lib/i18n';
@@ -167,6 +167,33 @@ function selectItem(item: Bookable): void {
     optionId.value = item.option ? item.option.id : null;
 }
 
+// Cercador de serveis: desplaça el carrusel fins al servei trobat i el ressalta.
+const serviceSearch = ref('');
+const highlightId = ref<number | null>(null);
+let highlightTimer: ReturnType<typeof setTimeout> | undefined;
+
+function findAndScroll(): void {
+    const query = serviceSearch.value.trim().toLowerCase();
+    if (!query) {
+        highlightId.value = null;
+        return;
+    }
+    const match = visibleServices.value.find(
+        (s) => s.name.toLowerCase().includes(query) || s.options.some((o) => o.name.toLowerCase().includes(query)),
+    );
+    if (!match) {
+        return;
+    }
+    const el = document.getElementById(`rsv-svc-${match.id}`);
+    if (!el) {
+        return;
+    }
+    el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    highlightId.value = match.id;
+    clearTimeout(highlightTimer);
+    highlightTimer = setTimeout(() => (highlightId.value = null), 1600);
+}
+
 // Mostra una durada en minuts com a "1 h 30 min" / "45 min".
 function formatDuration(total: number): string {
     const h = Math.floor(total / 60);
@@ -184,59 +211,31 @@ function serviceMeta(s: Service): string {
     return parts.join(' · ');
 }
 
-// Visor de galeria ampliada: una sola imatge a la vista petita; al clicar es pot
-// desplaçar (fletxes, swipe tàctil o teclat) per veure la resta.
+// Visor de galeria ampliada: la vista petita mostra la portada; al clicar es veuen
+// totes les imatges alhora en graella (sense fletxes).
 const galleryImages = ref<string[]>([]);
-const galleryIndex = ref(0);
 
-function openGallery(urls: string[], start = 0): void {
+function openGallery(urls: string[]): void {
     if (!urls.length) return;
     galleryImages.value = urls;
-    galleryIndex.value = Math.min(start, urls.length - 1);
 }
 
 function closeGallery(): void {
     galleryImages.value = [];
-    galleryIndex.value = 0;
 }
 
-function nextImage(): void {
-    if (galleryImages.value.length) {
-        galleryIndex.value = (galleryIndex.value + 1) % galleryImages.value.length;
-    }
-}
-
-function prevImage(): void {
-    if (galleryImages.value.length) {
-        galleryIndex.value = (galleryIndex.value - 1 + galleryImages.value.length) % galleryImages.value.length;
-    }
-}
-
-// Navegació amb teclat mentre el visor és obert.
+// Tancar el visor amb la tecla Escape.
 function onGalleryKey(event: KeyboardEvent): void {
-    if (!galleryImages.value.length) return;
-    if (event.key === 'ArrowRight') nextImage();
-    else if (event.key === 'ArrowLeft') prevImage();
-    else if (event.key === 'Escape') closeGallery();
+    if (galleryImages.value.length && event.key === 'Escape') {
+        closeGallery();
+    }
 }
 
 onMounted(() => window.addEventListener('keydown', onGalleryKey));
-onUnmounted(() => window.removeEventListener('keydown', onGalleryKey));
-
-// Swipe tàctil sobre la imatge ampliada.
-let touchStartX = 0;
-
-function onTouchStart(event: TouchEvent): void {
-    touchStartX = event.changedTouches[0].clientX;
-}
-
-function onTouchEnd(event: TouchEvent): void {
-    const delta = event.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(delta) > 40) {
-        if (delta < 0) nextImage();
-        else prevImage();
-    }
-}
+onUnmounted(() => {
+    window.removeEventListener('keydown', onGalleryKey);
+    clearTimeout(highlightTimer);
+});
 
 function timeOf(iso: string): string {
     const d = new Date(iso);
@@ -305,12 +304,43 @@ watch(employeeId, () => {
     optionId.value = null;
 });
 
+// Preselecció des de la presentació: /reservar?service=ID(&option=ID) selecciona el
+// servei (i l'opció, si s'indica) i, automàticament, el primer empleat que el fa.
+onMounted(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requested = Number(params.get('service'));
+    if (!requested) {
+        return;
+    }
+    const requestedOption = Number(params.get('option')) || null;
+    const service = props.services.find((s) => s.id === requested);
+    const employee = props.employees.find((e) => e.service_ids.includes(requested));
+    if (!service || !employee) {
+        return;
+    }
+    // En triar empleat, el watch reinicia servei/opció; per això els fixem al tick següent.
+    employeeId.value = employee.id;
+    nextTick(() => {
+        serviceId.value = requested;
+        if (requestedOption && service.options.some((o) => o.id === requestedOption)) {
+            optionId.value = requestedOption;
+        }
+    });
+});
+
 const dayLabel = computed(() =>
     new Date(effectiveDay.value + 'T00:00:00').toLocaleDateString(localeTag(), {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
     }),
+);
+
+// A /reservar només es mostren les reserves futures (encara no fetes); les ja fetes
+// viuen a la pàgina /reserves, accessible des del menú.
+const nowMs = Date.now();
+const upcomingReservations = computed(() =>
+    props.myReservations.filter((r) => new Date(r.slot.starts_at).getTime() >= nowMs),
 );
 
 const message = ref<{ type: 'ok' | 'err'; text: string } | null>(null);
@@ -403,7 +433,14 @@ function confirmCancel(): void {
                         :class="{ 'is-active': employeeId === e.id, 'has-img': e.url }"
                         @click="employeeId = e.id"
                     >
-                        <img v-if="e.url" :src="e.url" alt="" />
+                        <img
+                            v-if="e.url"
+                            :src="e.url"
+                            alt=""
+                            class="rsv-emp-img"
+                            :title="t('res.zoomImg')"
+                            @click.stop="openGallery(e.url ? [e.url] : [])"
+                        />
                         <span>{{ e.name }}</span>
                     </button>
                 </div>
@@ -413,7 +450,18 @@ function confirmCancel(): void {
                 <span class="rsv-service-label">{{ t('res.service') }} *</span>
                 <p v-if="employeeId === null" class="rsv-service-hint">{{ t('res.pickEmployeeFirst') }}</p>
                 <p v-else-if="!serviceGroups.length" class="rsv-service-hint">{{ t('res.employeeNoServices') }}</p>
-                <div v-else class="rsv-service-scroller">
+                <template v-else>
+                    <div class="rsv-service-search">
+                        <span class="rsv-service-search-icon">🔍</span>
+                        <input
+                            v-model="serviceSearch"
+                            type="search"
+                            :placeholder="t('welcome.searchService')"
+                            @input="findAndScroll"
+                            @keydown.enter.prevent="findAndScroll"
+                        />
+                    </div>
+                    <div class="rsv-service-scroller">
                     <div class="rsv-service-groups">
                         <div v-for="group in serviceGroups" :key="group.id ?? 'none'" class="rsv-service-group">
                         <span v-if="group.name" class="rsv-service-cat">
@@ -428,7 +476,13 @@ function confirmCancel(): void {
                             {{ group.name }}
                         </span>
                         <small v-if="group.description" class="rsv-service-catdesc">{{ group.description }}</small>
-                        <div v-for="block in group.services" :key="block.service.id" class="rsv-service-svcblock">
+                        <div
+                            v-for="block in group.services"
+                            :id="`rsv-svc-${block.service.id}`"
+                            :key="block.service.id"
+                            class="rsv-service-svcblock"
+                            :class="{ 'is-found': highlightId === block.service.id }"
+                        >
                             <span v-if="block.hasOptions" class="rsv-service-svcname">
                                 <img
                                     v-if="block.service.url"
@@ -467,6 +521,7 @@ function confirmCancel(): void {
                         </div>
                     </div>
                 </div>
+                </template>
             </div>
         </header>
 
@@ -518,8 +573,8 @@ function confirmCancel(): void {
 
         <section>
             <h2>{{ t('res.meves') }}</h2>
-            <div v-if="myReservations.length">
-                <div v-for="reservation in myReservations" :key="reservation.id">
+            <div v-if="upcomingReservations.length">
+                <div v-for="reservation in upcomingReservations" :key="reservation.id">
                     <div class="rsv-res-info">
                         <span>{{ fullLabel(reservation.slot.starts_at) }}</span>
                         <span v-if="reservation.service" class="rsv-res-note">🔖 {{ reservation.service.name }}</span>
@@ -534,42 +589,10 @@ function confirmCancel(): void {
         <Teleport to="body">
             <transition name="rsv-fade">
                 <div v-if="galleryImages.length" class="rsv-img-overlay" @click.self="closeGallery">
-                    <button
-                        v-if="galleryImages.length > 1"
-                        type="button"
-                        class="rsv-img-nav rsv-img-prev"
-                        :aria-label="t('res.prevImg')"
-                        @click.stop="prevImage"
-                    >
-                        ‹
-                    </button>
-                    <img
-                        :src="galleryImages[galleryIndex]"
-                        alt=""
-                        class="rsv-img-zoom"
-                        @touchstart.passive="onTouchStart"
-                        @touchend="onTouchEnd"
-                    />
-                    <button
-                        v-if="galleryImages.length > 1"
-                        type="button"
-                        class="rsv-img-nav rsv-img-next"
-                        :aria-label="t('res.nextImg')"
-                        @click.stop="nextImage"
-                    >
-                        ›
-                    </button>
-                    <button type="button" class="rsv-img-close" aria-label="×" @click="closeGallery">×</button>
-                    <div v-if="galleryImages.length > 1" class="rsv-img-dots">
-                        <button
-                            v-for="(url, i) in galleryImages"
-                            :key="i"
-                            type="button"
-                            :class="{ 'is-active': i === galleryIndex }"
-                            :aria-label="`${i + 1}`"
-                            @click.stop="galleryIndex = i"
-                        ></button>
+                    <div class="rsv-img-gallery" :class="{ 'is-single': galleryImages.length === 1 }">
+                        <img v-for="(url, i) in galleryImages" :key="i" :src="url" alt="" class="rsv-img-zoom" />
                     </div>
+                    <button type="button" class="rsv-img-close" aria-label="×" @click="closeGallery">×</button>
                 </div>
             </transition>
         </Teleport>

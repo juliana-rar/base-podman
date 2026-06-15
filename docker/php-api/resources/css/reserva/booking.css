@@ -134,6 +134,16 @@
     flex: none;
 }
 
+/* La imatge de l'empleat es pot clicar per ampliar-la (sense seleccionar). */
+#rsv-booking .rsv-emp-img {
+    cursor: zoom-in;
+    transition: transform 0.15s ease;
+}
+
+#rsv-booking .rsv-emp-img:hover {
+    transform: scale(1.12);
+}
+
 /* El bloc de selecció de servei s'eixampla més que la resta de la pàgina. */
 #rsv-booking .rsv-service-pick {
     width: min(96rem, 100vw - 2rem);
@@ -146,6 +156,59 @@
     margin: 0;
     color: var(--b-muted);
     font-size: 0.9rem;
+}
+
+/* Cercador de serveis */
+#rsv-booking .rsv-service-search {
+    position: relative;
+    width: min(26rem, 100%);
+    margin: 0 auto 1rem;
+}
+
+#rsv-booking .rsv-service-search-icon {
+    position: absolute;
+    left: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.95rem;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+#rsv-booking .rsv-service-search > input {
+    width: 100%;
+    border: 1px solid var(--b-line);
+    background: var(--b-card);
+    color: var(--b-ink);
+    border-radius: 999px;
+    padding: 0.55rem 1rem 0.55rem 2.4rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+}
+
+#rsv-booking .rsv-service-search > input:focus {
+    outline: none;
+    border-color: var(--b-accent);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+/* Ressaltat temporal del servei trobat */
+#rsv-booking .rsv-service-svcblock.is-found {
+    border-radius: 0.6rem;
+    animation: rsv-svc-found 1.6s ease;
+}
+
+@keyframes rsv-svc-found {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 transparent;
+        background: transparent;
+    }
+    20%,
+    60% {
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.35);
+        background: rgba(79, 70, 229, 0.08);
+    }
 }
 
 /* Contenidor amb desplaçament lateral quan hi ha moltes categories. */
@@ -527,6 +590,35 @@
     overflow-wrap: anywhere;
 }
 
+/* Secció "Reserves": reserves ja fetes (passades), atenuades i sense cancel·lar. */
+#rsv-booking .rsv-past > h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+}
+
+#rsv-booking .rsv-past-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+#rsv-booking .rsv-res-done {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--b-card);
+    border: 1px solid var(--b-line);
+    border-left: 4px solid var(--b-muted);
+    border-radius: 0.9rem;
+    padding: 0.85rem 1.1rem;
+    opacity: 0.72;
+}
+
+#rsv-booking .rsv-res-done .rsv-res-info {
+    text-transform: capitalize;
+}
+
 #rsv-booking > :nth-child(3) > :nth-child(2) > * button {
     border: 1px solid rgba(220, 38, 38, 0.4);
     color: var(--b-accent-2);
@@ -570,7 +662,7 @@
     transform: scale(1.08);
 }
 
-/* Visor d'imatge ampliada. */
+/* Visor de galeria ampliada: mostra totes les imatges alhora. */
 .rsv-img-overlay {
     position: fixed;
     inset: 0;
@@ -578,21 +670,40 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: clamp(1rem, 3vw, 2.5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     background: rgba(10, 12, 20, 0.82);
     backdrop-filter: blur(4px);
 }
 
+.rsv-img-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    max-width: 100%;
+}
+
 .rsv-img-zoom {
-    max-width: min(90vw, 600px);
-    max-height: 85vh;
+    flex: 0 1 auto;
+    max-width: min(90vw, 440px);
+    max-height: 82vh;
     object-fit: contain;
     border-radius: 1rem;
     box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.5);
 }
 
+/* Amb una sola imatge es pot mostrar més gran. */
+.rsv-img-gallery.is-single .rsv-img-zoom {
+    max-width: min(92vw, 640px);
+    max-height: 85vh;
+}
+
 .rsv-img-close {
-    position: absolute;
+    position: fixed;
     top: 1.25rem;
     right: 1.5rem;
     width: 2.5rem;
@@ -609,82 +720,6 @@
 
 .rsv-img-close:hover {
     background: rgba(255, 255, 255, 0.3);
-}
-
-/* Fletxes de navegació de la galeria. */
-.rsv-img-nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 3rem;
-    height: 3rem;
-    border-radius: 999px;
-    border: none;
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
-    font-size: 2rem;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s ease;
-}
-
-.rsv-img-nav:hover {
-    background: rgba(255, 255, 255, 0.32);
-}
-
-.rsv-img-prev {
-    left: 1rem;
-}
-
-.rsv-img-next {
-    right: 1rem;
-}
-
-/* Punts indicadors de posició dins la galeria. */
-.rsv-img-dots {
-    position: absolute;
-    bottom: 1.25rem;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 0.45rem;
-}
-
-.rsv-img-dots > button {
-    width: 0.6rem;
-    height: 0.6rem;
-    padding: 0;
-    border-radius: 999px;
-    border: none;
-    background: rgba(255, 255, 255, 0.4);
-    cursor: pointer;
-    transition:
-        background 0.15s ease,
-        transform 0.15s ease;
-}
-
-.rsv-img-dots > button.is-active {
-    background: #fff;
-    transform: scale(1.25);
-}
-
-@media (max-width: 480px) {
-    .rsv-img-nav {
-        width: 2.4rem;
-        height: 2.4rem;
-        font-size: 1.6rem;
-    }
-
-    .rsv-img-prev {
-        left: 0.4rem;
-    }
-
-    .rsv-img-next {
-        right: 0.4rem;
-    }
 }
 
 .rsv-cancel-modal {

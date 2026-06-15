@@ -15,7 +15,8 @@ interface Slot {
     reservation: {
         id: number;
         note: string | null;
-        service: { id: number; name: string } | null;
+        service: { id: number; name: string; duration_minutes: number } | null;
+        service_option: { id: number; duration_minutes: number } | null;
         employee: { id: number; name: string } | null;
         user: { id: number; name: string; email: string };
     } | null;
@@ -71,6 +72,32 @@ function dayHeading(iso: string): string {
 function timeLabel(iso: string): string {
     const d = new Date(iso);
     return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// Mostra una durada en minuts com a "1 h 30 min" / "45 min".
+function formatDuration(total: number): string {
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    if (h && m) {
+        return `${h} ${t('srv.hours')} ${m} ${t('srv.minutes')}`;
+    }
+    if (h) {
+        return `${h} ${t('srv.hours')}`;
+    }
+    return `${m} ${t('srv.minutes')}`;
+}
+
+// Temps que tarda el servei reservat: el de l'opció si en té (>0), si no el del servei.
+function slotDuration(slot: Slot): number {
+    const reservation = slot.reservation;
+    if (!reservation) {
+        return 0;
+    }
+    const option = reservation.service_option;
+    if (option && option.duration_minutes > 0) {
+        return option.duration_minutes;
+    }
+    return reservation.service?.duration_minutes ?? 0;
 }
 
 // --- Resum de les reserves, filtrable per període (dia / setmana / mes) ---
@@ -479,6 +506,7 @@ function remove(id: number): void {
                                         👤 {{ s.reservation.user.name }}
                                         <template v-if="s.reservation.employee"> · 💈 {{ s.reservation.employee.name }}</template>
                                         <template v-if="s.reservation.service"> · 🔖 {{ s.reservation.service.name }}</template>
+                                        <template v-if="slotDuration(s) > 0"> · ⏱ {{ formatDuration(slotDuration(s)) }}</template>
                                         <template v-if="s.reservation.note"> · 💬 {{ s.reservation.note }}</template>
                                     </template>
                                     <template v-else>—</template>
@@ -593,7 +621,7 @@ function remove(id: number): void {
                 <p class="rsv-chosen">{{ dateLabel }}<span v-if="time"> · {{ time }}</span></p>
 
                 <label for="time">{{ t('hor.time') }}</label>
-                <input id="time" v-model="time" type="time" step="900" required />
+                <input id="time" v-model="time" type="time" step="60" required />
 
                 <label for="notes">{{ t('hor.noteOpt') }}</label>
                 <input id="notes" v-model="form.notes" type="text" maxlength="255" :placeholder="t('hor.notePh')" />
@@ -643,6 +671,7 @@ function remove(id: number): void {
                             <span v-if="slot.reservation" class="rsv-slot-user">👤 {{ slot.reservation.user.name }}</span>
                             <span v-if="slot.reservation?.employee" class="rsv-slot-note">💈 {{ slot.reservation.employee.name }}</span>
                             <span v-if="slot.reservation?.service" class="rsv-slot-note">🔖 {{ slot.reservation.service.name }}</span>
+                            <span v-if="slotDuration(slot) > 0" class="rsv-slot-note">⏱ {{ formatDuration(slotDuration(slot)) }}</span>
                             <span v-if="slot.reservation?.note" class="rsv-slot-note">💬 {{ slot.reservation.note }}</span>
                             <span v-if="slot.notes" class="rsv-slot-note">📝 {{ slot.notes }}</span>
                         </div>
