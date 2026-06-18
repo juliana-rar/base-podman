@@ -100,17 +100,22 @@
     box-shadow: 0 1.4rem 2.6rem -0.5rem rgba(17, 24, 39, 0.7);
 }
 
-/* --- Carrusel d'imatges de presentació (4 visibles, juntes, modern) --- */
+/* --- Carrusel cinematogràfic d'imatges (centre gran, laterals petits, peek) --- */
 #rsv-welcome .rsv-slides {
     position: relative;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     align-items: center;
-    width: 92vw;
-    max-width: 90rem;
+    width: 100vw;
+    max-width: 100rem;
     margin-top: 3rem;
     padding: 0 3.5rem;
+}
+
+#rsv-welcome .rsv-slides.is-single {
+    width: 92vw;
+    max-width: 60rem;
 }
 
 #rsv-welcome .rsv-slide-nav {
@@ -118,13 +123,13 @@
     top: 50%;
     transform: translateY(-50%);
     z-index: 3;
-    width: 2.9rem;
-    height: 2.9rem;
+    width: 3rem;
+    height: 3rem;
     border-radius: 50%;
     border: none;
     background: var(--w-card);
     color: var(--w-ink);
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     line-height: 1;
     cursor: pointer;
     box-shadow: 0 6px 18px -4px rgba(17, 24, 39, 0.3);
@@ -132,11 +137,11 @@
 }
 
 #rsv-welcome .rsv-slide-nav:first-of-type {
-    left: 0;
+    left: 0.5rem;
 }
 
 #rsv-welcome .rsv-slide-nav:last-of-type {
-    right: 0;
+    right: 0.5rem;
 }
 
 #rsv-welcome .rsv-slide-nav:hover {
@@ -149,6 +154,8 @@
 #rsv-welcome .rsv-slide-viewport {
     width: 100%;
     overflow: hidden;
+    /* Espai vertical perquè l'ombra i l'escala de la diapositiva central no es retallin. */
+    padding: 2.25rem 0;
 }
 
 #rsv-welcome .rsv-slide-track {
@@ -161,36 +168,58 @@
 }
 
 #rsv-welcome .rsv-slide-item {
-    flex: 0 0 calc(100% / var(--per, 4));
+    flex: 0 0 calc(var(--w, 50) * 1%);
     box-sizing: border-box;
-    padding: 0.25rem;
+    padding: 0 0.75rem;
+    transform: scale(0.82);
+    opacity: 0.45;
+    filter: saturate(0.85);
+    transition: transform 0.45s ease, opacity 0.45s ease, filter 0.45s ease;
+}
+
+#rsv-welcome .rsv-slide-item.is-center {
+    transform: scale(1);
+    opacity: 1;
+    filter: none;
+}
+
+#rsv-welcome .rsv-slides.is-single .rsv-slide-item {
+    flex-basis: 100%;
+    transform: none;
+    opacity: 1;
+    filter: none;
 }
 
 #rsv-welcome .rsv-slide-item > img {
     width: 100%;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 4 / 3;
     object-fit: cover;
-    border-radius: 0.85rem;
+    border-radius: 1rem;
     display: block;
-    cursor: zoom-in;
+    cursor: pointer;
     box-shadow: 0 0.5rem 1.25rem -0.75rem rgba(17, 24, 39, 0.35);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: box-shadow 0.3s ease;
 }
 
-#rsv-welcome .rsv-slide-item > img:hover {
-    transform: scale(1.04);
-    box-shadow: 0 1rem 2rem -0.75rem rgba(17, 24, 39, 0.45);
+#rsv-welcome .rsv-slide-item.is-center > img,
+#rsv-welcome .rsv-slides.is-single .rsv-slide-item > img {
+    cursor: zoom-in;
+    box-shadow: 0 1.5rem 3rem -1rem rgba(17, 24, 39, 0.5);
 }
 
-@media (max-width: 36rem) {
+@media (max-width: 40rem) {
     #rsv-welcome .rsv-slides {
         padding: 0 2.5rem;
     }
 
     #rsv-welcome .rsv-slide-nav {
-        width: 2.4rem;
-        height: 2.4rem;
-        font-size: 1.25rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1.3rem;
+    }
+
+    #rsv-welcome .rsv-slide-item > img {
+        aspect-ratio: 1 / 1;
     }
 }
 
@@ -380,29 +409,66 @@
     cursor: zoom-out;
 }
 
-/* Galeria: totes les imatges alhora (com a /reservar). */
-.rsv-lb-gallery {
+/* Escenari: una sola imatge a la vegada, en gran i sense retallar. */
+.rsv-lb-stage {
+    margin: auto;
     display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
     align-items: center;
     justify-content: center;
-    margin: auto;
     cursor: default;
 }
 
-.rsv-lb-gallery > img {
-    flex: 0 1 auto;
-    max-width: min(90vw, 440px);
-    max-height: 82vh;
+.rsv-lb-stage > img {
+    max-width: 90vw;
+    max-height: 88vh;
     object-fit: contain;
     border-radius: 0.85rem;
     box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.5);
 }
 
-.rsv-lb-gallery.is-single > img {
-    max-width: 92vw;
-    max-height: 90vh;
+/* Fletxes de navegació del visor. */
+.rsv-lb-nav {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.rsv-lb-nav:hover {
+    background: rgba(255, 255, 255, 0.32);
+    transform: translateY(-50%) scale(1.08);
+}
+
+.rsv-lb-prev {
+    left: clamp(0.75rem, 2.5vw, 2rem);
+}
+
+.rsv-lb-next {
+    right: clamp(0.75rem, 2.5vw, 2rem);
+}
+
+/* Comptador «n / total». */
+.rsv-lb-counter {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+    cursor: default;
 }
 
 .rsv-lb-close {

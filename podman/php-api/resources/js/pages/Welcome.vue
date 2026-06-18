@@ -196,26 +196,34 @@ function findAndScroll(): void {
     highlightTimer = setTimeout(() => (highlightId.value = null), 1600);
 }
 
-// --- Carrusel d'imatges de presentació (4 visibles, bucle infinit, auto-play) ---
-const slidePerView = ref(4);
+// --- Carrusel cinematogràfic d'imatges (centre gran, laterals petits, bucle infinit) ---
+// Amplada de cada diapositiva en % del viewport; com més petita, més «peek» laterals.
+const slideItemPct = ref(50);
 const slideCount = computed(() => props.slides.length);
-const slideUseCarousel = computed(() => slideCount.value > slidePerView.value);
+const slideUseCarousel = computed(() => slideCount.value > 1);
 
+// Buffer triple per al bucle infinit; recentrem en silenci als extrems.
 const slideDisplay = computed(() =>
     slideUseCarousel.value ? [...props.slides, ...props.slides, ...props.slides] : props.slides,
 );
 
+// Posició (dins de slideDisplay) de la diapositiva que ocupa el centre de l'escenari.
 const slideIndex = ref(props.slides.length);
 const slideAnimate = ref(true);
 let slideLocked = false;
 let slideTimer: ReturnType<typeof setInterval> | undefined;
 
-const slideTrackStyle = computed(() => ({
-    transform: slideUseCarousel.value
-        ? `translateX(calc(${-slideIndex.value} * 100% / ${slidePerView.value}))`
-        : 'none',
-    transition: slideAnimate.value ? `transform ${SLIDE_MS}ms ease` : 'none',
-}));
+// Desplaça la pista perquè el centre de la diapositiva activa caigui al centre del viewport.
+const slideTrackStyle = computed(() => {
+    if (!slideUseCarousel.value) {
+        return { transform: 'none', transition: 'none' };
+    }
+    const offset = 50 - (slideIndex.value + 0.5) * slideItemPct.value;
+    return {
+        transform: `translateX(${offset}%)`,
+        transition: slideAnimate.value ? `transform ${SLIDE_MS}ms ease` : 'none',
+    };
+});
 
 function slideRecenter(delta: number): void {
     slideAnimate.value = false;
@@ -223,12 +231,12 @@ function slideRecenter(delta: number): void {
     requestAnimationFrame(() => requestAnimationFrame(() => (slideAnimate.value = true)));
 }
 
-function slideStep(direction: number): void {
+function slideGoTo(target: number): void {
     if (slideLocked || !slideUseCarousel.value) {
         return;
     }
     slideLocked = true;
-    slideIndex.value += direction;
+    slideIndex.value = target;
 
     window.setTimeout(() => {
         if (slideIndex.value >= 2 * slideCount.value) {
@@ -240,8 +248,21 @@ function slideStep(direction: number): void {
     }, SLIDE_MS);
 }
 
-const slidePrev = () => slideStep(-1);
-const slideNext = () => slideStep(1);
+const slidePrev = () => slideGoTo(slideIndex.value - 1);
+const slideNext = () => slideGoTo(slideIndex.value + 1);
+
+// Clic en una diapositiva: si és lateral, la porta al centre; si ja és la central, obre el visor.
+function slideClick(displayPos: number, realIndex: number): void {
+    if (slideUseCarousel.value && displayPos !== slideIndex.value) {
+        slideGoTo(displayPos);
+    } else {
+        openSlides(realIndex);
+    }
+}
+
+function pauseAuto(): void {
+    clearInterval(slideTimer);
+}
 
 function restartAuto(): void {
     clearInterval(slideTimer);
@@ -250,12 +271,9 @@ function restartAuto(): void {
     }
 }
 
-// --- Visor d'imatges en gran (slides i galeries de serveis/categories) ---
+// --- Visor d'imatges en gran (una imatge a la vegada, amb fletxes i comptador) ---
 const lightbox = ref<string[]>([]);
-
-function openLightbox(url: string): void {
-    lightbox.value = [url];
-}
+const lightboxIndex = ref(0);
 
 // Obre la galeria amb totes les imatges (com a /reservar). Accepta el cover de
 // reserva com a alternativa si encara no s'ha carregat la galeria.
@@ -263,16 +281,42 @@ function openImages(urls: string[], fallback?: string | null): void {
     const images = urls.length ? urls : fallback ? [fallback] : [];
     if (images.length) {
         lightbox.value = images;
+        lightboxIndex.value = 0;
     }
+}
+
+// Obre el visor amb totes les diapositives, començant per la que s'ha clicat.
+function openSlides(start: number): void {
+    if (!props.slides.length) {
+        return;
+    }
+    lightbox.value = props.slides.map((s) => s.url);
+    lightboxIndex.value = start;
 }
 
 function closeLightbox(): void {
     lightbox.value = [];
+    lightboxIndex.value = 0;
+}
+
+function lightboxPrev(): void {
+    lightboxIndex.value = (lightboxIndex.value - 1 + lightbox.value.length) % lightbox.value.length;
+}
+
+function lightboxNext(): void {
+    lightboxIndex.value = (lightboxIndex.value + 1) % lightbox.value.length;
 }
 
 function onKeydown(event: KeyboardEvent): void {
+    if (!lightbox.value.length) {
+        return;
+    }
     if (event.key === 'Escape') {
         closeLightbox();
+    } else if (event.key === 'ArrowLeft') {
+        lightboxPrev();
+    } else if (event.key === 'ArrowRight') {
+        lightboxNext();
     }
 }
 
@@ -283,7 +327,8 @@ const perView = ref(3);
 function updatePerView(): void {
     const w = window.innerWidth;
     perView.value = w < 540 ? 1 : w < 820 ? 2 : w < 1100 ? 3 : 4;
-    slidePerView.value = w < 540 ? 1 : w < 820 ? 2 : w < 1100 ? 3 : 4;
+    // Diapositiva central més o menys ampla segons l'amplada; deixa veure els laterals.
+    slideItemPct.value = w < 640 ? 84 : w < 1024 ? 62 : 50;
 }
 
 const count = computed(() => props.posts.length);
@@ -360,14 +405,26 @@ onBeforeUnmount(() => {
                 {{ user ? t('welcome.ctaUser') : t('welcome.ctaGuest') }}
             </Link>
 
-            <div v-if="slides.length" class="rsv-slides" :style="{ '--per': slidePerView }">
+            <div
+                v-if="slides.length"
+                class="rsv-slides"
+                :class="{ 'is-single': !slideUseCarousel }"
+                :style="{ '--w': slideItemPct }"
+                @mouseenter="pauseAuto"
+                @mouseleave="restartAuto"
+            >
                 <button v-if="slideUseCarousel" type="button" class="rsv-slide-nav" aria-label="Anterior" @click="slidePrev">
                     ‹
                 </button>
                 <div class="rsv-slide-viewport">
                     <div class="rsv-slide-track" :class="{ 'is-static': !slideUseCarousel }" :style="slideTrackStyle">
-                        <div v-for="(s, i) in slideDisplay" :key="i" class="rsv-slide-item">
-                            <img :src="s.url" alt="" @click="openLightbox(s.url)" />
+                        <div
+                            v-for="(s, i) in slideDisplay"
+                            :key="i"
+                            class="rsv-slide-item"
+                            :class="{ 'is-center': slideUseCarousel && i === slideIndex }"
+                        >
+                            <img :src="s.url" alt="" @click="slideClick(i, i % slideCount)" />
                         </div>
                     </div>
                 </div>
@@ -523,9 +580,30 @@ onBeforeUnmount(() => {
             <transition name="rsv-lb">
                 <div v-if="lightbox.length" class="rsv-lightbox" @click="closeLightbox">
                     <button type="button" class="rsv-lb-close" aria-label="Tancar" @click="closeLightbox">×</button>
-                    <div class="rsv-lb-gallery" :class="{ 'is-single': lightbox.length === 1 }" @click.stop>
-                        <img v-for="(url, i) in lightbox" :key="i" :src="url" alt="" />
-                    </div>
+                    <button
+                        v-if="lightbox.length > 1"
+                        type="button"
+                        class="rsv-lb-nav rsv-lb-prev"
+                        aria-label="Anterior"
+                        @click.stop="lightboxPrev"
+                    >
+                        ‹
+                    </button>
+                    <figure class="rsv-lb-stage" @click.stop>
+                        <img :src="lightbox[lightboxIndex]" alt="" />
+                    </figure>
+                    <button
+                        v-if="lightbox.length > 1"
+                        type="button"
+                        class="rsv-lb-nav rsv-lb-next"
+                        aria-label="Següent"
+                        @click.stop="lightboxNext"
+                    >
+                        ›
+                    </button>
+                    <span v-if="lightbox.length > 1" class="rsv-lb-counter">
+                        {{ lightboxIndex + 1 }} / {{ lightbox.length }}
+                    </span>
                 </div>
             </transition>
         </Teleport>
