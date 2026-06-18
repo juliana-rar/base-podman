@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ManagesImages;
 use App\Models\Cancellation;
+use App\Models\Employee;
 use App\Models\Reservation;
+use App\Models\Service;
 use App\Models\Slot;
+use App\Models\Stock;
+use App\Models\StockCategory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -24,10 +28,86 @@ class ReservationController extends Controller
     {
         return Inertia::render('admin/Historial', [
             'reservations' => Reservation::query()
-                ->with(['user:id,name,email,phone', 'slot:id,starts_at,notes', 'service:id,name,price', 'serviceOption:id,price'])
+                ->with([
+                    'user:id,name,email,phone',
+                    'slot:id,starts_at,notes',
+                    'service:id,name,price,service_category_id',
+                    'service.category:id,name',
+                    'serviceOption:id,name,price',
+                    'stocks:id,name,price',
+                ])
                 ->latest()
-                ->get(['id', 'slot_id', 'user_id', 'service_id', 'service_option_id', 'note', 'created_at']),
+                ->get(['id', 'slot_id', 'user_id', 'service_id', 'service_option_id', 'employee_id', 'note', 'created_at']),
+            'services' => Service::with('options:id,service_id,name,price')
+                ->orderBy('name')
+                ->get(['id', 'name', 'price']),
+            'employees' => Employee::orderBy('name')->get(['id', 'name']),
+            // Catàleg d'stock (tots els articles, agrupats) per poder editar els productes
+            // d'una reserva des del modal.
+            'stockCategories' => StockCategory::with(['stocks' => fn ($query) => $query->orderBy('name')])
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->filter(fn (StockCategory $c) => $c->stocks->isNotEmpty())
+                ->values()
+                ->map(fn (StockCategory $c) => [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'products' => $c->stocks->map(fn (Stock $s) => [
+                        'id' => $s->id,
+                        'name' => $s->name,
+                        'price' => $s->price,
+                        'quantity' => $s->quantity,
+                    ]),
+                ]),
+            'uncategorizedStock' => Stock::whereNull('stock_category_id')
+                ->orderBy('name')
+                ->get(['id', 'name', 'price', 'quantity'])
+                ->map(fn (Stock $s) => [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'price' => $s->price,
+                    'quantity' => $s->quantity,
+                ]),
         ]);
+    }
+
+    /**
+     * L'admin edita una reserva ja feta (servei, opció, empleat o nota poden canviar).
+     */
+    public function update(Request $request, Reservation $reservation): RedirectResponse
+    {
+        $validated = $request->validate([
+            'service_id' => ['required', 'integer', 'exists:services,id'],
+            'service_option_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('service_options', 'id')->where('service_id', $request->input('service_id')),
+            ],
+            'employee_id' => ['required', 'integer', 'exists:employees,id'],
+            'note' => ['required', 'string', 'max:1000'],
+            'products' => ['nullable', 'array'],
+            'products.*.stock_id' => ['required_with:products', 'integer', 'distinct', 'exists:stocks,id'],
+            'products.*.quantity' => ['required_with:products', 'integer', 'min:1'],
+        ]);
+
+        $reservation->update([
+            'service_id' => $validated['service_id'],
+            'service_option_id' => $validated['service_option_id'] ?? null,
+            'employee_id' => $validated['employee_id'],
+            'note' => $validated['note'],
+        ]);
+
+        $sync = [];
+
+        foreach ($validated['products'] ?? [] as $product) {
+            $sync[$product['stock_id']] = ['quantity' => $product['quantity']];
+        }
+
+        $reservation->stocks()->sync($sync);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Reserva actualitzada.']);
+
+        return back();
     }
 
     /**
@@ -44,7 +124,10 @@ class ReservationController extends Controller
                 Rule::exists('service_options', 'id')->where('service_id', $request->input('service_id')),
             ],
             'employee_id' => ['required', 'integer', 'exists:employees,id'],
-            'note' => ['required', 'string', 'max:1000'],
+            'note' => ['nullable', 'string', 'max:1000'],
+            'products' => ['nullable', 'array'],
+            'products.*.stock_id' => ['required_with:products', 'integer', 'distinct', 'exists:stocks,id'],
+            'products.*.quantity' => ['required_with:products', 'integer', 'min:1'],
         ]);
 
         $slot = Slot::findOrFail($validated['slot_id']);
@@ -55,18 +138,43 @@ class ReservationController extends Controller
             ]);
         }
 
-        Reservation::create([
+        $reservation = Reservation::create([
             'slot_id' => $slot->id,
             'user_id' => $request->user()->id,
             'service_id' => $validated['service_id'],
             'service_option_id' => $validated['service_option_id'] ?? null,
             'employee_id' => $validated['employee_id'],
-            'note' => $validated['note'],
+            'note' => $validated['note'] ?? null,
         ]);
+
+        $reservation->stocks()->attach($this->stockAttachments($validated['products'] ?? []));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Reserva feta!']);
 
         return back();
+    }
+
+    /**
+     * Prepara els productes a lligar a la reserva, limitant la quantitat a l'stock
+     * disponible i descartant els que ja no en tinguin.
+     *
+     * @param  list<array{stock_id: int, quantity: int}>  $products
+     * @return array<int, array{quantity: int}>
+     */
+    private function stockAttachments(array $products): array
+    {
+        $attach = [];
+
+        foreach ($products as $product) {
+            $stock = Stock::find($product['stock_id']);
+            $quantity = min($product['quantity'], $stock?->quantity ?? 0);
+
+            if ($quantity > 0) {
+                $attach[$product['stock_id']] = ['quantity' => $quantity];
+            }
+        }
+
+        return $attach;
     }
 
     /**

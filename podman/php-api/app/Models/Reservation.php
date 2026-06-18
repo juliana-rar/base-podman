@@ -6,6 +6,7 @@ use Database\Factories\ReservationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Storage;
 
 class Reservation extends Model
@@ -115,5 +116,17 @@ class Reservation extends Model
     public function serviceOption(): BelongsTo
     {
         return $this->belongsTo(ServiceOption::class);
+    }
+
+    /**
+     * Productes d'stock que l'usuari vol comprar per després del servei (amb quantitat).
+     *
+     * @return BelongsToMany<Stock, $this>
+     */
+    public function stocks(): BelongsToMany
+    {
+        return $this->belongsToMany(Stock::class, 'reservation_stock')
+            ->withPivot('quantity')
+            ->withTimestamps();
     }
 }

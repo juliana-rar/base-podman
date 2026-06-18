@@ -10,6 +10,8 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\ServiceOptionController;
 use App\Http\Controllers\SlideImageController;
 use App\Http\Controllers\SlotController;
+use App\Http\Controllers\StockCategoryController;
+use App\Http\Controllers\StockController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
@@ -78,6 +80,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('serveis-options/{serviceOption}', [ServiceOptionController::class, 'update'])->name('serveis.options.update');
         Route::delete('serveis-options/{serviceOption}', [ServiceOptionController::class, 'destroy'])->name('serveis.options.destroy');
 
+        // Stock
+        Route::get('stock', [StockController::class, 'index'])->name('stock');
+        Route::post('stock', [StockController::class, 'store'])->name('stock.store');
+        Route::post('stock/{stock}', [StockController::class, 'update'])->name('stock.update');
+        Route::delete('stock/{stock}', [StockController::class, 'destroy'])->name('stock.destroy');
+
+        // Categories d'stock
+        Route::post('stock-categories', [StockCategoryController::class, 'store'])->name('stock.categories.store');
+        Route::post('stock-categories/{stockCategory}', [StockCategoryController::class, 'update'])->name('stock.categories.update');
+        Route::delete('stock-categories/{stockCategory}', [StockCategoryController::class, 'destroy'])->name('stock.categories.destroy');
+
         // Empleats
         Route::get('empleats', [EmployeeController::class, 'index'])->name('empleats');
         Route::post('empleats', [EmployeeController::class, 'store'])->name('empleats.store');
@@ -86,6 +99,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Historial de totes les reserves fetes
         Route::get('reserves', [ReservationController::class, 'history'])->name('reserves');
+        Route::put('reserves/{reservation}', [ReservationController::class, 'update'])->name('reserves.update');
 
         // Cancel·lacions amb el seu motiu
         Route::get('cancellacions', [CancellationController::class, 'index'])->name('cancellacions');

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use App\Models\Service;
 use App\Models\Slot;
+use App\Models\Stock;
+use App\Models\StockCategory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -46,7 +48,43 @@ class SlotController extends Controller
                     'service_ids' => $e->services->pluck('id'),
                     'option_ids' => $e->serviceOptions->pluck('id'),
                 ]),
+            // Articles d'stock disponibles (quantitat > 0) per oferir-los en fer la reserva,
+            // agrupats per categoria; els que no en tenen van al grup «sense categoria».
+            'stockCategories' => StockCategory::with(['stocks' => function ($query) {
+                $query->where('quantity', '>', 0)
+                    ->orderBy('name');
+            }])
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->filter(fn (StockCategory $c) => $c->stocks->isNotEmpty())
+                ->values()
+                ->map(fn (StockCategory $c) => [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'products' => $c->stocks->map(fn (Stock $s) => $this->stockPayload($s)),
+                ]),
+            'uncategorizedStock' => Stock::whereNull('stock_category_id')
+                ->where('quantity', '>', 0)
+                ->orderBy('name')
+                ->get(['id', 'name', 'price', 'quantity', 'image_path', 'images'])
+                ->map(fn (Stock $s) => $this->stockPayload($s)),
         ]);
+    }
+
+    /**
+     * Dades mínimes d'un article d'stock per a la pàgina de reserva.
+     *
+     * @return array{id: int, name: string, price: string, quantity: int, url: string|null}
+     */
+    private function stockPayload(Stock $stock): array
+    {
+        return [
+            'id' => $stock->id,
+            'name' => $stock->name,
+            'price' => $stock->price,
+            'quantity' => $stock->quantity,
+            'url' => $stock->url,
+        ];
     }
 
     /**

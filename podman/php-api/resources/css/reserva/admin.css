@@ -1668,6 +1668,13 @@
     white-space: nowrap;
 }
 
+/* Columna de servei més ampla (els noms de servei poden ser llargs) */
+#rsv-history .rsv-service-cell {
+    min-width: 14rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
 /* ---------- Facturació mensual ---------- */
 #rsv-history .rsv-billing {
     background: var(--a-card);
@@ -2665,9 +2672,9 @@
     padding: 1.5rem;
 }
 
-/* ---------- Serveis (#rsv-serveis) ---------- */
+/* ---------- Serveis i Stock (#rsv-serveis, #rsv-stock) ---------- */
 
-#rsv-serveis {
+:is(#rsv-serveis, #rsv-stock) {
     --a-card: #ffffff;
     --a-ink: #1e1b2e;
     --a-muted: #6b6880;
@@ -2682,7 +2689,7 @@
     color: var(--a-ink);
 }
 
-.dark #rsv-serveis {
+.dark :is(#rsv-serveis, #rsv-stock) {
     --a-card: #161327;
     --a-ink: #ede9ff;
     --a-muted: #9b97b4;
@@ -2691,18 +2698,18 @@
     --a-soft: rgba(129, 140, 248, 0.16);
 }
 
-#rsv-serveis > :nth-child(1) > :nth-child(1) {
+:is(#rsv-serveis, #rsv-stock) > :nth-child(1) > :nth-child(1) {
     font-size: 1.75rem;
     font-weight: 800;
     margin: 0 0 0.25rem;
 }
 
-#rsv-serveis > :nth-child(1) > :nth-child(2) {
+:is(#rsv-serveis, #rsv-stock) > :nth-child(1) > :nth-child(2) {
     color: var(--a-muted);
     margin: 0;
 }
 
-#rsv-serveis > :nth-child(2) {
+:is(#rsv-serveis, #rsv-stock) > :nth-child(2) {
     background: var(--a-card);
     border: 1px solid var(--a-line);
     border-radius: 1.25rem;
@@ -2710,21 +2717,21 @@
     box-shadow: 0 0.5rem 1.5rem -0.85rem rgba(30, 27, 46, 0.3);
 }
 
-#rsv-serveis h2 {
+:is(#rsv-serveis, #rsv-stock) h2 {
     font-weight: 700;
     font-size: 1.05rem;
     margin: 0 0 1rem;
 }
 
-#rsv-serveis h2:nth-of-type(2) {
+:is(#rsv-serveis, #rsv-stock) h2:nth-of-type(2) {
     margin-top: 1.75rem;
 }
 
-#rsv-serveis .rsv-srv-center {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-center {
     text-align: center;
 }
 
-#rsv-serveis .rsv-srv-form {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -2733,7 +2740,7 @@
     margin: 0 auto 1rem;
 }
 
-#rsv-serveis .rsv-srv-form > input {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form > input {
     flex: 1;
     min-width: 10rem;
     border: 1px solid var(--a-line);
@@ -2744,14 +2751,14 @@
     font-size: 0.95rem;
 }
 
-#rsv-serveis .rsv-srv-form > input:focus {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form > input:focus {
     outline: none;
     border-color: var(--a-accent);
     box-shadow: 0 0 0 3px var(--a-soft);
 }
 
 /* Camp numèric amb la unitat (€ / min) sempre visible per diferenciar-lo. */
-#rsv-serveis .rsv-srv-num {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-num {
     position: relative;
     display: flex;
     align-items: center;
@@ -2759,7 +2766,7 @@
     min-width: 8rem;
 }
 
-#rsv-serveis .rsv-srv-num > input {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-num > input {
     flex: 1;
     width: 100%;
     min-width: 0;
@@ -2773,19 +2780,19 @@
     -moz-appearance: textfield;
 }
 
-#rsv-serveis .rsv-srv-num > input::-webkit-outer-spin-button,
-#rsv-serveis .rsv-srv-num > input::-webkit-inner-spin-button {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-num > input::-webkit-outer-spin-button,
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-num > input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 
-#rsv-serveis .rsv-srv-num > input:focus {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-num > input:focus {
     outline: none;
     border-color: var(--a-accent);
     box-shadow: 0 0 0 3px var(--a-soft);
 }
 
-#rsv-serveis .rsv-srv-unit {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-unit {
     position: absolute;
     right: 0.75rem;
     font-style: normal;
@@ -2796,19 +2803,19 @@
 }
 
 /* Durada moderna: hores + minuts un al costat de l'altre. */
-#rsv-serveis .rsv-srv-durfield {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-durfield {
     display: flex;
     gap: 0.4rem;
     flex: 1 1 12rem;
     min-width: 12rem;
 }
 
-#rsv-serveis .rsv-srv-durfield .rsv-srv-num {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-durfield .rsv-srv-num {
     flex: 1 1 5.5rem;
     min-width: 5.5rem;
 }
 
-#rsv-serveis .rsv-edit {
+:is(#rsv-serveis, #rsv-stock) .rsv-edit {
     border: 1px solid var(--a-line);
     color: var(--a-accent);
     background: transparent;
@@ -2819,25 +2826,25 @@
     transition: all 0.15s ease;
 }
 
-#rsv-serveis .rsv-edit:hover {
+:is(#rsv-serveis, #rsv-stock) .rsv-edit:hover {
     background: var(--a-accent);
     color: #fff;
     border-color: transparent;
 }
 
-#rsv-serveis .rsv-error {
+:is(#rsv-serveis, #rsv-stock) .rsv-error {
     color: var(--a-danger);
     font-size: 0.85rem;
     margin: 0 0 0.75rem;
 }
 
-#rsv-serveis .rsv-srv-groups {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-groups {
     display: flex;
     flex-direction: column;
     gap: 3.5rem;
 }
 
-#rsv-serveis .rsv-srv-group {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-group {
     display: flex;
     flex-direction: column;
     gap: 0.7rem;
@@ -2848,7 +2855,7 @@
     box-shadow: 0 1rem 2.5rem -1.1rem rgba(30, 27, 46, 0.35);
 }
 
-#rsv-serveis .rsv-srv-grouphead {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-grouphead {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -2857,18 +2864,18 @@
     border-bottom: 2px solid var(--a-line);
 }
 
-#rsv-serveis .rsv-srv-grouphead h3 {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-grouphead h3 {
     margin: 0;
     font-size: 1.05rem;
     font-weight: 800;
     margin-right: auto;
 }
 
-#rsv-serveis .rsv-srv-grouphead input {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-grouphead input {
     margin-right: auto;
 }
 
-#rsv-serveis .rsv-srv-select {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-select {
     border: 1px solid var(--a-line);
     border-radius: 0.6rem;
     padding: 0.45rem 0.6rem;
@@ -2877,13 +2884,13 @@
     font: inherit;
 }
 
-#rsv-serveis .rsv-srv-rows {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-rows {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-#rsv-serveis .rsv-srv-row {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-row {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -2893,16 +2900,16 @@
     padding: 0.65rem 0.95rem;
 }
 
-#rsv-serveis .rsv-srv-name {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-name {
     font-weight: 700;
 }
 
-#rsv-serveis .rsv-srv-spacer {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-spacer {
     margin-left: auto;
 }
 
-#rsv-serveis .rsv-srv-price,
-#rsv-serveis .rsv-srv-dur {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-price,
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-dur {
     font-weight: 600;
     font-size: 0.9rem;
     color: var(--a-muted);
@@ -2910,7 +2917,7 @@
 }
 
 /* Camp d'informació del servei (textarea). */
-#rsv-serveis .rsv-srv-descfield {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-descfield {
     flex: 1 1 100%;
     width: 100%;
     border: 1px solid var(--a-line);
@@ -2923,14 +2930,14 @@
     resize: vertical;
 }
 
-#rsv-serveis .rsv-srv-descfield:focus {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-descfield:focus {
     outline: none;
     border-color: var(--a-accent);
     box-shadow: 0 0 0 3px var(--a-soft);
 }
 
 /* Informació mostrada sota la fila del servei. */
-#rsv-serveis .rsv-srv-desc {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-desc {
     flex: 1 1 100%;
     width: 100%;
     margin: 0.15rem 0 0;
@@ -2940,7 +2947,7 @@
 }
 
 /* Informació de la categoria sota la seva capçalera. */
-#rsv-serveis .rsv-srv-catdesc {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-catdesc {
     margin: 0 0 0.2rem;
     font-size: 0.85rem;
     color: var(--a-muted);
@@ -2948,7 +2955,7 @@
 }
 
 /* Opcions del servei */
-#rsv-serveis .rsv-srv-options {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-options {
     flex: 1 1 100%;
     width: 100%;
     margin-top: 0.55rem;
@@ -2960,7 +2967,7 @@
     gap: 0.5rem;
 }
 
-#rsv-serveis .rsv-srv-opts-head {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-opts-head {
     display: flex;
     align-items: center;
     gap: 0.6rem;
@@ -2972,12 +2979,12 @@
     color: var(--a-muted);
 }
 
-#rsv-serveis .rsv-srv-opts-head .rsv-edit {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-opts-head .rsv-edit {
     padding: 0.25rem 0.7rem;
     font-size: 0.8rem;
 }
 
-#rsv-serveis .rsv-srv-opt {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-opt {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -2989,12 +2996,12 @@
     background: var(--a-soft);
 }
 
-#rsv-serveis .rsv-srv-optthumb {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-optthumb {
     width: 2.4rem;
     height: 2.4rem;
 }
 
-#rsv-serveis .rsv-srv-optinfo {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-optinfo {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -3004,11 +3011,11 @@
     min-width: 8rem;
 }
 
-#rsv-serveis .rsv-srv-optname {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-optname {
     font-weight: 700;
 }
 
-#rsv-serveis .rsv-srv-optmeta {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-optmeta {
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
@@ -3017,13 +3024,13 @@
     color: var(--a-muted);
 }
 
-#rsv-serveis .rsv-srv-optdesc {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-optdesc {
     font-size: 0.82rem;
     color: var(--a-muted);
     white-space: pre-line;
 }
 
-#rsv-serveis .rsv-srv-optfields {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-optfields {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -3032,7 +3039,7 @@
     min-width: 12rem;
 }
 
-#rsv-serveis .rsv-srv-optfields > input[type='text'] {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-optfields > input[type='text'] {
     flex: 1;
     min-width: 9rem;
     border: 1px solid var(--a-line);
@@ -3043,25 +3050,25 @@
     font-size: 0.95rem;
 }
 
-#rsv-serveis .rsv-srv-optfields > input[type='text']:focus {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-optfields > input[type='text']:focus {
     outline: none;
     border-color: var(--a-accent);
     box-shadow: 0 0 0 3px var(--a-soft);
 }
 
-#rsv-serveis .rsv-srv-optfields .rsv-error {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-optfields .rsv-error {
     width: 100%;
     margin: 0;
 }
 
-#rsv-serveis .rsv-count {
+:is(#rsv-serveis, #rsv-stock) .rsv-count {
     margin-left: auto;
     font-size: 0.8rem;
     color: var(--a-muted);
     white-space: nowrap;
 }
 
-#rsv-serveis button.rsv-del {
+:is(#rsv-serveis, #rsv-stock) button.rsv-del {
     border: 1px solid rgba(220, 38, 38, 0.4);
     color: var(--a-danger);
     background: transparent;
@@ -3072,19 +3079,19 @@
     transition: all 0.15s ease;
 }
 
-#rsv-serveis button.rsv-del:hover {
+:is(#rsv-serveis, #rsv-stock) button.rsv-del:hover {
     background: var(--a-danger);
     color: #fff;
 }
 
-#rsv-serveis .rsv-empty {
+:is(#rsv-serveis, #rsv-stock) .rsv-empty {
     color: var(--a-muted);
     text-align: center;
     padding: 1.5rem;
 }
 
 /* Selector de fitxer (estil botó) */
-#rsv-serveis .rsv-file {
+:is(#rsv-serveis, #rsv-stock) .rsv-file {
     display: inline-flex;
     align-items: center;
     max-width: 13rem;
@@ -3099,27 +3106,27 @@
     transition: all 0.15s ease;
 }
 
-#rsv-serveis .rsv-file:hover {
+:is(#rsv-serveis, #rsv-stock) .rsv-file:hover {
     border-color: var(--a-accent);
     color: var(--a-accent);
 }
 
-#rsv-serveis .rsv-file > span {
+:is(#rsv-serveis, #rsv-stock) .rsv-file > span {
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-#rsv-serveis .rsv-file > input {
+:is(#rsv-serveis, #rsv-stock) .rsv-file > input {
     display: none;
 }
 
 /* Previsualització en crear */
-#rsv-serveis .rsv-srv-newprev {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-newprev {
     margin-bottom: 1rem;
     text-align: center;
 }
 
-#rsv-serveis .rsv-srv-newprev > img {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-newprev > img {
     width: 5rem;
     height: 5rem;
     object-fit: cover;
@@ -3128,7 +3135,7 @@
 }
 
 /* Miniatura del catàleg */
-#rsv-serveis .rsv-srv-thumb {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-thumb {
     flex: none;
     width: 3rem;
     height: 3rem;
@@ -3141,19 +3148,19 @@
     justify-content: center;
 }
 
-#rsv-serveis .rsv-srv-thumb > img {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-thumb > img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-#rsv-serveis .rsv-srv-noimg {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-noimg {
     color: var(--a-muted);
     font-weight: 700;
 }
 
 /* Camps en mode edició */
-#rsv-serveis .rsv-srv-editfields {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-editfields {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -3162,7 +3169,7 @@
     min-width: 12rem;
 }
 
-#rsv-serveis .rsv-srv-editfields > input[type='text'] {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-editfields > input[type='text'] {
     flex: 1;
     min-width: 9rem;
     border: 1px solid var(--a-line);
@@ -3173,13 +3180,13 @@
     font-size: 0.95rem;
 }
 
-#rsv-serveis .rsv-srv-editfields > input[type='text']:focus {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-editfields > input[type='text']:focus {
     outline: none;
     border-color: var(--a-accent);
     box-shadow: 0 0 0 3px var(--a-soft);
 }
 
-#rsv-serveis .rsv-srv-editfields .rsv-error {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-editfields .rsv-error {
     width: 100%;
     margin: 0;
 }
@@ -3506,7 +3513,7 @@
 /* =====================================================================
    Editor de galeria d'imatges (ImagesField): categories, serveis i opcions
    ===================================================================== */
-#rsv-serveis .rsv-imgs {
+:is(#rsv-serveis, #rsv-stock) .rsv-imgs {
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
@@ -3515,15 +3522,15 @@
 }
 
 /* Variant centrada: als formularis de crear (categoria i nou servei). */
-#rsv-serveis .rsv-imgs-centered {
+:is(#rsv-serveis, #rsv-stock) .rsv-imgs-centered {
     justify-content: center;
 }
 
 /* Dins de l'edició al catàleg la galeria ocupa la seva pròpia fila, separada
    de la resta de camps perquè es llegeixi millor. */
-#rsv-serveis .rsv-srv-editfields > .rsv-imgs,
-#rsv-serveis .rsv-srv-optfields > .rsv-imgs,
-#rsv-serveis .rsv-srv-grouphead > .rsv-imgs {
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-editfields > .rsv-imgs,
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-optfields > .rsv-imgs,
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-grouphead > .rsv-imgs {
     flex-basis: 100%;
     width: 100%;
     justify-content: center;
@@ -3532,7 +3539,7 @@
     border-top: 1px dashed var(--a-line);
 }
 
-#rsv-serveis .rsv-imgs-item {
+:is(#rsv-serveis, #rsv-stock) .rsv-imgs-item {
     position: relative;
     width: 5rem;
     height: 5rem;
@@ -3542,7 +3549,7 @@
     background: var(--a-soft);
 }
 
-#rsv-serveis .rsv-imgs-item > img {
+:is(#rsv-serveis, #rsv-stock) .rsv-imgs-item > img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -3550,7 +3557,7 @@
 }
 
 /* Distintiu de la imatge de portada (la primera). */
-#rsv-serveis .rsv-imgs-cover {
+:is(#rsv-serveis, #rsv-stock) .rsv-imgs-cover {
     position: absolute;
     top: 0.25rem;
     left: 0.25rem;
@@ -3564,7 +3571,7 @@
 }
 
 /* Barra d'accions a sota de cada imatge (reordenar i treure). */
-#rsv-serveis .rsv-imgs-actions {
+:is(#rsv-serveis, #rsv-stock) .rsv-imgs-actions {
     position: absolute;
     inset: auto 0 0 0;
     display: flex;
@@ -3574,7 +3581,7 @@
     background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
 }
 
-#rsv-serveis .rsv-imgs-actions > button {
+:is(#rsv-serveis, #rsv-stock) .rsv-imgs-actions > button {
     width: 1.4rem;
     height: 1.4rem;
     border: none;
@@ -3590,26 +3597,26 @@
     transition: background 0.15s ease;
 }
 
-#rsv-serveis .rsv-imgs-actions > button:hover:not(:disabled) {
+:is(#rsv-serveis, #rsv-stock) .rsv-imgs-actions > button:hover:not(:disabled) {
     background: #fff;
 }
 
-#rsv-serveis .rsv-imgs-actions > button:disabled {
+:is(#rsv-serveis, #rsv-stock) .rsv-imgs-actions > button:disabled {
     opacity: 0.4;
     cursor: not-allowed;
 }
 
-#rsv-serveis .rsv-imgs-actions > .rsv-imgs-del {
+:is(#rsv-serveis, #rsv-stock) .rsv-imgs-actions > .rsv-imgs-del {
     background: rgba(220, 38, 38, 0.9);
     color: #fff;
 }
 
-#rsv-serveis .rsv-imgs-actions > .rsv-imgs-del:hover {
+:is(#rsv-serveis, #rsv-stock) .rsv-imgs-actions > .rsv-imgs-del:hover {
     background: #dc2626;
 }
 
 /* Botó d'afegir més imatges. */
-#rsv-serveis .rsv-imgs-add {
+:is(#rsv-serveis, #rsv-stock) .rsv-imgs-add {
     width: 5rem;
     height: 5rem;
     border-radius: 0.75rem;
@@ -3629,11 +3636,546 @@
         color 0.15s ease;
 }
 
-#rsv-serveis .rsv-imgs-add:hover {
+:is(#rsv-serveis, #rsv-stock) .rsv-imgs-add:hover {
     border-color: var(--a-accent);
     color: var(--a-accent);
 }
 
-#rsv-serveis .rsv-imgs-add > input {
+:is(#rsv-serveis, #rsv-stock) .rsv-imgs-add > input {
     display: none;
+}
+
+/* =========================================================================
+   /admin/serveis i /admin/stock — aspecte modern de "Categories" i del
+   formulari de "Nou servei/article". Només afecta els formularis superiors
+   (.rsv-srv-form) i els seus encapçalaments (.rsv-srv-center); el catàleg
+   no es toca.
+   ========================================================================= */
+
+/* Encapçalament de secció amb dues línies d'accent als costats. */
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.1rem;
+}
+
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-center::before,
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-center::after {
+    content: '';
+    height: 2px;
+    width: 2.4rem;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, var(--a-accent));
+    opacity: 0.55;
+}
+
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-center::after {
+    background: linear-gradient(90deg, var(--a-accent), transparent);
+}
+
+/* El formulari passa a ser una targeta amb fons suau i ombra. */
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form {
+    max-width: 40rem;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    margin: 0 auto 1.5rem;
+    border: 1px solid var(--a-line);
+    border-radius: 1.25rem;
+    background:
+        linear-gradient(180deg, var(--a-soft), transparent 55%),
+        var(--a-card);
+    box-shadow: 0 0.85rem 2rem -1.1rem rgba(30, 27, 46, 0.4);
+}
+
+/* Camps omplerts, més arrodonits i amb transició de focus suau. */
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form > input,
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-num > input,
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-descfield,
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-select {
+    background: var(--a-card);
+    border: 1px solid var(--a-line);
+    border-radius: 0.9rem;
+    padding: 0.72rem 0.95rem;
+    font-size: 0.95rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-num > input {
+    padding-right: 3rem;
+}
+
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form > input:focus,
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-num > input:focus,
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-descfield:focus,
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-select:focus {
+    outline: none;
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-soft);
+}
+
+/* El nom, la descripció, la categoria i el botó ocupen tota l'amplada;
+   els camps numèrics (preu, durada, quantitat) queden un al costat de l'altre. */
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form > input,
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-descfield,
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-select {
+    flex: 1 1 100%;
+    width: 100%;
+}
+
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-descfield {
+    resize: vertical;
+}
+
+/* Botó "Afegir" destacat: accent ple, pastilla, amb lleuger relleu. */
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-edit {
+    flex: 1 1 100%;
+    margin-top: 0.15rem;
+    padding: 0.75rem 1.2rem;
+    border-radius: 0.9rem;
+    border-color: transparent;
+    background: var(--a-accent);
+    color: #fff;
+    box-shadow: 0 0.55rem 1.1rem -0.55rem var(--a-accent);
+    transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-edit:hover {
+    background: var(--a-accent);
+    color: #fff;
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-edit:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Zona d'imatges integrada dins de la targeta, com una àrea de pujada moderna. */
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-imgzone {
+    flex: 1 1 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1rem;
+    border: 1px dashed var(--a-line);
+    border-radius: 0.9rem;
+    background: var(--a-card);
+}
+
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-imgzone-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--a-muted);
+}
+
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-imgzone .rsv-imgs {
+    margin: 0;
+    justify-content: flex-start;
+}
+
+/* Miniatures del catàleg: indiquen que es poden clicar per ampliar. */
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-thumb .rsv-srv-zoomable {
+    cursor: zoom-in;
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+:is(#rsv-serveis, #rsv-stock) .rsv-srv-thumb .rsv-srv-zoomable:hover {
+    transform: scale(1.04);
+    filter: brightness(1.05);
+}
+
+/* ===== Visor d'imatges ampliades (lightbox), teletransportat al <body> ===== */
+.rsv-srv-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1rem, 3vw, 2.5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: rgba(10, 12, 20, 0.82);
+    backdrop-filter: blur(4px);
+}
+
+.rsv-srv-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    max-width: 100%;
+}
+
+.rsv-srv-zoom {
+    flex: 0 1 auto;
+    max-width: min(90vw, 440px);
+    max-height: 82vh;
+    object-fit: contain;
+    border-radius: 1rem;
+    box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.5);
+}
+
+/* Amb una sola imatge es pot mostrar més gran. */
+.rsv-srv-gallery.is-single .rsv-srv-zoom {
+    max-width: min(92vw, 640px);
+    max-height: 85vh;
+}
+
+.rsv-srv-close {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.rsv-srv-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.rsv-srv-fade-enter-active,
+.rsv-srv-fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.rsv-srv-fade-enter-from,
+.rsv-srv-fade-leave-to {
+    opacity: 0;
+}
+
+/* ---------- Edició d'una reserva des de l'historial ---------- */
+
+/* Columna i botó d'acció dins la taula de l'historial. */
+#rsv-history .rsv-actions-cell {
+    width: 1%;
+    white-space: nowrap;
+    text-align: right;
+}
+
+/* Etiquetes dels productes comprats amb la reserva. */
+#rsv-history .rsv-prod-tag {
+    display: inline-block;
+    margin: 0.1rem 0.25rem 0.1rem 0;
+    padding: 0.1rem 0.45rem;
+    border-radius: 0.5rem;
+    background: var(--a-soft);
+    color: var(--a-accent);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+#rsv-history .rsv-edit {
+    border: 1px solid var(--a-line);
+    background: var(--a-soft);
+    color: var(--a-accent);
+    border-radius: 0.6rem;
+    padding: 0.35rem 0.75rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+}
+
+#rsv-history .rsv-edit:hover {
+    filter: brightness(1.05);
+}
+
+/* El modal es teleporta a <body>, fora de #rsv-history: colors explícits (+ .dark)
+   i la transició rsv-fade definits aquí perquè no depenguin de l'scope de la pàgina. */
+.rsv-fade-enter-active,
+.rsv-fade-leave-active {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.rsv-fade-enter-from,
+.rsv-fade-leave-to {
+    opacity: 0;
+    transform: translateY(-0.35rem);
+}
+
+.rsv-edit-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: rgba(10, 12, 20, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.rsv-edit-modal {
+    width: 100%;
+    max-width: 28rem;
+    background: #ffffff;
+    color: #1f2430;
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.dark .rsv-edit-modal {
+    background: #14171f;
+    color: #e7e9ee;
+}
+
+.rsv-edit-modal > h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.rsv-edit-modal > label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.rsv-edit-modal > select,
+.rsv-edit-modal > textarea {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    background: transparent;
+    color: inherit;
+    border-radius: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+.dark .rsv-edit-modal > select,
+.dark .rsv-edit-modal > textarea {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.rsv-edit-modal > select option {
+    color: #1f2430;
+}
+
+.rsv-edit-modal > textarea {
+    min-height: 6rem;
+    resize: vertical;
+}
+
+.rsv-edit-modal > select:focus,
+.rsv-edit-modal > textarea:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.rsv-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.rsv-edit-back {
+    border: 1px solid #e5e7eb;
+    background: transparent;
+    color: inherit;
+    border-radius: 0.75rem;
+    padding: 0.55rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.dark .rsv-edit-back {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.rsv-edit-go {
+    border: none;
+    background: #4f46e5;
+    color: #fff;
+    border-radius: 0.75rem;
+    padding: 0.55rem 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+}
+
+.rsv-edit-go:hover:not(:disabled) {
+    filter: brightness(1.08);
+}
+
+.rsv-edit-go:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Secció d'edició de productes dins del modal de la reserva (llista desplaçable). */
+.rsv-edit-products {
+    max-height: 14rem;
+    overflow-y: auto;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+}
+
+.dark .rsv-edit-products {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.rsv-edit-prodcat {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #4f46e5;
+    margin: 0.35rem 0 0.3rem;
+}
+
+.dark .rsv-edit-prodcat {
+    color: #a5b4fc;
+}
+
+.rsv-edit-proditem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.4rem 0.55rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.6rem;
+    margin-bottom: 0.35rem;
+}
+
+.dark .rsv-edit-proditem {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.rsv-edit-proditem.is-on {
+    border-color: #4f46e5;
+    background: rgba(79, 70, 229, 0.08);
+}
+
+.rsv-edit-prodname {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.rsv-edit-prodqty {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.rsv-edit-prodqty > button {
+    width: 1.7rem;
+    height: 1.7rem;
+    border: 1px solid #e5e7eb;
+    background: transparent;
+    color: inherit;
+    border-radius: 0.45rem;
+    font-size: 1.05rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dark .rsv-edit-prodqty > button {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.rsv-edit-prodqty > button:hover:not(:disabled) {
+    border-color: #4f46e5;
+    color: #4f46e5;
+}
+
+.rsv-edit-prodqty > button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.rsv-edit-prodqty > span {
+    min-width: 1.1rem;
+    text-align: center;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Totals (servei + productes) al modal d'edició de la reserva. */
+.rsv-edit-money {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-top: 0.25rem;
+}
+
+.rsv-edit-money-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    font-size: 0.9rem;
+}
+
+.rsv-edit-money-row > span:first-child {
+    color: #6b7280;
+}
+
+.dark .rsv-edit-money-row > span:first-child {
+    color: #9aa1af;
+}
+
+.rsv-edit-money-row > span:last-child {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.rsv-edit-money-total {
+    margin-top: 0.25rem;
+    padding-top: 0.55rem;
+    border-top: 1px solid #e5e7eb;
+    font-size: 1.05rem;
+}
+
+.dark .rsv-edit-money-total {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.rsv-edit-money-total > span:first-child {
+    color: inherit;
+    font-weight: 800;
+}
+
+.rsv-edit-money-total > span:last-child {
+    color: #4f46e5;
+    font-weight: 800;
+}
+
+.dark .rsv-edit-money-total > span:last-child {
+    color: #a5b4fc;
 }

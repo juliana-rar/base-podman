@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import Calendar from '@/components/Calendar.vue';
 import ClockPicker from '@/components/ClockPicker.vue';
@@ -49,11 +49,27 @@ interface Reservation {
     service: Service | null;
 }
 
+interface Product {
+    id: number;
+    name: string;
+    price: string;
+    quantity: number;
+    url: string | null;
+}
+
+interface StockCategory {
+    id: number;
+    name: string;
+    products: Product[];
+}
+
 const props = defineProps<{
     availableSlots: Slot[];
     myReservations: Reservation[];
     services: Service[];
     employees: Employee[];
+    stockCategories: StockCategory[];
+    uncategorizedStock: Product[];
 }>();
 
 defineOptions({
@@ -290,9 +306,87 @@ const canReserve = computed(
     () =>
         selectedSlotId.value !== null &&
         employeeId.value !== null &&
-        serviceId.value !== null &&
-        note.value.trim() !== '',
+        serviceId.value !== null,
 );
+
+// Usuari autenticat que fa la reserva (per mostrar-ne el contacte al resum).
+const page = usePage();
+const authUser = computed(() => page.props.auth.user);
+
+// Resum de la selecció per al modal de confirmació.
+const selectedEmployee = computed(() => props.employees.find((e) => e.id === employeeId.value) ?? null);
+const selectedService = computed(() => props.services.find((s) => s.id === serviceId.value) ?? null);
+const selectedOption = computed(
+    () => selectedService.value?.options.find((o) => o.id === optionId.value) ?? null,
+);
+
+// Preu del servei escollit: el de l'opció si en té (>0), si no el del servei.
+const selectedServicePrice = computed(() => {
+    const optionPrice = selectedOption.value ? Number(selectedOption.value.price) : 0;
+    if (optionPrice > 0) {
+        return optionPrice;
+    }
+    return selectedService.value ? Number(selectedService.value.price) : 0;
+});
+
+// --- Productes d'stock opcionals («vols comprar algun producte per després?») ---
+// Quantitat triada per article (id -> unitats). Absència o 0 = no seleccionat.
+const productQty = ref<Record<number, number>>({});
+
+// Tots els grups de productes a mostrar: categories + un grup final «sense categoria».
+const productGroups = computed(() => {
+    const groups = props.stockCategories.map((c) => ({ id: c.id, name: c.name, products: c.products }));
+    if (props.uncategorizedStock.length) {
+        groups.push({ id: -1, name: t('res.shopNoCategory'), products: props.uncategorizedStock });
+    }
+    return groups;
+});
+
+const hasProducts = computed(() => productGroups.value.some((g) => g.products.length));
+
+function qtyOf(product: Product): number {
+    return productQty.value[product.id] ?? 0;
+}
+
+function setQty(product: Product, value: number): void {
+    const clamped = Math.max(0, Math.min(value, product.quantity));
+    if (clamped === 0) {
+        delete productQty.value[product.id];
+    } else {
+        productQty.value[product.id] = clamped;
+    }
+}
+
+// Articles triats (quantitat > 0), aplanats des de tots els grups.
+const selectedProducts = computed(() =>
+    productGroups.value
+        .flatMap((g) => g.products)
+        .filter((p) => qtyOf(p) > 0)
+        .map((p) => ({ product: p, quantity: qtyOf(p) })),
+);
+
+const productsTotal = computed(() =>
+    selectedProducts.value.reduce((sum, item) => sum + Number(item.product.price) * item.quantity, 0),
+);
+
+const currencyFmt = computed(() => new Intl.NumberFormat(localeTag(), { style: 'currency', currency: 'EUR' }));
+function money(n: number): string {
+    return currencyFmt.value.format(n);
+}
+
+// Modal de confirmació de la reserva.
+const showConfirm = ref(false);
+
+function openConfirm(): void {
+    if (!canReserve.value) {
+        return;
+    }
+    showConfirm.value = true;
+}
+
+function closeConfirm(): void {
+    showConfirm.value = false;
+}
 
 watch(effectiveDay, () => {
     time.value = '';
@@ -367,13 +461,19 @@ function reserve(): void {
             service_option_id: optionId.value,
             employee_id: employeeId.value,
             note: note.value,
+            products: selectedProducts.value.map((item) => ({
+                stock_id: item.product.id,
+                quantity: item.quantity,
+            })),
         },
         {
             preserveScroll: true,
             onSuccess: () => {
+                showConfirm.value = false;
                 showMessage('ok', `${t('res.confirmed')} ${label}`);
                 time.value = '';
                 note.value = '';
+                productQty.value = {};
             },
             onError: () => {
                 showMessage('err', t('res.err'));
@@ -447,11 +547,9 @@ function confirmCancel(): void {
             </div>
 
             <div v-if="services.length" class="rsv-service-pick">
-                <span class="rsv-service-label">{{ t('res.service') }} *</span>
-                <p v-if="employeeId === null" class="rsv-service-hint">{{ t('res.pickEmployeeFirst') }}</p>
-                <p v-else-if="!serviceGroups.length" class="rsv-service-hint">{{ t('res.employeeNoServices') }}</p>
-                <template v-else>
-                    <div class="rsv-service-search">
+                <div class="rsv-service-head">
+                    <span class="rsv-service-label">{{ t('res.service') }} *</span>
+                    <div v-if="employeeId !== null && serviceGroups.length" class="rsv-service-search">
                         <span class="rsv-service-search-icon">🔍</span>
                         <input
                             v-model="serviceSearch"
@@ -461,6 +559,10 @@ function confirmCancel(): void {
                             @keydown.enter.prevent="findAndScroll"
                         />
                     </div>
+                </div>
+                <p v-if="employeeId === null" class="rsv-service-hint">{{ t('res.pickEmployeeFirst') }}</p>
+                <p v-else-if="!serviceGroups.length" class="rsv-service-hint">{{ t('res.employeeNoServices') }}</p>
+                <template v-else>
                     <div class="rsv-service-scroller">
                     <div class="rsv-service-groups">
                         <div v-for="group in serviceGroups" :key="group.id ?? 'none'" class="rsv-service-group">
@@ -525,47 +627,84 @@ function confirmCancel(): void {
             </div>
         </header>
 
-        <section>
-            <div>
-                <h2>{{ t('res.triaDia') }}</h2>
-                <Calendar
-                    v-model="selectedDay"
-                    :highlight-dates="availableDayKeys"
-                    :min-date="todayKey"
-                />
-                <h3>{{ t('res.horesDisp') }}</h3>
-                <div v-if="dayTimes.length">
-                    <button
-                        v-for="entry in dayTimes"
-                        :key="entry.id"
-                        type="button"
-                        :class="{ 'is-active': entry.time === time }"
-                        @click="time = entry.time"
-                    >
-                        {{ entry.time }}
-                    </button>
+        <section class="rsv-book-layout" :class="{ 'has-shop': hasProducts }">
+            <aside v-if="hasProducts" class="rsv-shop">
+                <h2 class="rsv-shop-title">{{ t('res.shopTitle') }}</h2>
+                <div class="rsv-shop-list">
+                    <div v-for="group in productGroups" :key="group.id" class="rsv-shop-group">
+                        <h3 class="rsv-shop-cat">{{ group.name }}</h3>
+                        <div
+                            v-for="product in group.products"
+                            :key="product.id"
+                            class="rsv-shop-item"
+                            :class="{ 'is-on': qtyOf(product) > 0 }"
+                        >
+                            <img
+                                v-if="product.url"
+                                :src="product.url"
+                                alt=""
+                                class="rsv-shop-thumb"
+                                :title="t('res.zoomImg')"
+                                @click="openGallery(product.url ? [product.url] : [])"
+                            />
+                            <div class="rsv-shop-info">
+                                <span class="rsv-shop-name">{{ product.name }}</span>
+                                <span class="rsv-shop-meta">{{ money(Number(product.price)) }} · {{ t('res.shopLeft') }}</span>
+                            </div>
+                            <div class="rsv-shop-qty">
+                                <button type="button" aria-label="−" :disabled="qtyOf(product) === 0" @click="setQty(product, qtyOf(product) - 1)">−</button>
+                                <span>{{ qtyOf(product) }}</span>
+                                <button type="button" aria-label="+" :disabled="qtyOf(product) >= product.quantity" @click="setQty(product, qtyOf(product) + 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div v-else class="rsv-empty">{{ t('res.capHora') }}</div>
-            </div>
+            </aside>
 
-            <div>
-                <h2>{{ t('res.triaHora') }}</h2>
-                <ClockPicker v-model="time" :highlight-times="highlightTimes" restrict />
-                <div>
-                    <label for="time-input">{{ t('res.oEscriu') }}</label>
-                    <input id="time-input" v-model="time" type="time" step="900" />
+            <div class="rsv-book-main">
+                <div class="rsv-pickers">
+                    <div class="rsv-pick-col">
+                        <h2>{{ t('res.triaDia') }}</h2>
+                        <Calendar
+                            v-model="selectedDay"
+                            :highlight-dates="availableDayKeys"
+                            :min-date="todayKey"
+                        />
+                        <h3 class="rsv-hours-title">{{ t('res.horesDisp') }}</h3>
+                        <div v-if="dayTimes.length" class="rsv-hours-grid">
+                            <button
+                                v-for="entry in dayTimes"
+                                :key="entry.id"
+                                type="button"
+                                :class="{ 'is-active': entry.time === time }"
+                                @click="time = entry.time"
+                            >
+                                {{ entry.time }}
+                            </button>
+                        </div>
+                        <div v-else class="rsv-empty">{{ t('res.capHora') }}</div>
+                    </div>
+
+                    <div class="rsv-pick-col">
+                        <h2 class="rsv-clock-title">{{ t('res.triaHora') }}</h2>
+                        <ClockPicker v-model="time" :highlight-times="highlightTimes" restrict />
+                        <div class="rsv-time-input">
+                            <label for="time-input">{{ t('res.oEscriu') }}</label>
+                            <input id="time-input" v-model="time" type="time" step="900" />
+                        </div>
+                    </div>
                 </div>
+
                 <div class="rsv-note">
-                    <label for="note">{{ t('res.note') }} *</label>
+                    <label for="note">{{ t('res.note') }}</label>
                     <textarea
                         id="note"
                         v-model="note"
                         :placeholder="t('res.notePlaceholder')"
                         maxlength="1000"
-                        required
                     ></textarea>
                 </div>
-                <button type="button" :disabled="!canReserve" @click="reserve">
+                <button type="button" class="rsv-book-btn" :disabled="!canReserve" @click="openConfirm">
                     {{ selectedSlotId ? `${t('res.book')} ${dayLabel} ${t('res.at')} ${time}` : t('res.pickAvailable') }}
                 </button>
             </div>
@@ -593,6 +732,72 @@ function confirmCancel(): void {
                         <img v-for="(url, i) in galleryImages" :key="i" :src="url" alt="" class="rsv-img-zoom" />
                     </div>
                     <button type="button" class="rsv-img-close" aria-label="×" @click="closeGallery">×</button>
+                </div>
+            </transition>
+        </Teleport>
+
+        <Teleport to="body">
+            <transition name="rsv-fade">
+                <div v-if="showConfirm" class="rsv-cancel-overlay" @click.self="closeConfirm">
+                    <div class="rsv-cancel-modal">
+                        <h3>{{ t('res.confirmTitle') }}</h3>
+                        <ul class="rsv-summary">
+                            <li>
+                                <span class="rsv-summary-k">{{ t('res.when') }}</span>
+                                <span class="rsv-summary-v">{{ dayLabel }} · {{ time }}</span>
+                            </li>
+                            <li>
+                                <span class="rsv-summary-k">{{ t('res.employee') }}</span>
+                                <span class="rsv-summary-v">{{ selectedEmployee?.name }}</span>
+                            </li>
+                            <li>
+                                <span class="rsv-summary-k">{{ t('res.email') }}</span>
+                                <span class="rsv-summary-v">{{ authUser.email }}</span>
+                            </li>
+                            <li>
+                                <span class="rsv-summary-k">{{ t('res.phone') }}</span>
+                                <span class="rsv-summary-v">{{ authUser.phone || t('res.noPhone') }}</span>
+                            </li>
+                            <li>
+                                <span class="rsv-summary-k">{{ t('res.service') }}</span>
+                                <span class="rsv-summary-v">{{ selectedService?.name }}<template v-if="selectedOption"> · {{ selectedOption.name }}</template></span>
+                            </li>
+                            <li v-if="note.trim()">
+                                <span class="rsv-summary-k">{{ t('res.note') }}</span>
+                                <span class="rsv-summary-v">{{ note }}</span>
+                            </li>
+                            <li v-if="selectedProducts.length" class="rsv-summary-products">
+                                <span class="rsv-summary-k">{{ t('res.shopSummary') }}</span>
+                                <span class="rsv-summary-v">
+                                    <span v-for="item in selectedProducts" :key="item.product.id" class="rsv-summary-prod">
+                                        {{ item.quantity }}× {{ item.product.name }}
+                                    </span>
+                                </span>
+                            </li>
+                        </ul>
+
+                        <div class="rsv-summary-money">
+                            <div class="rsv-money-row">
+                                <span>{{ t('res.serviceType') }}</span>
+                                <span>{{ money(selectedServicePrice) }}</span>
+                            </div>
+                            <div v-if="selectedProducts.length" class="rsv-money-row">
+                                <span>{{ t('res.shopSummary') }}</span>
+                                <span>{{ money(productsTotal) }}</span>
+                            </div>
+                            <div class="rsv-money-row rsv-money-total">
+                                <span>{{ t('res.total') }}</span>
+                                <span>{{ money(selectedServicePrice + productsTotal) }}</span>
+                            </div>
+                        </div>
+
+                        <div class="rsv-cancel-actions">
+                            <button type="button" class="rsv-cancel-back" @click="closeConfirm">{{ t('res.cancelBack') }}</button>
+                            <button type="button" class="rsv-cancel-go rsv-confirm-go" :disabled="!canReserve" @click="reserve">
+                                {{ t('res.confirmBook') }}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </transition>
         </Teleport>

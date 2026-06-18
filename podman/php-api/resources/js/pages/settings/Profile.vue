@@ -78,7 +78,7 @@ const user = computed(() => page.props.auth.user);
                     type="tel"
                     class="mt-1 block w-full"
                     name="phone"
-                    :default-value="user.phone"
+                    :default-value="user.phone ?? undefined"
                     required
                     autocomplete="tel"
                     placeholder="+34 600 000 000"

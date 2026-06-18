@@ -6,7 +6,10 @@ use App\Models\Employee;
 use App\Models\Post;
 use App\Models\Reservation;
 use App\Models\Service;
+use App\Models\ServiceCategory;
+use App\Models\ServiceOption;
 use App\Models\Slot;
+use App\Models\Stock;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -50,6 +53,81 @@ class ReservaTest extends TestCase
             'user_id' => $user->id,
             'service_id' => $service->id,
             'employee_id' => $employee->id,
+        ]);
+    }
+
+    public function test_user_can_reserve_without_a_note(): void
+    {
+        $user = User::factory()->create();
+        $slot = Slot::factory()->create();
+        $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
+        $employee = Employee::create(['name' => 'Anna']);
+
+        $this->actingAs($user)
+            ->post(route('reservas.store'), [
+                'slot_id' => $slot->id,
+                'service_id' => $service->id,
+                'employee_id' => $employee->id,
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('reservations', [
+            'slot_id' => $slot->id,
+            'user_id' => $user->id,
+            'note' => null,
+        ]);
+    }
+
+    public function test_user_can_reserve_with_optional_products(): void
+    {
+        $user = User::factory()->create();
+        $slot = Slot::factory()->create();
+        $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
+        $employee = Employee::create(['name' => 'Anna']);
+        $product = Stock::create(['name' => 'Xampú', 'quantity' => 5, 'price' => 8.50]);
+
+        $this->actingAs($user)
+            ->post(route('reservas.store'), [
+                'slot_id' => $slot->id,
+                'service_id' => $service->id,
+                'employee_id' => $employee->id,
+                'products' => [
+                    ['stock_id' => $product->id, 'quantity' => 2],
+                ],
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('reservation_stock', [
+            'stock_id' => $product->id,
+            'quantity' => 2,
+        ]);
+    }
+
+    public function test_reserved_product_quantity_is_capped_at_available_stock(): void
+    {
+        $user = User::factory()->create();
+        $slot = Slot::factory()->create();
+        $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
+        $employee = Employee::create(['name' => 'Anna']);
+        $product = Stock::create(['name' => 'Crema', 'quantity' => 3, 'price' => 12]);
+
+        $this->actingAs($user)
+            ->post(route('reservas.store'), [
+                'slot_id' => $slot->id,
+                'service_id' => $service->id,
+                'employee_id' => $employee->id,
+                'products' => [
+                    ['stock_id' => $product->id, 'quantity' => 10],
+                ],
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('reservation_stock', [
+            'stock_id' => $product->id,
+            'quantity' => 3,
         ]);
     }
 
@@ -194,5 +272,131 @@ class ReservaTest extends TestCase
                 ->component('admin/Historial')
                 ->where('reservations.0.service.price', '25.00')
             );
+    }
+
+    public function test_admin_history_exposes_service_category_and_option_for_excel(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $category = ServiceCategory::create(['name' => 'Perruqueria']);
+        $service = Service::create([
+            'name' => 'Tall',
+            'price' => 25,
+            'duration_minutes' => 30,
+            'service_category_id' => $category->id,
+        ]);
+        $option = ServiceOption::create(['service_id' => $service->id, 'name' => 'Amb rentat', 'price' => 30]);
+        $slot = Slot::factory()->create();
+        Reservation::factory()->create([
+            'slot_id' => $slot->id,
+            'service_id' => $service->id,
+            'service_option_id' => $option->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.reserves'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/Historial')
+                ->where('reservations.0.service.category.name', 'Perruqueria')
+                ->where('reservations.0.service_option.name', 'Amb rentat')
+            );
+    }
+
+    public function test_admin_can_edit_a_reservation_service_employee_and_note(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $oldService = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
+        $newService = Service::create(['name' => 'Tint', 'price' => 40, 'duration_minutes' => 60]);
+        $oldEmployee = Employee::create(['name' => 'Anna']);
+        $newEmployee = Employee::create(['name' => 'Berta']);
+        $reservation = Reservation::factory()->create([
+            'service_id' => $oldService->id,
+            'employee_id' => $oldEmployee->id,
+            'note' => 'Nota original',
+        ]);
+
+        $this->actingAs($admin)
+            ->put(route('admin.reserves.update', $reservation), [
+                'service_id' => $newService->id,
+                'employee_id' => $newEmployee->id,
+                'note' => 'Nota actualitzada',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('reservations', [
+            'id' => $reservation->id,
+            'service_id' => $newService->id,
+            'employee_id' => $newEmployee->id,
+            'note' => 'Nota actualitzada',
+        ]);
+    }
+
+    public function test_admin_can_edit_reservation_products(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
+        $employee = Employee::create(['name' => 'Anna']);
+        $oldProduct = Stock::create(['name' => 'Xampú', 'quantity' => 5, 'price' => 8]);
+        $newProduct = Stock::create(['name' => 'Crema', 'quantity' => 4, 'price' => 12]);
+        $reservation = Reservation::factory()->create([
+            'service_id' => $service->id,
+            'employee_id' => $employee->id,
+        ]);
+        $reservation->stocks()->attach($oldProduct->id, ['quantity' => 1]);
+
+        $this->actingAs($admin)
+            ->put(route('admin.reserves.update', $reservation), [
+                'service_id' => $service->id,
+                'employee_id' => $employee->id,
+                'note' => 'Amb productes',
+                'products' => [
+                    ['stock_id' => $newProduct->id, 'quantity' => 3],
+                ],
+            ])
+            ->assertRedirect();
+
+        // El producte antic es treu i s'hi posa el nou amb la quantitat indicada.
+        $this->assertDatabaseMissing('reservation_stock', [
+            'reservation_id' => $reservation->id,
+            'stock_id' => $oldProduct->id,
+        ]);
+        $this->assertDatabaseHas('reservation_stock', [
+            'reservation_id' => $reservation->id,
+            'stock_id' => $newProduct->id,
+            'quantity' => 3,
+        ]);
+    }
+
+    public function test_normal_user_cannot_edit_a_reservation(): void
+    {
+        $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
+        $employee = Employee::create(['name' => 'Anna']);
+        $reservation = Reservation::factory()->create();
+
+        $this->actingAs(User::factory()->create())
+            ->put(route('admin.reserves.update', $reservation), [
+                'service_id' => $service->id,
+                'employee_id' => $employee->id,
+                'note' => 'Intent no autoritzat',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('reservations', [
+            'id' => $reservation->id,
+            'note' => 'Intent no autoritzat',
+        ]);
+    }
+
+    public function test_admin_editing_a_reservation_requires_valid_fields(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $reservation = Reservation::factory()->create();
+
+        $this->actingAs($admin)
+            ->put(route('admin.reserves.update', $reservation), [
+                'service_id' => 999999,
+                'employee_id' => null,
+                'note' => '',
+            ])
+            ->assertSessionHasErrors(['service_id', 'employee_id', 'note']);
     }
 }

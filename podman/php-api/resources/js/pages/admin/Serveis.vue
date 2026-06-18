@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { computed, ref, type Ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, type Ref } from 'vue';
 import ImagesField, { type ImageItem } from '@/components/ImagesField.vue';
 import { useI18n } from '@/lib/i18n';
 import '../../../css/reserva/admin.css';
@@ -381,6 +381,30 @@ function removeOption(id: number): void {
     router.delete(`/admin/serveis-options/${id}`, { preserveScroll: true });
 }
 
+// =========================================================================
+//  Visor d'imatges del catàleg (lightbox): en clicar una miniatura es mostra
+//  tota la galeria ampliada. Es tanca amb la tecla Escape o clicant el fons.
+// =========================================================================
+const galleryImages = ref<string[]>([]);
+
+function openGallery(urls: string[]): void {
+    if (!urls.length) return;
+    galleryImages.value = urls;
+}
+
+function closeGallery(): void {
+    galleryImages.value = [];
+}
+
+function onGalleryKey(event: KeyboardEvent): void {
+    if (galleryImages.value.length && event.key === 'Escape') {
+        closeGallery();
+    }
+}
+
+onMounted(() => window.addEventListener('keydown', onGalleryKey));
+onUnmounted(() => window.removeEventListener('keydown', onGalleryKey));
+
 // Durada de les opcions repartida en hores i minuts.
 const optHours = computed({
     get: () => Math.floor(optionForm.duration_minutes / 60),
@@ -435,11 +459,14 @@ const editOptMinutes = computed({
                     maxlength="2000"
                     :placeholder="t('srv.catInfoPh')"
                 ></textarea>
+                <div class="rsv-srv-imgzone">
+                    <span class="rsv-srv-imgzone-label">{{ t('srv.imageOpt') }}</span>
+                    <ImagesField v-model="catImages" />
+                </div>
                 <button type="button" class="rsv-edit" :disabled="catForm.processing" @click="createCategory">
                     {{ t('srv.addCategory') }}
                 </button>
             </div>
-            <ImagesField v-model="catImages" class="rsv-imgs-centered" />
             <p v-if="catForm.errors.name" class="rsv-error">{{ catForm.errors.name }}</p>
             <p v-if="catForm.errors.description" class="rsv-error">{{ catForm.errors.description }}</p>
             <p v-if="imageError(catForm.errors)" class="rsv-error">{{ imageError(catForm.errors) }}</p>
@@ -501,9 +528,12 @@ const editOptMinutes = computed({
                     maxlength="2000"
                     :placeholder="t('srv.infoPh')"
                 ></textarea>
+                <div class="rsv-srv-imgzone">
+                    <span class="rsv-srv-imgzone-label">{{ t('srv.imageOpt') }}</span>
+                    <ImagesField v-model="newImages" />
+                </div>
                 <button type="button" class="rsv-edit" :disabled="form.processing" @click="create">{{ t('srv.add') }}</button>
             </div>
-            <ImagesField v-model="newImages" class="rsv-imgs-centered" />
             <p v-if="form.errors.name" class="rsv-error">{{ form.errors.name }}</p>
             <p v-if="form.errors.price" class="rsv-error">{{ form.errors.price }}</p>
             <p v-if="form.errors.duration_minutes" class="rsv-error">{{ form.errors.duration_minutes }}</p>
@@ -537,7 +567,14 @@ const editOptMinutes = computed({
                         </template>
                         <template v-else>
                             <div v-if="group.isReal" class="rsv-srv-thumb">
-                                <img v-if="group.url" :src="group.url" alt="" />
+                                <img
+                                    v-if="group.url"
+                                    :src="group.url"
+                                    alt=""
+                                    class="rsv-srv-zoomable"
+                                    :title="t('srv.zoom')"
+                                    @click="openGallery(group.image_urls)"
+                                />
                                 <span v-else class="rsv-srv-noimg">—</span>
                             </div>
                             <h3>{{ group.name }}</h3>
@@ -562,7 +599,14 @@ const editOptMinutes = computed({
                             <!-- Vista normal -->
                             <template v-if="editId !== service.id">
                                 <div class="rsv-srv-thumb">
-                                    <img v-if="service.url" :src="service.url" alt="" />
+                                    <img
+                                        v-if="service.url"
+                                        :src="service.url"
+                                        alt=""
+                                        class="rsv-srv-zoomable"
+                                        :title="t('srv.zoom')"
+                                        @click="openGallery(service.image_urls)"
+                                    />
                                     <span v-else class="rsv-srv-noimg">—</span>
                                 </div>
                                 <span class="rsv-srv-name">{{ service.name }}</span>
@@ -589,7 +633,14 @@ const editOptMinutes = computed({
                                     <div v-for="opt in service.options" :key="opt.id" class="rsv-srv-opt">
                                         <template v-if="editOptionId !== opt.id">
                                             <div class="rsv-srv-thumb rsv-srv-optthumb">
-                                                <img v-if="opt.url" :src="opt.url" alt="" />
+                                                <img
+                                                    v-if="opt.url"
+                                                    :src="opt.url"
+                                                    alt=""
+                                                    class="rsv-srv-zoomable"
+                                                    :title="t('srv.zoom')"
+                                                    @click="openGallery(opt.image_urls)"
+                                                />
                                                 <span v-else class="rsv-srv-noimg">—</span>
                                             </div>
                                             <div class="rsv-srv-optinfo">
@@ -750,5 +801,16 @@ const editOptMinutes = computed({
             </div>
             <div v-else class="rsv-empty">{{ t('srv.empty') }}</div>
         </section>
+
+        <Teleport to="body">
+            <transition name="rsv-srv-fade">
+                <div v-if="galleryImages.length" class="rsv-srv-overlay" @click.self="closeGallery">
+                    <div class="rsv-srv-gallery" :class="{ 'is-single': galleryImages.length === 1 }">
+                        <img v-for="(url, i) in galleryImages" :key="i" :src="url" alt="" class="rsv-srv-zoom" />
+                    </div>
+                    <button type="button" class="rsv-srv-close" aria-label="×" @click="closeGallery">×</button>
+                </div>
+            </transition>
+        </Teleport>
     </div>
 </template>

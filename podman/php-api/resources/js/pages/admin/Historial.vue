@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import Calendar from '@/components/Calendar.vue';
 import { useI18n } from '@/lib/i18n';
@@ -11,14 +11,53 @@ interface Reservation {
     id: number;
     note: string | null;
     created_at: string;
+    service_id: number | null;
+    service_option_id: number | null;
+    employee_id: number | null;
     user: { id: number; name: string; email: string; phone: string | null } | null;
     slot: { id: number; starts_at: string; notes: string | null } | null;
-    service: { id: number; name: string; price: string | number } | null;
-    service_option: { id: number; price: string | number } | null;
+    service: { id: number; name: string; price: string | number; category: { id: number; name: string } | null } | null;
+    service_option: { id: number; name: string; price: string | number } | null;
+    stocks: { id: number; name: string; price: string | number; pivot: { quantity: number } }[];
+}
+
+interface ServiceOption {
+    id: number;
+    name: string;
+    price: string | number;
+}
+
+interface Service {
+    id: number;
+    name: string;
+    price: string | number;
+    options: ServiceOption[];
+}
+
+interface Employee {
+    id: number;
+    name: string;
+}
+
+interface Product {
+    id: number;
+    name: string;
+    price: string | number;
+    quantity: number;
+}
+
+interface StockCategory {
+    id: number;
+    name: string;
+    products: Product[];
 }
 
 const props = defineProps<{
     reservations: Reservation[];
+    services: Service[];
+    employees: Employee[];
+    stockCategories: StockCategory[];
+    uncategorizedStock: Product[];
 }>();
 
 defineOptions({
@@ -128,11 +167,32 @@ function priceOf(r: Reservation): number {
     return r.service ? Number(r.service.price) : 0;
 }
 
+// Llista de productes d'una reserva en text ("2× Xampú, 1× Crema").
+function productsLabel(r: Reservation): string {
+    return r.stocks.map((s) => `${s.pivot.quantity}× ${s.name}`).join(', ');
+}
+
+// Categoria del servei de la reserva (buit si el servei no en té o ja no existeix).
+function categoryLabel(r: Reservation): string {
+    return r.service?.category?.name ?? '';
+}
+
+// Nom de l'opció triada del servei (buit si no en té).
+function optionLabel(r: Reservation): string {
+    return r.service_option?.name ?? '';
+}
+
+// Import total dels productes d'una reserva.
+function productsTotalOf(r: Reservation): number {
+    return r.stocks.reduce((sum, s) => sum + Number(s.price) * s.pivot.quantity, 0);
+}
+
 const monthReservations = computed(() =>
     props.reservations.filter((r) => monthKeyOf(billingDate(r)) === billingMonth.value),
 );
 
 const billingTotal = computed(() => monthReservations.value.reduce((sum, r) => sum + priceOf(r), 0));
+const billingProductsTotal = computed(() => monthReservations.value.reduce((sum, r) => sum + productsTotalOf(r), 0));
 const billingCount = computed(() => monthReservations.value.length);
 const billingAvg = computed(() => (billingCount.value ? billingTotal.value / billingCount.value : 0));
 
@@ -209,59 +269,375 @@ function onDocClick(event: MouseEvent): void {
 onMounted(() => document.addEventListener('click', onDocClick));
 onBeforeUnmount(() => document.removeEventListener('click', onDocClick));
 
-// --- Exportació CSV de la facturació del mes ---
-// Separador ';' perquè Excel (ES/CA) reparteixi bé les columnes, amb BOM UTF-8.
-const CSV_SEP = ';';
+// --- Exportació Excel (.xlsx) amb estil de la facturació del mes ---
+const page = usePage();
+// El nom que es desa a /admin/informacio (site_name), no el config('app.name') estàtic.
+const companyName = computed(() => String(page.props.siteName ?? page.props.name ?? 'Empresa'));
+// Logo desat a /admin/informacio (URL pública), per estampar-lo a dalt de l'Excel.
+const logoUrl = computed(() => (page.props.logoUrl ? String(page.props.logoUrl) : null));
 
-function csvCell(value: string): string {
-    return /[";\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+// Carrega el logo i el passa a PNG (via canvas) perquè ExcelJS l'accepti sigui quin
+// sigui el format original (webp, svg…). Retorna null si no es pot carregar.
+async function logoAsPng(url: string): Promise<{ base64: string; width: number; height: number } | null> {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                resolve(null);
+                return;
+            }
+            ctx.drawImage(img, 0, 0);
+            try {
+                resolve({ base64: canvas.toDataURL('image/png'), width: img.naturalWidth, height: img.naturalHeight });
+            } catch {
+                resolve(null);
+            }
+        };
+        img.onerror = () => resolve(null);
+        img.src = url;
+    });
 }
 
-function csvRow(cells: string[]): string {
-    return cells.map(csvCell).join(CSV_SEP);
-}
+async function exportBillingExcel(): Promise<void> {
+    // Carrega la llibreria només en clicar (chunk a banda, no infla la pàgina).
+    const ExcelJS = (await import('exceljs')).default;
 
-function exportBillingCsv(): void {
     const rows = [...monthReservations.value].sort((a, b) =>
         billingDate(a).localeCompare(billingDate(b)),
     );
 
-    const lines: string[] = [];
+    // Paleta corporativa (ARGB) i format moneda d'Excel.
+    const ACCENT = 'FF4F46E5';
+    const ACCENT_SOFT = 'FFEEF0FD';
+    const INK = 'FF1F2430';
+    const MUTED = 'FF6B7280';
+    const ZEBRA = 'FFF6F7FB';
+    const LINE = 'FFD1D5DB';
+    const WHITE = 'FFFFFFFF';
+    const CURRENCY = '#,##0.00" €"';
+    const LAST_COL = 9;
 
-    // Capçalera del report + resum.
-    lines.push(csvRow([t('bill.title')]));
-    lines.push(csvRow([t('bill.month'), billingMonthLabel.value]));
-    lines.push(csvRow([t('bill.total'), money(billingTotal.value)]));
-    lines.push(csvRow([t('bill.count'), String(billingCount.value)]));
-    lines.push(csvRow([t('bill.avg'), money(billingAvg.value)]));
-    lines.push('');
+    type Fill = { type: 'pattern'; pattern: 'solid'; fgColor: { argb: string } };
+    type Border = { style: 'thin'; color: { argb: string } };
+    const fillOf = (argb: string): Fill => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
+    const thin = (argb = LINE): Border => ({ style: 'thin', color: { argb } });
+    const box = (argb = LINE) => ({ top: thin(argb), bottom: thin(argb), left: thin(argb), right: thin(argb) });
 
-    // Taula de detall.
-    lines.push(csvRow([t('bill.csvDate'), t('bill.csvClient'), t('bill.csvEmail'), t('bill.csvService'), t('bill.csvAmount')]));
-    for (const r of rows) {
-        lines.push(
-            csvRow([
-                dateLabel(billingDate(r)),
-                r.user?.name ?? '',
-                r.user?.email ?? '',
-                r.service?.name ?? '',
-                money(priceOf(r)),
-            ]),
-        );
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet(t('bill.title'));
+    ws.columns = [
+        { width: 20 }, { width: 22 }, { width: 28 }, { width: 18 }, { width: 22 },
+        { width: 18 }, { width: 14 }, { width: 34 }, { width: 16 },
+    ];
+
+    let R = 1;
+
+    // Banda amb el logo (si n'hi ha): la imatge sura sobre una fila blanca.
+    const logo = logoUrl.value ? await logoAsPng(logoUrl.value) : null;
+    if (logo) {
+        const displayHeight = 48;
+        const displayWidth = Math.round((logo.width / logo.height) * displayHeight);
+        ws.getRow(R).height = 52;
+        const imageId = wb.addImage({ base64: logo.base64, extension: 'png' });
+        ws.addImage(imageId, {
+            tl: { col: 0.15, row: R - 1 + 0.08 },
+            ext: { width: displayWidth, height: displayHeight },
+        });
+        R++;
     }
-    lines.push('');
-    lines.push(csvRow(['', '', '', t('bill.total'), money(billingTotal.value)]));
 
-    const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    // Capçalera amb la marca de l'empresa.
+    ws.mergeCells(R, 1, R, LAST_COL);
+    const brand = ws.getCell(R, 1);
+    brand.value = companyName.value;
+    brand.font = { bold: true, size: 18, color: { argb: WHITE } };
+    brand.fill = fillOf(ACCENT);
+    brand.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+    ws.getRow(R).height = 36;
+    R++;
+
+    ws.mergeCells(R, 1, R, LAST_COL);
+    const subtitle = ws.getCell(R, 1);
+    subtitle.value = `${t('bill.title')} · ${billingMonthLabel.value}`;
+    subtitle.font = { bold: true, size: 11, color: { argb: INK } };
+    subtitle.fill = fillOf(ACCENT_SOFT);
+    subtitle.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+    ws.getRow(R).height = 20;
+    R++;
+
+    ws.mergeCells(R, 1, R, LAST_COL);
+    const generated = ws.getCell(R, 1);
+    generated.value = `${t('bill.generated')} ${dateLabel(new Date().toISOString())}`;
+    generated.font = { italic: true, size: 9, color: { argb: MUTED } };
+    generated.alignment = { horizontal: 'left', indent: 1 };
+    R += 2;
+
+    // Resum (KPIs) en format etiqueta · valor.
+    const summary = [
+        { label: t('bill.total'), value: billingTotal.value, fmt: CURRENCY, em: false },
+        { label: t('bill.csvProductsAmount'), value: billingProductsTotal.value, fmt: CURRENCY, em: false },
+        { label: t('bill.grandTotal'), value: billingTotal.value + billingProductsTotal.value, fmt: CURRENCY, em: true },
+        { label: t('bill.count'), value: billingCount.value, fmt: '0', em: false },
+        { label: t('bill.avg'), value: billingAvg.value, fmt: CURRENCY, em: false },
+    ];
+    for (const row of summary) {
+        const color = row.em ? ACCENT : INK;
+        const labelCell = ws.getCell(R, 1);
+        labelCell.value = row.label;
+        labelCell.font = { bold: true, size: 10, color: { argb: color } };
+        labelCell.alignment = { horizontal: 'left', indent: 1 };
+        labelCell.border = { bottom: thin() };
+
+        ws.mergeCells(R, 2, R, 3);
+        const valueCell = ws.getCell(R, 2);
+        valueCell.value = row.value;
+        valueCell.numFmt = row.fmt;
+        valueCell.font = { bold: true, size: 10, color: { argb: color } };
+        valueCell.alignment = { horizontal: 'right' };
+        valueCell.border = { bottom: thin() };
+
+        if (row.em) {
+            labelCell.fill = fillOf(ACCENT_SOFT);
+            valueCell.fill = fillOf(ACCENT_SOFT);
+        }
+        R++;
+    }
+    R++;
+
+    // Capçalera de la taula de detall.
+    const headers = [
+        t('bill.csvDate'), t('bill.csvClient'), t('bill.csvEmail'),
+        t('bill.csvCategory'), t('bill.csvService'), t('bill.csvOption'),
+        t('bill.csvAmount'), t('bill.csvProducts'), t('bill.csvProductsAmount'),
+    ];
+    headers.forEach((h, i) => {
+        const c = i + 1;
+        const headerCell = ws.getCell(R, c);
+        headerCell.value = h;
+        headerCell.font = { bold: true, size: 10, color: { argb: WHITE } };
+        headerCell.fill = fillOf(ACCENT);
+        headerCell.alignment = { horizontal: c >= 7 ? 'right' : 'left', vertical: 'middle' };
+        headerCell.border = box(ACCENT);
+    });
+    ws.getRow(R).height = 22;
+    R++;
+
+    // Files de detall (amb ratlla zebra i imports com a nombres amb format moneda).
+    rows.forEach((r, i) => {
+        const zebra = i % 2 === 1;
+        const rowNum = R;
+        const put = (c: number, value: string | number, opts: { align?: 'left' | 'right'; numFmt?: string; wrap?: boolean } = {}): void => {
+            const detailCell = ws.getCell(rowNum, c);
+            detailCell.value = value;
+            detailCell.font = { size: 10, color: { argb: INK } };
+            detailCell.alignment = { horizontal: opts.align ?? 'left', vertical: 'middle', wrapText: opts.wrap ?? false };
+            detailCell.border = box();
+            if (zebra) {
+                detailCell.fill = fillOf(ZEBRA);
+            }
+            if (opts.numFmt) {
+                detailCell.numFmt = opts.numFmt;
+            }
+        };
+        put(1, dateLabel(billingDate(r)));
+        put(2, r.user?.name ?? '');
+        put(3, r.user?.email ?? '');
+        put(4, categoryLabel(r));
+        put(5, r.service?.name ?? '');
+        put(6, optionLabel(r));
+        put(7, priceOf(r), { align: 'right', numFmt: CURRENCY });
+        put(8, productsLabel(r), { wrap: true });
+        put(9, productsTotalOf(r), { align: 'right', numFmt: CURRENCY });
+        R++;
+    });
+
+    // Fila de totals (serveis i productes).
+    for (let c = 1; c <= LAST_COL; c++) {
+        const totalCell = ws.getCell(R, c);
+        totalCell.font = { bold: true, size: 10, color: { argb: INK } };
+        totalCell.fill = fillOf(ACCENT_SOFT);
+        totalCell.alignment = { horizontal: 'left', vertical: 'middle' };
+        totalCell.border = { top: thin(ACCENT), bottom: thin(ACCENT) };
+    }
+    const setTotal = (c: number, value: string | number, numFmt?: string): void => {
+        const totalCell = ws.getCell(R, c);
+        totalCell.value = value;
+        totalCell.alignment = { horizontal: 'right', vertical: 'middle' };
+        if (numFmt) {
+            totalCell.numFmt = numFmt;
+        }
+    };
+    setTotal(6, t('bill.total'));
+    setTotal(7, billingTotal.value, CURRENCY);
+    setTotal(8, t('bill.csvProductsAmount'));
+    setTotal(9, billingProductsTotal.value, CURRENCY);
+    R++;
+
+    // Total general destacat.
+    for (let c = 1; c <= LAST_COL; c++) {
+        ws.getCell(R, c).fill = fillOf(ACCENT);
+    }
+    const grandLabel = ws.getCell(R, 8);
+    grandLabel.value = t('bill.grandTotal');
+    grandLabel.font = { bold: true, size: 11, color: { argb: WHITE } };
+    grandLabel.alignment = { horizontal: 'right', vertical: 'middle' };
+    const grandValue = ws.getCell(R, 9);
+    grandValue.value = billingTotal.value + billingProductsTotal.value;
+    grandValue.font = { bold: true, size: 11, color: { argb: WHITE } };
+    grandValue.alignment = { horizontal: 'right', vertical: 'middle' };
+    grandValue.numFmt = CURRENCY;
+    ws.getRow(R).height = 22;
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `facturacio-${billingMonth.value}.csv`;
+    a.download = `facturacio-${billingMonth.value}.xlsx`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
 }
+
+// --- Edició d'una reserva (servei, opció, empleat o nota) ---
+const editing = ref<Reservation | null>(null);
+const formServiceId = ref<number | null>(null);
+const formOptionId = ref<number | null>(null);
+const formEmployeeId = ref<number | null>(null);
+const formNote = ref('');
+const saving = ref(false);
+
+// Quantitat triada per article a editar (id -> unitats). Absència o 0 = no inclòs.
+const formProducts = ref<Record<number, number>>({});
+
+// Opcions del servei seleccionat al formulari (per al desplegable d'opcions).
+const editOptions = computed(() => {
+    const svc = props.services.find((s) => s.id === formServiceId.value);
+    return svc ? svc.options : [];
+});
+
+// Catàleg de productes a mostrar al modal: categories + grup «sense categoria».
+const productGroups = computed(() => {
+    const groups = props.stockCategories.map((c) => ({ id: c.id, name: c.name, products: c.products }));
+    if (props.uncategorizedStock.length) {
+        groups.push({ id: -1, name: t('stk.noCategory'), products: props.uncategorizedStock });
+    }
+    return groups;
+});
+
+const hasProducts = computed(() => productGroups.value.some((g) => g.products.length));
+
+function qtyOf(product: Product): number {
+    return formProducts.value[product.id] ?? 0;
+}
+
+// Màxim editable: l'stock disponible, o la quantitat ja reservada si era més gran.
+function maxQtyOf(product: Product): number {
+    return Math.max(product.quantity, qtyOf(product));
+}
+
+function setQty(product: Product, value: number): void {
+    const clamped = Math.max(0, Math.min(value, maxQtyOf(product)));
+    if (clamped === 0) {
+        delete formProducts.value[product.id];
+    } else {
+        formProducts.value[product.id] = clamped;
+    }
+}
+
+// Productes triats per al desat (quantitat > 0).
+const editProducts = computed(() =>
+    productGroups.value
+        .flatMap((g) => g.products)
+        .filter((p) => qtyOf(p) > 0)
+        .map((p) => ({ stock_id: p.id, quantity: qtyOf(p) })),
+);
+
+// Preu del servei escollit al formulari: el de l'opció si en té (>0), si no el del servei.
+const editServicePrice = computed(() => {
+    const option = editOptions.value.find((o) => o.id === formOptionId.value);
+    const optionPrice = option ? Number(option.price) : 0;
+    if (optionPrice > 0) {
+        return optionPrice;
+    }
+    const service = props.services.find((s) => s.id === formServiceId.value);
+    return service ? Number(service.price) : 0;
+});
+
+// Import total dels productes triats al formulari.
+const editProductsTotal = computed(() =>
+    productGroups.value
+        .flatMap((g) => g.products)
+        .reduce((sum, p) => sum + Number(p.price) * qtyOf(p), 0),
+);
+
+function openEdit(r: Reservation): void {
+    editing.value = r;
+    formServiceId.value = r.service_id;
+    formOptionId.value = r.service_option_id;
+    formEmployeeId.value = r.employee_id;
+    formNote.value = r.note ?? '';
+    formProducts.value = {};
+    for (const s of r.stocks) {
+        formProducts.value[s.id] = s.pivot.quantity;
+    }
+}
+
+function closeEdit(): void {
+    editing.value = null;
+}
+
+// En canviar de servei, si l'opció actual no pertany al nou servei, es reinicia.
+watch(formServiceId, () => {
+    if (!editOptions.value.some((o) => o.id === formOptionId.value)) {
+        formOptionId.value = null;
+    }
+});
+
+const canSave = computed(
+    () => formServiceId.value !== null && formEmployeeId.value !== null && formNote.value.trim() !== '',
+);
+
+function saveEdit(): void {
+    if (editing.value === null || !canSave.value) {
+        return;
+    }
+    saving.value = true;
+    router.put(
+        `/admin/reserves/${editing.value.id}`,
+        {
+            service_id: formServiceId.value,
+            service_option_id: formOptionId.value,
+            employee_id: formEmployeeId.value,
+            note: formNote.value,
+            products: editProducts.value,
+        },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                editing.value = null;
+            },
+            onFinish: () => {
+                saving.value = false;
+            },
+        },
+    );
+}
+
+function onEditKey(event: KeyboardEvent): void {
+    if (editing.value !== null && event.key === 'Escape') {
+        closeEdit();
+    }
+}
+
+onMounted(() => window.addEventListener('keydown', onEditKey));
+onBeforeUnmount(() => window.removeEventListener('keydown', onEditKey));
 </script>
 
 <template>
@@ -302,7 +678,7 @@ function exportBillingCsv(): void {
                         </div>
                     </div>
 
-                    <button type="button" class="rsv-billing-export" :disabled="!billingCount" @click="exportBillingCsv">
+                    <button type="button" class="rsv-billing-export" :disabled="!billingCount" @click="exportBillingExcel">
                         {{ t('bill.export') }}
                     </button>
                 </div>
@@ -364,8 +740,10 @@ function exportBillingCsv(): void {
                                 <th>{{ t('adm.user') }}</th>
                                 <th>{{ t('adm.email') }}</th>
                                 <th>{{ t('adm.phone') }}</th>
-                                <th>{{ t('adm.service') }}</th>
+                                <th class="rsv-service-cell">{{ t('adm.service') }}</th>
+                                <th>{{ t('hist.colProducts') }}</th>
                                 <th class="rsv-note-cell">{{ t('hist.colReason') }}</th>
+                                <th class="rsv-actions-cell">{{ t('hist.colActions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -374,8 +752,19 @@ function exportBillingCsv(): void {
                                 <td>{{ r.user?.name ?? t('adm.userDeleted') }}</td>
                                 <td>{{ r.user?.email ?? '—' }}</td>
                                 <td>{{ r.user?.phone ?? '—' }}</td>
-                                <td>{{ r.service?.name ?? '—' }}</td>
+                                <td class="rsv-service-cell">{{ r.service?.name ?? '—' }}</td>
+                                <td>
+                                    <template v-if="r.stocks.length">
+                                        <span v-for="s in r.stocks" :key="s.id" class="rsv-prod-tag">
+                                            {{ s.pivot.quantity }}× {{ s.name }}
+                                        </span>
+                                    </template>
+                                    <template v-else>—</template>
+                                </td>
                                 <td class="rsv-note-cell">{{ r.note ?? '—' }}</td>
+                                <td class="rsv-actions-cell">
+                                    <button type="button" class="rsv-edit" @click="openEdit(r)">{{ t('hist.edit') }}</button>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -397,5 +786,78 @@ function exportBillingCsv(): void {
                 <div v-else class="rsv-empty">{{ t('hist.empty') }}</div>
             </div>
         </section>
+
+        <Teleport to="body">
+            <transition name="rsv-fade">
+                <div v-if="editing !== null" class="rsv-edit-overlay" @click.self="closeEdit">
+                    <div class="rsv-edit-modal">
+                        <h3>{{ t('hist.editTitle') }}</h3>
+
+                        <label for="edit-service">{{ t('adm.service') }} *</label>
+                        <select id="edit-service" v-model="formServiceId">
+                            <option v-for="s in services" :key="s.id" :value="s.id">{{ s.name }}</option>
+                        </select>
+
+                        <label v-if="editOptions.length" for="edit-option">{{ t('hist.option') }}</label>
+                        <select v-if="editOptions.length" id="edit-option" v-model="formOptionId">
+                            <option :value="null">{{ t('hist.noOption') }}</option>
+                            <option v-for="o in editOptions" :key="o.id" :value="o.id">{{ o.name }}</option>
+                        </select>
+
+                        <label for="edit-employee">{{ t('hist.employee') }} *</label>
+                        <select id="edit-employee" v-model="formEmployeeId">
+                            <option v-for="e in employees" :key="e.id" :value="e.id">{{ e.name }}</option>
+                        </select>
+
+                        <label for="edit-note">{{ t('hist.colReason') }} *</label>
+                        <textarea id="edit-note" v-model="formNote" maxlength="1000" :placeholder="t('hist.notePh')"></textarea>
+
+                        <template v-if="hasProducts">
+                            <label>{{ t('hist.colProducts') }}</label>
+                            <div class="rsv-edit-products">
+                                <div v-for="group in productGroups" :key="group.id" class="rsv-edit-prodgroup">
+                                    <span class="rsv-edit-prodcat">{{ group.name }}</span>
+                                    <div
+                                        v-for="product in group.products"
+                                        :key="product.id"
+                                        class="rsv-edit-proditem"
+                                        :class="{ 'is-on': qtyOf(product) > 0 }"
+                                    >
+                                        <span class="rsv-edit-prodname">{{ product.name }}</span>
+                                        <div class="rsv-edit-prodqty">
+                                            <button type="button" aria-label="−" :disabled="qtyOf(product) === 0" @click="setQty(product, qtyOf(product) - 1)">−</button>
+                                            <span>{{ qtyOf(product) }}</span>
+                                            <button type="button" aria-label="+" :disabled="qtyOf(product) >= maxQtyOf(product)" @click="setQty(product, qtyOf(product) + 1)">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div class="rsv-edit-money">
+                            <div class="rsv-edit-money-row">
+                                <span>{{ t('res.serviceType') }}</span>
+                                <span>{{ money(editServicePrice) }}</span>
+                            </div>
+                            <div v-if="editProductsTotal > 0" class="rsv-edit-money-row">
+                                <span>{{ t('hist.colProducts') }}</span>
+                                <span>{{ money(editProductsTotal) }}</span>
+                            </div>
+                            <div class="rsv-edit-money-row rsv-edit-money-total">
+                                <span>{{ t('res.total') }}</span>
+                                <span>{{ money(editServicePrice + editProductsTotal) }}</span>
+                            </div>
+                        </div>
+
+                        <div class="rsv-edit-actions">
+                            <button type="button" class="rsv-edit-back" @click="closeEdit">{{ t('hist.editBack') }}</button>
+                            <button type="button" class="rsv-edit-go" :disabled="!canSave || saving" @click="saveEdit">
+                                {{ t('hist.editSave') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+        </Teleport>
     </div>
 </template>

@@ -130,7 +130,7 @@ function goToPage(page: number): void {
                 </div>
 
                 <div v-if="filtered.length" class="rsv-tablewrap">
-                    <table>
+                    <table class="rsv-cardtable">
                         <thead>
                             <tr>
                                 <th>{{ t('can.colAppt') }}</th>
@@ -143,12 +143,12 @@ function goToPage(page: number): void {
                         </thead>
                         <tbody>
                             <tr v-for="c in paged" :key="c.id">
-                                <td>{{ c.slot_starts_at ? slotLabel(c.slot_starts_at) : '—' }}</td>
-                                <td>{{ c.user?.name ?? t('adm.userDeleted') }}</td>
-                                <td>{{ c.user?.email ?? '—' }}</td>
-                                <td>{{ c.user?.phone ?? '—' }}</td>
-                                <td>{{ c.service_name ?? '—' }}</td>
-                                <td class="rsv-note-cell">{{ c.reason }}</td>
+                                <td :data-label="t('can.colAppt')">{{ c.slot_starts_at ? slotLabel(c.slot_starts_at) : '—' }}</td>
+                                <td :data-label="t('adm.user')">{{ c.user?.name ?? t('adm.userDeleted') }}</td>
+                                <td :data-label="t('adm.email')">{{ c.user?.email ?? '—' }}</td>
+                                <td :data-label="t('adm.phone')">{{ c.user?.phone ?? '—' }}</td>
+                                <td :data-label="t('adm.service')">{{ c.service_name ?? '—' }}</td>
+                                <td class="rsv-note-cell" :data-label="t('can.colReason')">{{ c.reason }}</td>
                             </tr>
                         </tbody>
                     </table>
