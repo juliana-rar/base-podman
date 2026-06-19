@@ -1,10 +1,43 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, type Ref } from 'vue';
+import ImagesField, { type ImageItem } from '@/components/ImagesField.vue';
 import { useI18n } from '@/lib/i18n';
 import '../../../css/reserva/admin.css';
 
 const { t } = useI18n();
+
+// --- Galeria d'obres de l'empleat (mateix patró que serveis/stock) ---
+
+// Construeix la llista inicial d'imatges d'obres existents.
+function worksOf(employee: Employee): ImageItem[] {
+    return (employee.works ?? []).map((path, i) => ({ path, url: employee.work_urls[i] ?? '' }));
+}
+
+// Converteix la llista de l'editor en el payload (images[] + order JSON).
+function worksPayload(items: ImageItem[]): { images: File[]; order: string } {
+    const images: File[] = [];
+    const order: string[] = [];
+    for (const item of items) {
+        if (item.file) {
+            order.push(`new:${images.length}`);
+            images.push(item.file);
+        } else if (item.path) {
+            order.push(item.path);
+        }
+    }
+    return { images, order: JSON.stringify(order) };
+}
+
+// Allibera els object URLs de les imatges noves i buida la llista.
+function clearWorks(list: Ref<ImageItem[]>): void {
+    for (const item of list.value) {
+        if (item.file && item.url.startsWith('blob:')) {
+            URL.revokeObjectURL(item.url);
+        }
+    }
+    list.value = [];
+}
 
 interface OptionRef {
     id: number;
@@ -27,6 +60,8 @@ interface Employee {
     id: number;
     name: string;
     url: string | null;
+    works: string[];
+    work_urls: string[];
     service_ids: number[];
     option_ids: number[];
 }
@@ -109,6 +144,7 @@ const form = useForm<{ name: string; service_ids: number[]; option_ids: number[]
     image: null,
 });
 const newPreview = ref<string | null>(null);
+const newWorks = ref<ImageItem[]>([]);
 
 function onNewFile(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0] ?? null;
@@ -118,13 +154,15 @@ function onNewFile(event: Event): void {
 }
 
 function create(): void {
-    form.post('/admin/empleats', {
+    const { images, order } = worksPayload(newWorks.value);
+    form.transform((data) => ({ ...data, images, order })).post('/admin/empleats', {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
             form.reset();
             if (newPreview.value) URL.revokeObjectURL(newPreview.value);
             newPreview.value = null;
+            clearWorks(newWorks);
         },
     });
 }
@@ -138,6 +176,7 @@ const editForm = useForm<{ name: string; service_ids: number[]; option_ids: numb
     image: null,
 });
 const editPreview = ref<string | null>(null);
+const editWorks = ref<ImageItem[]>([]);
 
 function startEdit(employee: Employee): void {
     editId.value = employee.id;
@@ -149,6 +188,8 @@ function startEdit(employee: Employee): void {
     editForm.image = null;
     if (editPreview.value) URL.revokeObjectURL(editPreview.value);
     editPreview.value = null;
+    clearWorks(editWorks);
+    editWorks.value = worksOf(employee);
 }
 
 function onEditFile(event: Event): void {
@@ -160,13 +201,15 @@ function onEditFile(event: Event): void {
 
 function saveEdit(): void {
     if (editId.value === null) return;
-    editForm.post(`/admin/empleats/${editId.value}`, {
+    const { images, order } = worksPayload(editWorks.value);
+    editForm.transform((data) => ({ ...data, images, order })).post(`/admin/empleats/${editId.value}`, {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
             editId.value = null;
             if (editPreview.value) URL.revokeObjectURL(editPreview.value);
             editPreview.value = null;
+            clearWorks(editWorks);
         },
     });
 }
@@ -175,6 +218,7 @@ function cancelEdit(): void {
     editId.value = null;
     if (editPreview.value) URL.revokeObjectURL(editPreview.value);
     editPreview.value = null;
+    clearWorks(editWorks);
 }
 
 function remove(id: number): void {
@@ -210,6 +254,11 @@ function remove(id: number): void {
                     <div v-if="newPreview" class="rsv-emp-prev">
                         <img :src="newPreview" alt="" />
                     </div>
+                </div>
+
+                <div class="rsv-emp-works">
+                    <span class="rsv-emp-assign-label">{{ t('emp.works') }}</span>
+                    <ImagesField v-model="newWorks" />
                 </div>
 
                 <div class="rsv-emp-assign">
@@ -269,6 +318,9 @@ function remove(id: number): void {
                                 </template>
                                 <span v-else class="rsv-emp-none">{{ t('emp.noServices') }}</span>
                             </span>
+                            <span v-if="employee.work_urls.length" class="rsv-emp-worksmini">
+                                <img v-for="(u, i) in employee.work_urls" :key="i" :src="u" alt="" />
+                            </span>
                         </div>
                         <button type="button" class="rsv-edit" @click="startEdit(employee)">{{ t('emp.edit') }}</button>
                         <button type="button" class="rsv-del" @click="remove(employee.id)">{{ t('emp.delete') }}</button>
@@ -289,6 +341,11 @@ function remove(id: number): void {
                                     <input type="file" accept="image/*" @change="onEditFile" />
                                 </label>
                             </div>
+                        </div>
+
+                        <div class="rsv-emp-works">
+                            <span class="rsv-emp-assign-label">{{ t('emp.works') }}</span>
+                            <ImagesField v-model="editWorks" />
                         </div>
 
                         <div class="rsv-emp-assign">

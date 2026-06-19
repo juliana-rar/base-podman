@@ -39,6 +39,21 @@ class ServiceImagesTest extends TestCase
         Storage::disk('public')->assertExists($category->images[1]);
     }
 
+    public function test_admin_can_set_a_service_vat_rate(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->post('/admin/serveis', [
+            'name' => 'Tall',
+            'price' => 10,
+            'vat_rate' => 4,
+            'duration_minutes' => 30,
+            'order' => json_encode([]),
+        ])->assertRedirect();
+
+        $this->assertSame('4.00', Service::firstOrFail()->vat_rate);
+    }
+
     public function test_admin_can_reorder_add_and_remove_service_images(): void
     {
         Storage::fake('public');

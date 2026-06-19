@@ -23,6 +23,7 @@ class Service extends Model
     protected $fillable = [
         'name',
         'price',
+        'vat_rate',
         'duration_minutes',
         'description',
         'image_path',
@@ -39,6 +40,7 @@ class Service extends Model
     {
         return [
             'price' => 'decimal:2',
+            'vat_rate' => 'decimal:2',
             'duration_minutes' => 'integer',
             'images' => 'array',
         ];

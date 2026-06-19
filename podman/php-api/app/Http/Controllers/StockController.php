@@ -26,7 +26,7 @@ class StockController extends Controller
             }])->orderBy('name')->get(['id', 'name', 'description', 'image_path', 'images']),
             'uncategorized' => Stock::whereNull('stock_category_id')
                 ->orderBy('name')
-                ->get(['id', 'name', 'price', 'quantity', 'description', 'image_path', 'images', 'stock_category_id']),
+                ->get(['id', 'name', 'price', 'vat_rate', 'quantity', 'description', 'image_path', 'images', 'stock_category_id']),
         ]);
     }
 
@@ -39,6 +39,7 @@ class StockController extends Controller
             'name' => ['required', 'string', 'max:100', 'unique:stocks,name'],
             'quantity' => ['required', 'integer', 'min:0', 'max:1000000'],
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'vat_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'description' => ['nullable', 'string', 'max:2000'],
             'stock_category_id' => ['nullable', 'integer', 'exists:stock_categories,id'],
             ...$this->imageRules(),
@@ -50,6 +51,7 @@ class StockController extends Controller
             'name' => trim($validated['name']),
             'quantity' => $validated['quantity'],
             'price' => $validated['price'],
+            'vat_rate' => $validated['vat_rate'] ?? 21,
             'description' => $validated['description'] ?? null,
             'stock_category_id' => $validated['stock_category_id'] ?? null,
             'image_path' => $paths[0] ?? null,
@@ -70,6 +72,7 @@ class StockController extends Controller
             'name' => ['required', 'string', 'max:100', 'unique:stocks,name,'.$stock->id],
             'quantity' => ['required', 'integer', 'min:0', 'max:1000000'],
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'vat_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'description' => ['nullable', 'string', 'max:2000'],
             'stock_category_id' => ['nullable', 'integer', 'exists:stock_categories,id'],
             ...$this->imageRules(),
@@ -81,6 +84,7 @@ class StockController extends Controller
         $stock->name = trim($validated['name']);
         $stock->quantity = $validated['quantity'];
         $stock->price = $validated['price'];
+        $stock->vat_rate = $validated['vat_rate'] ?? 21;
         $stock->description = $validated['description'] ?? null;
         $stock->stock_category_id = $validated['stock_category_id'] ?? null;
         $stock->image_path = $paths[0] ?? null;

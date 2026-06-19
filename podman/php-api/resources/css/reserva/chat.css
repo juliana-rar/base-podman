@@ -1,0 +1,236 @@
+/* ===================== Xat (usuari i admin) ===================== */
+
+/* --- Xat d'usuari (dins de #rsv-welcome) --- */
+#rsv-welcome .rsv-chat {
+    width: 92vw;
+    max-width: 48rem;
+    margin: 2rem auto 4rem;
+    display: flex;
+    flex-direction: column;
+}
+
+#rsv-welcome .rsv-chat > h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+.rsv-chat-sub {
+    color: #6b7280;
+    margin: 0.25rem 0 1rem;
+}
+
+/* --- Llista de missatges (compartida) --- */
+.rsv-chat-list {
+    flex: 1;
+    min-height: 22rem;
+    max-height: 60vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 1px solid rgba(127, 127, 160, 0.2);
+    border-radius: 1rem;
+    background: rgba(127, 127, 160, 0.04);
+}
+
+.rsv-chat-empty {
+    margin: auto;
+    color: #9ca3af;
+    font-size: 0.95rem;
+}
+
+.rsv-chat-msg {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 80%;
+}
+
+.rsv-chat-msg.mine {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.rsv-chat-msg.system {
+    align-self: center;
+    align-items: center;
+    max-width: 90%;
+}
+
+.rsv-chat-bubble {
+    padding: 0.55rem 0.85rem;
+    border-radius: 1rem;
+    background: #eef0fd;
+    color: #1f2430;
+    line-height: 1.35;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.rsv-chat-msg.mine .rsv-chat-bubble {
+    background: #4f46e5;
+    color: #fff;
+}
+
+.rsv-chat-system {
+    font-size: 0.85rem;
+    color: #6b7280;
+    background: rgba(127, 127, 160, 0.12);
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    text-align: center;
+}
+
+.rsv-chat-time {
+    font-size: 0.72rem;
+    color: #9ca3af;
+    margin-top: 0.15rem;
+}
+
+/* --- Formulari d'enviament (compartit) --- */
+.rsv-chat-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+}
+
+.rsv-chat-form input {
+    flex: 1;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid rgba(127, 127, 160, 0.3);
+    border-radius: 0.75rem;
+    font: inherit;
+}
+
+.rsv-chat-form button {
+    padding: 0.7rem 1.2rem;
+    border: none;
+    border-radius: 0.75rem;
+    background: #4f46e5;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.rsv-chat-form button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* --- Xat admin --- */
+#rsv-xat {
+    max-width: 70rem;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2rem clamp(1rem, 5vw, 4rem) 4rem;
+}
+
+.rsv-xat-grid {
+    display: grid;
+    grid-template-columns: 16rem 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.rsv-xat-threads {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+.rsv-xat-thread {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid rgba(127, 127, 160, 0.2);
+    border-radius: 0.75rem;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.rsv-xat-thread.is-active {
+    border-color: #4f46e5;
+    background: rgba(79, 70, 229, 0.08);
+}
+
+.rsv-xat-thread-name {
+    font-weight: 600;
+}
+
+.rsv-xat-thread-last {
+    font-size: 0.82rem;
+    color: #9ca3af;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rsv-xat-badge,
+.rsv-nav-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.rsv-xat-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+}
+
+.rsv-xat-conv {
+    display: flex;
+    flex-direction: column;
+    min-height: 28rem;
+}
+
+.rsv-xat-convhead {
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+}
+
+.rsv-xat-convhead small {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.rsv-xat-pick {
+    margin: auto;
+    color: #9ca3af;
+}
+
+@media (max-width: 40rem) {
+    .rsv-xat-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- Mode fosc --- */
+.dark .rsv-chat-bubble {
+    background: #2a2f3e;
+    color: #e5e7eb;
+}
+
+.dark .rsv-chat-msg.mine .rsv-chat-bubble {
+    background: #6366f1;
+}
+
+.dark .rsv-chat-form input {
+    background: #1f2430;
+    color: #e5e7eb;
+}

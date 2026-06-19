@@ -48,6 +48,9 @@ class BusinessHourController extends Controller
             'linkedin' => Setting::get('linkedin', ''),
             'siteName' => Setting::get('site_name', 'ReservaHores'),
             'logoUrl' => $logo ? Storage::url($logo) : null,
+            'legalName' => Setting::get('legal_name', ''),
+            'taxId' => Setting::get('tax_id', ''),
+            'fiscalAddress' => Setting::get('fiscal_address', ''),
         ]);
     }
 
@@ -69,6 +72,9 @@ class BusinessHourController extends Controller
             'facebook' => ['nullable', 'string', 'max:255'],
             'linkedin' => ['nullable', 'string', 'max:255'],
             'site_name' => ['nullable', 'string', 'max:100'],
+            'legal_name' => ['nullable', 'string', 'max:150'],
+            'tax_id' => ['nullable', 'string', 'max:50'],
+            'fiscal_address' => ['nullable', 'string', 'max:255'],
             'logo' => ['nullable', 'image', 'max:2048'],
             'removeLogo' => ['nullable', 'boolean'],
         ]);
@@ -81,7 +87,7 @@ class BusinessHourController extends Controller
             ]);
         }
 
-        foreach (['address', 'email', 'phone', 'instagram', 'facebook', 'linkedin', 'site_name'] as $key) {
+        foreach (['address', 'email', 'phone', 'instagram', 'facebook', 'linkedin', 'site_name', 'legal_name', 'tax_id', 'fiscal_address'] as $key) {
             Setting::put($key, $validated[$key] ?? null);
         }
 

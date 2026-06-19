@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureCanAccessScreen;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -21,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
+            'screen' => EnsureCanAccessScreen::class,
         ]);
 
         $middleware->web(append: [

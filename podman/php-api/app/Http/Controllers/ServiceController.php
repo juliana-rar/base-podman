@@ -28,7 +28,7 @@ class ServiceController extends Controller
                 ->with('options')
                 ->whereNull('service_category_id')
                 ->orderBy('name')
-                ->get(['id', 'name', 'price', 'duration_minutes', 'description', 'image_path', 'images', 'service_category_id']),
+                ->get(['id', 'name', 'price', 'vat_rate', 'duration_minutes', 'description', 'image_path', 'images', 'service_category_id']),
         ]);
     }
 
@@ -40,6 +40,7 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:services,name'],
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'vat_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'duration_minutes' => ['required', 'integer', 'min:0', 'max:100000'],
             'description' => ['nullable', 'string', 'max:2000'],
             'service_category_id' => ['nullable', 'integer', 'exists:service_categories,id'],
@@ -51,6 +52,7 @@ class ServiceController extends Controller
         Service::create([
             'name' => trim($validated['name']),
             'price' => $validated['price'],
+            'vat_rate' => $validated['vat_rate'] ?? 21,
             'duration_minutes' => $validated['duration_minutes'],
             'description' => $validated['description'] ?? null,
             'service_category_id' => $validated['service_category_id'] ?? null,
@@ -71,6 +73,7 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:services,name,'.$service->id],
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'vat_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'duration_minutes' => ['required', 'integer', 'min:0', 'max:100000'],
             'description' => ['nullable', 'string', 'max:2000'],
             'service_category_id' => ['nullable', 'integer', 'exists:service_categories,id'],
@@ -82,6 +85,7 @@ class ServiceController extends Controller
 
         $service->name = trim($validated['name']);
         $service->price = $validated['price'];
+        $service->vat_rate = $validated['vat_rate'] ?? 21;
         $service->duration_minutes = $validated['duration_minutes'];
         $service->description = $validated['description'] ?? null;
         $service->service_category_id = $validated['service_category_id'] ?? null;

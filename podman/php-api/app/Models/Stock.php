@@ -17,6 +17,7 @@ class Stock extends Model
         'name',
         'quantity',
         'price',
+        'vat_rate',
         'description',
         'image_path',
         'images',
@@ -33,6 +34,7 @@ class Stock extends Model
         return [
             'quantity' => 'integer',
             'price' => 'decimal:2',
+            'vat_rate' => 'decimal:2',
             'images' => 'array',
         ];
     }

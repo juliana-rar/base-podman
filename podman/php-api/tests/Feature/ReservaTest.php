@@ -301,6 +301,23 @@ class ReservaTest extends TestCase
             );
     }
 
+    public function test_admin_history_exposes_vat_rates_for_excel(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30, 'vat_rate' => 10]);
+        $product = Stock::create(['name' => 'Xampú', 'quantity' => 5, 'price' => 8, 'vat_rate' => 21]);
+        $slot = Slot::factory()->create();
+        $reservation = Reservation::factory()->create(['slot_id' => $slot->id, 'service_id' => $service->id]);
+        $reservation->stocks()->attach($product->id, ['quantity' => 1]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.reserves'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('reservations.0.service.vat_rate', '10.00')
+                ->where('reservations.0.stocks.0.vat_rate', '21.00')
+            );
+    }
+
     public function test_admin_can_edit_a_reservation_service_employee_and_note(): void
     {
         $admin = User::factory()->admin()->create();

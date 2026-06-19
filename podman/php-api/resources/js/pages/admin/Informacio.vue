@@ -21,6 +21,9 @@ const props = defineProps<{
     linkedin: string | null;
     siteName: string | null;
     logoUrl: string | null;
+    legalName: string | null;
+    taxId: string | null;
+    fiscalAddress: string | null;
 }>();
 
 defineOptions({
@@ -45,6 +48,9 @@ const form = useForm<{
     facebook: string;
     linkedin: string;
     site_name: string;
+    legal_name: string;
+    tax_id: string;
+    fiscal_address: string;
     logo: File | null;
     removeLogo: boolean;
 }>({
@@ -61,6 +67,9 @@ const form = useForm<{
     facebook: props.facebook ?? '',
     linkedin: props.linkedin ?? '',
     site_name: props.siteName ?? '',
+    legal_name: props.legalName ?? '',
+    tax_id: props.taxId ?? '',
+    fiscal_address: props.fiscalAddress ?? '',
     logo: null,
     removeLogo: false,
 });
@@ -178,6 +187,18 @@ function submit(): void {
 
                 <label for="linkedin">{{ t('info.linkedin') }}</label>
                 <input id="linkedin" v-model="form.linkedin" type="text" maxlength="255" placeholder="https://linkedin.com/company/..." />
+            </div>
+
+            <h2 class="rsv-hr-section">{{ t('info.fiscal') }}</h2>
+            <div class="rsv-hr-fields">
+                <label for="legal_name">{{ t('info.legalName') }}</label>
+                <input id="legal_name" v-model="form.legal_name" type="text" maxlength="150" placeholder="Empresa, SL" />
+
+                <label for="tax_id">{{ t('info.taxId') }}</label>
+                <input id="tax_id" v-model="form.tax_id" type="text" maxlength="50" placeholder="B12345678" />
+
+                <label for="fiscal_address">{{ t('info.fiscalAddress') }}</label>
+                <input id="fiscal_address" v-model="form.fiscal_address" type="text" maxlength="255" :placeholder="t('info.addressPh')" />
             </div>
 
             <button type="submit" :disabled="form.processing">{{ t('info.save') }}</button>

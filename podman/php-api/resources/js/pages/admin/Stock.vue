@@ -19,10 +19,14 @@ interface Stock extends WithImages {
     name: string;
     quantity: number;
     price: string;
+    vat_rate: string;
     description: string | null;
     url: string | null;
     stock_category_id: number | null;
 }
+
+// Tipus d'IVA disponibles (%): general, reduït, superreduït i exempt.
+const VAT_RATES = [21, 10, 4, 0];
 
 interface Category extends WithImages {
     id: number;
@@ -174,12 +178,14 @@ const form = useForm<{
     name: string;
     quantity: number;
     price: number;
+    vat_rate: number;
     description: string;
     stock_category_id: number | '';
 }>({
     name: '',
     quantity: 0,
     price: 0,
+    vat_rate: 21,
     description: '',
     stock_category_id: '',
 });
@@ -205,12 +211,14 @@ const editForm = useForm<{
     name: string;
     quantity: number;
     price: number;
+    vat_rate: number;
     description: string;
     stock_category_id: number | '';
 }>({
     name: '',
     quantity: 0,
     price: 0,
+    vat_rate: 21,
     description: '',
     stock_category_id: '',
 });
@@ -223,6 +231,7 @@ function startEdit(stock: Stock): void {
     editForm.name = stock.name;
     editForm.quantity = stock.quantity;
     editForm.price = Number(stock.price);
+    editForm.vat_rate = Number(stock.vat_rate);
     editForm.description = stock.description ?? '';
     editForm.stock_category_id = stock.stock_category_id ?? '';
     clearImages(editImages);
@@ -347,6 +356,9 @@ onUnmounted(() => window.removeEventListener('keydown', onGalleryKey));
                     />
                     <i class="rsv-srv-unit">€</i>
                 </span>
+                <select v-model.number="form.vat_rate" class="rsv-srv-select" :title="t('stk.vat')">
+                    <option v-for="r in VAT_RATES" :key="r" :value="r">{{ t('stk.vat') }} {{ r }}%</option>
+                </select>
                 <select v-model="form.stock_category_id" class="rsv-srv-select">
                     <option value="">{{ t('stk.noCategory') }}</option>
                     <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
@@ -474,6 +486,9 @@ onUnmounted(() => window.removeEventListener('keydown', onGalleryKey));
                                         />
                                         <i class="rsv-srv-unit">€</i>
                                     </span>
+                                    <select v-model.number="editForm.vat_rate" class="rsv-srv-select" :title="t('stk.vat')">
+                                        <option v-for="r in VAT_RATES" :key="r" :value="r">{{ t('stk.vat') }} {{ r }}%</option>
+                                    </select>
                                     <select v-model="editForm.stock_category_id" class="rsv-srv-select">
                                         <option value="">{{ t('stk.noCategory') }}</option>
                                         <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>

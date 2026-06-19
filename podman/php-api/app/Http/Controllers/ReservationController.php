@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ManagesImages;
 use App\Models\Cancellation;
 use App\Models\Employee;
+use App\Models\Message;
 use App\Models\Reservation;
 use App\Models\Service;
 use App\Models\Slot;
@@ -12,6 +13,7 @@ use App\Models\Stock;
 use App\Models\StockCategory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -31,10 +33,10 @@ class ReservationController extends Controller
                 ->with([
                     'user:id,name,email,phone',
                     'slot:id,starts_at,notes',
-                    'service:id,name,price,service_category_id',
+                    'service:id,name,price,vat_rate,service_category_id',
                     'service.category:id,name',
                     'serviceOption:id,name,price',
-                    'stocks:id,name,price',
+                    'stocks:id,name,price,vat_rate',
                 ])
                 ->latest()
                 ->get(['id', 'slot_id', 'user_id', 'service_id', 'service_option_id', 'employee_id', 'note', 'created_at']),
@@ -148,6 +150,14 @@ class ReservationController extends Controller
         ]);
 
         $reservation->stocks()->attach($this->stockAttachments($validated['products'] ?? []));
+
+        // Notificació automàtica al fil de xat de l'usuari (la veu l'equip al panell).
+        $service = Service::find($validated['service_id']);
+        Message::create([
+            'user_id' => $reservation->user_id,
+            'sender' => 'system',
+            'body' => 'Nova reserva: '.($service?->name ?? 'servei').' · '.Carbon::parse($slot->starts_at)->format('d/m/Y H:i'),
+        ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Reserva feta!']);
 

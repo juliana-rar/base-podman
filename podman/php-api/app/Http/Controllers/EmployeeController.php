@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ManagesImages;
 use App\Models\Employee;
 use App\Models\Service;
 use App\Models\ServiceCategory;
@@ -13,6 +14,8 @@ use Inertia\Response;
 
 class EmployeeController extends Controller
 {
+    use ManagesImages;
+
     /**
      * Pàgina d'admin: gestió dels empleats i els serveis que fan.
      */
@@ -20,12 +23,14 @@ class EmployeeController extends Controller
     {
         $employees = Employee::with('services:id', 'serviceOptions:id')
             ->orderBy('name')
-            ->get(['id', 'name', 'image_path'])
+            ->get(['id', 'name', 'image_path', 'works'])
             ->map(function (Employee $employee) {
                 return [
                     'id' => $employee->id,
                     'name' => $employee->name,
                     'url' => $employee->url,
+                    'works' => $employee->works ?? [],
+                    'work_urls' => $employee->work_urls,
                     'service_ids' => $employee->services->pluck('id'),
                     'option_ids' => $employee->serviceOptions->pluck('id'),
                 ];
@@ -67,6 +72,7 @@ class EmployeeController extends Controller
             'image_path' => $request->hasFile('image')
                 ? $request->file('image')->store('employees', 'public')
                 : null,
+            'works' => $this->syncImages($request, 'employee-works') ?: null,
         ]);
 
         $employee->services()->sync($validated['service_ids'] ?? []);
@@ -93,6 +99,8 @@ class EmployeeController extends Controller
             $employee->image_path = $request->file('image')->store('employees', 'public');
         }
 
+        $employee->works = $this->syncImages($request, 'employee-works', $employee->works ?? []) ?: null;
+
         $employee->save();
         $employee->services()->sync($validated['service_ids'] ?? []);
         $employee->serviceOptions()->sync($validated['option_ids'] ?? []);
@@ -109,6 +117,10 @@ class EmployeeController extends Controller
     {
         if ($employee->image_path) {
             Storage::disk('public')->delete($employee->image_path);
+        }
+
+        foreach ($employee->works ?? [] as $path) {
+            Storage::disk('public')->delete($path);
         }
 
         $employee->delete();
@@ -132,6 +144,7 @@ class EmployeeController extends Controller
             'service_ids.*' => ['integer', 'exists:services,id'],
             'option_ids' => ['nullable', 'array'],
             'option_ids.*' => ['integer', 'exists:service_options,id'],
+            ...$this->imageRules(),
         ]);
     }
 }

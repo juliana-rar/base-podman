@@ -27,6 +27,7 @@ interface Service extends WithImages {
     id: number;
     name: string;
     price: string;
+    vat_rate: string;
     duration_minutes: number;
     description: string | null;
     url: string | null;
@@ -34,6 +35,9 @@ interface Service extends WithImages {
     service_category_id: number | null;
     options: ServiceOption[];
 }
+
+// Tipus d'IVA disponibles (%): general, reduït, superreduït i exempt.
+const VAT_RATES = [21, 10, 4, 0];
 
 interface Category extends WithImages {
     id: number;
@@ -184,12 +188,14 @@ function removeCategory(id: number): void {
 const form = useForm<{
     name: string;
     price: number;
+    vat_rate: number;
     duration_minutes: number;
     description: string;
     service_category_id: number | '';
 }>({
     name: '',
     price: 0,
+    vat_rate: 21,
     duration_minutes: 0,
     description: '',
     service_category_id: '',
@@ -215,12 +221,14 @@ const editId = ref<number | null>(null);
 const editForm = useForm<{
     name: string;
     price: number;
+    vat_rate: number;
     duration_minutes: number;
     description: string;
     service_category_id: number | '';
 }>({
     name: '',
     price: 0,
+    vat_rate: 21,
     duration_minutes: 0,
     description: '',
     service_category_id: '',
@@ -268,6 +276,7 @@ function startEdit(service: Service): void {
     editForm.clearErrors();
     editForm.name = service.name;
     editForm.price = Number(service.price);
+    editForm.vat_rate = Number(service.vat_rate);
     editForm.duration_minutes = service.duration_minutes;
     editForm.description = service.description ?? '';
     editForm.service_category_id = service.service_category_id ?? '';
@@ -492,6 +501,9 @@ const editOptMinutes = computed({
                     />
                     <i class="rsv-srv-unit">€</i>
                 </span>
+                <select v-model.number="form.vat_rate" class="rsv-srv-select" :title="t('srv.vat')">
+                    <option v-for="r in VAT_RATES" :key="r" :value="r">{{ t('srv.vat') }} {{ r }}%</option>
+                </select>
                 <div class="rsv-srv-durfield" :title="t('srv.durationPh')">
                     <span class="rsv-srv-num">
                         <input
@@ -748,6 +760,9 @@ const editOptMinutes = computed({
                                         />
                                         <i class="rsv-srv-unit">€</i>
                                     </span>
+                                    <select v-model.number="editForm.vat_rate" class="rsv-srv-select" :title="t('srv.vat')">
+                                        <option v-for="r in VAT_RATES" :key="r" :value="r">{{ t('srv.vat') }} {{ r }}%</option>
+                                    </select>
                                     <div class="rsv-srv-durfield" :title="t('srv.durationPh')">
                                         <span class="rsv-srv-num">
                                             <input

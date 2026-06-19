@@ -8,6 +8,7 @@ import {
     Globe,
     Home,
     LayoutGrid,
+    MessageCircle,
     Moon,
     Sun,
     User,
@@ -20,6 +21,10 @@ import type { NavItem } from '@/types';
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user ?? null);
+// Pantalles del dashboard que el personal (no admin) té atorgades.
+const screens = computed(() => (page.props.screens as string[] | undefined) ?? []);
+// Missatges de xat sense llegir, per al distintiu del menú.
+const unreadChat = computed(() => (page.props.unreadChat as number | undefined) ?? 0);
 const siteName = computed(() => (page.props.siteName as string | undefined) || 'ReservaHores');
 const logoUrl = computed(() => (page.props.logoUrl as string | null | undefined) ?? null);
 const { isCurrentUrl } = useCurrentUrl();
@@ -31,6 +36,7 @@ const items = computed<NavItem[]>(() => {
         return [
             { title: 'nav.dashboard', href: '/dashboard', icon: LayoutGrid },
             { title: 'nav.hores', href: '/admin/horas', icon: Clock },
+            { title: 'nav.xat', href: '/admin/xat', icon: MessageCircle },
             { title: 'nav.perfil', href: '/settings/profile', icon: User },
         ];
     }
@@ -40,9 +46,15 @@ const items = computed<NavItem[]>(() => {
         { title: 'nav.reservar', href: '/reservar', icon: CalendarClock },
     ];
 
-    // Els usuaris amb sessió poden veure les seves reserves fetes i el seu perfil.
+    // El personal (no admin) amb pantalles atorgades pot entrar al seu tauler.
+    if (user.value && screens.value.length) {
+        base.push({ title: 'nav.dashboard', href: '/dashboard', icon: LayoutGrid });
+    }
+
+    // Els usuaris amb sessió poden veure les seves reserves, el xat i el seu perfil.
     if (user.value) {
         base.push({ title: 'nav.reserves', href: '/reserves', icon: CalendarCheck });
+        base.push({ title: 'nav.xat', href: '/xat', icon: MessageCircle });
         base.push({ title: 'nav.perfil', href: '/settings/profile', icon: User });
     }
 
@@ -101,6 +113,7 @@ onBeforeUnmount(() => {
                 >
                     <component :is="item.icon" />
                     <span>{{ t(item.title) }}</span>
+                    <span v-if="(item.href === '/xat' || item.href === '/admin/xat') && unreadChat" class="rsv-nav-badge">{{ unreadChat }}</span>
                 </Link>
             </nav>
             <div>

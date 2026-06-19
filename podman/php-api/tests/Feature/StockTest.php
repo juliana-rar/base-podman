@@ -124,6 +124,39 @@ class StockTest extends TestCase
         $this->assertSame('9.99', $stock->price);
     }
 
+    public function test_admin_can_set_a_stock_vat_rate(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->post('/admin/stock', [
+                'name' => 'Xampú',
+                'quantity' => 5,
+                'price' => 10,
+                'vat_rate' => 10,
+                'order' => json_encode([]),
+            ])
+            ->assertRedirect(route('admin.stock'));
+
+        $this->assertSame('10.00', Stock::firstOrFail()->vat_rate);
+    }
+
+    public function test_stock_defaults_to_21_percent_vat(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->post('/admin/stock', [
+                'name' => 'Crema',
+                'quantity' => 1,
+                'price' => 5,
+                'order' => json_encode([]),
+            ])
+            ->assertRedirect();
+
+        $this->assertSame('21.00', Stock::firstOrFail()->vat_rate);
+    }
+
     public function test_deleting_a_category_keeps_its_items_without_category(): void
     {
         $admin = User::factory()->admin()->create();

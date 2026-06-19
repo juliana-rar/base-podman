@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\BusinessHour;
+use App\Models\Message;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -44,6 +45,20 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            // Pantalles del dashboard a què pot accedir l'usuari (per filtrar el menú).
+            'screens' => rescue(fn () => $request->user()?->accessibleScreens() ?? [], [], false),
+            // Missatges de xat sense llegir (per al badge): per a l'equip, els dels
+            // clients/sistema; per a un client, els de l'equip al seu fil.
+            'unreadChat' => rescue(function () use ($request) {
+                $user = $request->user();
+                if (! $user) {
+                    return 0;
+                }
+
+                return $user->canAccessScreen('xat')
+                    ? Message::whereIn('sender', ['user', 'system'])->whereNull('read_at')->count()
+                    : Message::where('user_id', $user->id)->where('sender', 'admin')->whereNull('read_at')->count();
+            }, 0, false),
             'businessHours' => rescue(
                 fn () => BusinessHour::orderBy('weekday')->get(['weekday', 'closed', 'opens', 'closes']),
                 [],
@@ -59,6 +74,12 @@ class HandleInertiaRequests extends Middleware
             ], [], false),
             'siteName' => rescue(fn () => Setting::get('site_name') ?: 'ReservaHores', 'ReservaHores', false),
             'logoUrl' => rescue(fn () => ($p = Setting::get('logo')) ? Storage::url($p) : null, null, false),
+            // Dades fiscals de l'empresa (per a l'Excel de facturació).
+            'fiscal' => rescue(fn () => [
+                'legalName' => Setting::get('legal_name'),
+                'taxId' => Setting::get('tax_id'),
+                'fiscalAddress' => Setting::get('fiscal_address'),
+            ], [], false),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

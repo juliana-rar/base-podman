@@ -16,9 +16,15 @@ interface Reservation {
     employee_id: number | null;
     user: { id: number; name: string; email: string; phone: string | null } | null;
     slot: { id: number; starts_at: string; notes: string | null } | null;
-    service: { id: number; name: string; price: string | number; category: { id: number; name: string } | null } | null;
+    service: {
+        id: number;
+        name: string;
+        price: string | number;
+        vat_rate: string | number;
+        category: { id: number; name: string } | null;
+    } | null;
     service_option: { id: number; name: string; price: string | number } | null;
-    stocks: { id: number; name: string; price: string | number; pivot: { quantity: number } }[];
+    stocks: { id: number; name: string; price: string | number; vat_rate: string | number; pivot: { quantity: number } }[];
 }
 
 interface ServiceOption {
@@ -187,12 +193,45 @@ function productsTotalOf(r: Reservation): number {
     return r.stocks.reduce((sum, s) => sum + Number(s.price) * s.pivot.quantity, 0);
 }
 
+// Tipus d'IVA (%) del servei d'una reserva (per defecte 21 si no consta).
+function serviceVatRate(r: Reservation): number {
+    return r.service ? Number(r.service.vat_rate) : 21;
+}
+
+// Conceptes facturables d'una reserva (el servei + cada producte), cadascun amb el
+// seu import (IVA inclòs) i el seu tipus d'IVA. Permet desglossar per tipus.
+function conceptsOf(r: Reservation): { rate: number; amount: number }[] {
+    const list: { rate: number; amount: number }[] = [];
+    const service = priceOf(r);
+    if (service > 0) {
+        list.push({ rate: serviceVatRate(r), amount: service });
+    }
+    for (const s of r.stocks) {
+        list.push({ rate: Number(s.vat_rate), amount: Number(s.price) * s.pivot.quantity });
+    }
+    return list;
+}
+
+// Base imposable i quota d'IVA d'una reserva, sumant els seus conceptes (que poden
+// portar tipus diferents). Els preus inclouen IVA: base = import / (1 + tipus/100).
+function fiscalOf(r: Reservation): { base: number; vat: number; total: number } {
+    let base = 0;
+    let vat = 0;
+    let total = 0;
+    for (const c of conceptsOf(r)) {
+        const conceptBase = c.amount / (1 + c.rate / 100);
+        base += conceptBase;
+        vat += c.amount - conceptBase;
+        total += c.amount;
+    }
+    return { base, vat, total };
+}
+
 const monthReservations = computed(() =>
     props.reservations.filter((r) => monthKeyOf(billingDate(r)) === billingMonth.value),
 );
 
 const billingTotal = computed(() => monthReservations.value.reduce((sum, r) => sum + priceOf(r), 0));
-const billingProductsTotal = computed(() => monthReservations.value.reduce((sum, r) => sum + productsTotalOf(r), 0));
 const billingCount = computed(() => monthReservations.value.length);
 const billingAvg = computed(() => (billingCount.value ? billingTotal.value / billingCount.value : 0));
 
@@ -276,6 +315,11 @@ const companyName = computed(() => String(page.props.siteName ?? page.props.name
 // Logo desat a /admin/informacio (URL pública), per estampar-lo a dalt de l'Excel.
 const logoUrl = computed(() => (page.props.logoUrl ? String(page.props.logoUrl) : null));
 
+// Dades fiscals de l'empresa (desades a /admin/informacio i compartides globalment).
+const fiscal = computed(
+    () => (page.props.fiscal ?? {}) as { legalName?: string | null; taxId?: string | null; fiscalAddress?: string | null },
+);
+
 // Carrega el logo i el passa a PNG (via canvas) perquè ExcelJS l'accepti sigui quin
 // sigui el format original (webp, svg…). Retorna null si no es pot carregar.
 async function logoAsPng(url: string): Promise<{ base64: string; width: number; height: number } | null> {
@@ -320,7 +364,7 @@ async function exportBillingExcel(): Promise<void> {
     const LINE = 'FFD1D5DB';
     const WHITE = 'FFFFFFFF';
     const CURRENCY = '#,##0.00" €"';
-    const LAST_COL = 9;
+    const LAST_COL = 10;
 
     type Fill = { type: 'pattern'; pattern: 'solid'; fgColor: { argb: string } };
     type Border = { style: 'thin'; color: { argb: string } };
@@ -331,35 +375,67 @@ async function exportBillingExcel(): Promise<void> {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet(t('bill.title'));
     ws.columns = [
-        { width: 20 }, { width: 22 }, { width: 28 }, { width: 18 }, { width: 22 },
-        { width: 18 }, { width: 14 }, { width: 34 }, { width: 16 },
+        { width: 20 }, { width: 22 }, { width: 26 }, { width: 16 }, { width: 20 },
+        { width: 16 }, { width: 30 }, { width: 14 }, { width: 13 }, { width: 15 },
     ];
 
     let R = 1;
 
-    // Banda amb el logo (si n'hi ha): la imatge sura sobre una fila blanca.
+    // Capçalera: el logo i el nom de l'empresa a la MATEIXA línia, sobre la banda d'accent.
     const logo = logoUrl.value ? await logoAsPng(logoUrl.value) : null;
-    if (logo) {
-        const displayHeight = 48;
-        const displayWidth = Math.round((logo.width / logo.height) * displayHeight);
-        ws.getRow(R).height = 52;
-        const imageId = wb.addImage({ base64: logo.base64, extension: 'png' });
-        ws.addImage(imageId, {
-            tl: { col: 0.15, row: R - 1 + 0.08 },
-            ext: { width: displayWidth, height: displayHeight },
-        });
-        R++;
-    }
 
-    // Capçalera amb la marca de l'empresa.
     ws.mergeCells(R, 1, R, LAST_COL);
     const brand = ws.getCell(R, 1);
     brand.value = companyName.value;
     brand.font = { bold: true, size: 18, color: { argb: WHITE } };
     brand.fill = fillOf(ACCENT);
-    brand.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
-    ws.getRow(R).height = 36;
+
+    if (logo) {
+        // El logo s'encaixa (contain) dins d'una caixa a l'esquerra, centrat
+        // verticalment a la banda; el text comença just després amb sagnat.
+        const bandHeightPt = 50;
+        const bandHeightPx = bandHeightPt * (4 / 3); // pt → px a 96 dpi
+        const scale = Math.min(220 / logo.width, 44 / logo.height, 1);
+        const displayWidth = Math.round(logo.width * scale);
+        const displayHeight = Math.round(logo.height * scale);
+
+        const leftPad = 16; // px des de l'esquerra de la cel·la
+        const gap = 16; // px entre el logo i el text
+        const colAWidthPx = 145; // amplada aproximada de la columna A (width 20)
+        const topFraction = (bandHeightPx - displayHeight) / 2 / bandHeightPx;
+
+        const imageId = wb.addImage({ base64: logo.base64, extension: 'png' });
+        ws.addImage(imageId, {
+            tl: { col: leftPad / colAWidthPx, row: R - 1 + topFraction },
+            ext: { width: displayWidth, height: displayHeight },
+        });
+
+        // 1 nivell de sagnat ≈ 7 px (amplada d'un caràcter de la font normal d'Excel).
+        const indent = Math.ceil((leftPad + displayWidth + gap) / 7);
+        brand.alignment = { vertical: 'middle', horizontal: 'left', indent };
+        ws.getRow(R).height = bandHeightPt;
+    } else {
+        brand.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+        ws.getRow(R).height = 36;
+    }
     R++;
+
+    // Línia amb les dades fiscals de l'empresa (raó social · NIF/CIF · adreça fiscal).
+    const fiscalParts = [
+        fiscal.value.legalName,
+        fiscal.value.taxId ? `NIF/CIF: ${fiscal.value.taxId}` : '',
+        fiscal.value.fiscalAddress,
+    ].filter(Boolean);
+    if (fiscalParts.length) {
+        ws.mergeCells(R, 1, R, LAST_COL);
+        const fiscalCell = ws.getCell(R, 1);
+        fiscalCell.value = fiscalParts.join('    ·    ');
+        fiscalCell.font = { size: 10, color: { argb: INK } };
+        fiscalCell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+        fiscalCell.border = { bottom: thin() };
+        ws.getRow(R).height = 18;
+        R++;
+    }
 
     ws.mergeCells(R, 1, R, LAST_COL);
     const subtitle = ws.getCell(R, 1);
@@ -372,18 +448,37 @@ async function exportBillingExcel(): Promise<void> {
 
     ws.mergeCells(R, 1, R, LAST_COL);
     const generated = ws.getCell(R, 1);
-    generated.value = `${t('bill.generated')} ${dateLabel(new Date().toISOString())}`;
+    generated.value = `${t('bill.generated')} ${dateLabel(new Date().toISOString())}    ·    ${t('bill.taxNote')}`;
     generated.font = { italic: true, size: 9, color: { argb: MUTED } };
     generated.alignment = { horizontal: 'left', indent: 1 };
     R += 2;
 
+    // Desglossament fiscal per tipus d'IVA. Cada concepte (servei o producte) pot
+    // portar un tipus diferent; els preus inclouen IVA → base = import / (1 + tipus).
+    const round2 = (n: number): number => Math.round(n * 100) / 100;
+    const byRate = new Map<number, { base: number; vat: number }>();
+    for (const r of rows) {
+        for (const c of conceptsOf(r)) {
+            const conceptBase = c.amount / (1 + c.rate / 100);
+            const cur = byRate.get(c.rate) ?? { base: 0, vat: 0 };
+            cur.base += conceptBase;
+            cur.vat += c.amount - conceptBase;
+            byRate.set(c.rate, cur);
+        }
+    }
+    const rateBreakdown = [...byRate.entries()]
+        .map(([rate, v]) => ({ rate, base: round2(v.base), vat: round2(v.vat) }))
+        .sort((a, b) => b.rate - a.rate);
+    const monthBase = round2(rateBreakdown.reduce((s, b) => s + b.base, 0));
+    const monthVat = round2(rateBreakdown.reduce((s, b) => s + b.vat, 0));
+    const monthTotal = round2(monthBase + monthVat);
+    const avgTicket = billingCount.value ? round2(monthTotal / billingCount.value) : 0;
+
     // Resum (KPIs) en format etiqueta · valor.
     const summary = [
-        { label: t('bill.total'), value: billingTotal.value, fmt: CURRENCY, em: false },
-        { label: t('bill.csvProductsAmount'), value: billingProductsTotal.value, fmt: CURRENCY, em: false },
-        { label: t('bill.grandTotal'), value: billingTotal.value + billingProductsTotal.value, fmt: CURRENCY, em: true },
+        { label: t('bill.totalWithTax'), value: monthTotal, fmt: CURRENCY, em: true },
         { label: t('bill.count'), value: billingCount.value, fmt: '0', em: false },
-        { label: t('bill.avg'), value: billingAvg.value, fmt: CURRENCY, em: false },
+        { label: t('bill.avg'), value: avgTicket, fmt: CURRENCY, em: false },
     ];
     for (const row of summary) {
         const color = row.em ? ACCENT : INK;
@@ -409,11 +504,11 @@ async function exportBillingExcel(): Promise<void> {
     }
     R++;
 
-    // Capçalera de la taula de detall.
+    // Capçalera de la taula de detall (base, IVA i total per reserva).
     const headers = [
         t('bill.csvDate'), t('bill.csvClient'), t('bill.csvEmail'),
         t('bill.csvCategory'), t('bill.csvService'), t('bill.csvOption'),
-        t('bill.csvAmount'), t('bill.csvProducts'), t('bill.csvProductsAmount'),
+        t('bill.csvProducts'), t('bill.csvBase'), t('bill.csvVat'), t('bill.csvTotal'),
     ];
     headers.forEach((h, i) => {
         const c = i + 1;
@@ -421,7 +516,7 @@ async function exportBillingExcel(): Promise<void> {
         headerCell.value = h;
         headerCell.font = { bold: true, size: 10, color: { argb: WHITE } };
         headerCell.fill = fillOf(ACCENT);
-        headerCell.alignment = { horizontal: c >= 7 ? 'right' : 'left', vertical: 'middle' };
+        headerCell.alignment = { horizontal: c >= 8 ? 'right' : 'left', vertical: 'middle' };
         headerCell.border = box(ACCENT);
     });
     ws.getRow(R).height = 22;
@@ -444,15 +539,17 @@ async function exportBillingExcel(): Promise<void> {
                 detailCell.numFmt = opts.numFmt;
             }
         };
+        const f = fiscalOf(r);
         put(1, dateLabel(billingDate(r)));
         put(2, r.user?.name ?? '');
         put(3, r.user?.email ?? '');
         put(4, categoryLabel(r));
         put(5, r.service?.name ?? '');
         put(6, optionLabel(r));
-        put(7, priceOf(r), { align: 'right', numFmt: CURRENCY });
-        put(8, productsLabel(r), { wrap: true });
-        put(9, productsTotalOf(r), { align: 'right', numFmt: CURRENCY });
+        put(7, productsLabel(r), { wrap: true });
+        put(8, round2(f.base), { align: 'right', numFmt: CURRENCY });
+        put(9, round2(f.vat), { align: 'right', numFmt: CURRENCY });
+        put(10, round2(f.total), { align: 'right', numFmt: CURRENCY });
         R++;
     });
 
@@ -472,25 +569,66 @@ async function exportBillingExcel(): Promise<void> {
             totalCell.numFmt = numFmt;
         }
     };
-    setTotal(6, t('bill.total'));
-    setTotal(7, billingTotal.value, CURRENCY);
-    setTotal(8, t('bill.csvProductsAmount'));
-    setTotal(9, billingProductsTotal.value, CURRENCY);
+    setTotal(7, t('bill.total'));
+    setTotal(8, monthBase, CURRENCY);
+    setTotal(9, monthVat, CURRENCY);
+    setTotal(10, monthTotal, CURRENCY);
+    R += 2;
+
+    // Desglossament d'IVA per tipus (base imposable i quota de cada %).
+    ws.mergeCells(R, 8, R, 10);
+    const brkHead = ws.getCell(R, 8);
+    brkHead.value = t('bill.taxBreakdown');
+    brkHead.font = { bold: true, size: 10, color: { argb: WHITE } };
+    brkHead.fill = fillOf(ACCENT);
+    brkHead.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+    ws.getRow(R).height = 20;
     R++;
 
-    // Total general destacat.
-    for (let c = 1; c <= LAST_COL; c++) {
+    const brkCols = [t('bill.csvVatRate'), t('bill.taxBase'), t('bill.vat')];
+    brkCols.forEach((h, i) => {
+        const cell = ws.getCell(R, i + 8);
+        cell.value = h;
+        cell.font = { bold: true, size: 9, color: { argb: INK } };
+        cell.fill = fillOf(ACCENT_SOFT);
+        cell.alignment = { horizontal: i === 0 ? 'left' : 'right', vertical: 'middle' };
+        cell.border = box();
+    });
+    R++;
+
+    for (const b of rateBreakdown) {
+        const cells: [number, string | number, 'left' | 'right', boolean][] = [
+            [8, `${b.rate}%`, 'left', false],
+            [9, b.base, 'right', true],
+            [10, b.vat, 'right', true],
+        ];
+        for (const [c, value, align, money] of cells) {
+            const cell = ws.getCell(R, c);
+            cell.value = value;
+            cell.font = { size: 10, color: { argb: INK } };
+            cell.alignment = { horizontal: align, vertical: 'middle' };
+            cell.border = box();
+            if (money) {
+                cell.numFmt = CURRENCY;
+            }
+        }
+        R++;
+    }
+
+    // Total general destacat (IVA inclòs).
+    for (const c of [8, 9, 10]) {
         ws.getCell(R, c).fill = fillOf(ACCENT);
     }
+    ws.mergeCells(R, 8, R, 9);
     const grandLabel = ws.getCell(R, 8);
-    grandLabel.value = t('bill.grandTotal');
+    grandLabel.value = t('bill.totalWithTax');
     grandLabel.font = { bold: true, size: 11, color: { argb: WHITE } };
     grandLabel.alignment = { horizontal: 'right', vertical: 'middle' };
-    const grandValue = ws.getCell(R, 9);
-    grandValue.value = billingTotal.value + billingProductsTotal.value;
+    const grandValue = ws.getCell(R, 10);
+    grandValue.value = monthTotal;
+    grandValue.numFmt = CURRENCY;
     grandValue.font = { bold: true, size: 11, color: { argb: WHITE } };
     grandValue.alignment = { horizontal: 'right', vertical: 'middle' };
-    grandValue.numFmt = CURRENCY;
     ws.getRow(R).height = 22;
 
     const buffer = await wb.xlsx.writeBuffer();
