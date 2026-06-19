@@ -56,6 +56,9 @@ class ChatTest extends TestCase
         $message = Message::where('user_id', $user->id)->where('sender', 'system')->first();
         $this->assertNotNull($message);
         $this->assertStringContainsString('Tall', $message->body);
+        $this->assertStringContainsString('Anna', $message->body);
+        $this->assertStringContainsString('Servei:', $message->body);
+        $this->assertStringContainsString('Empleat:', $message->body);
     }
 
     public function test_admin_sees_threads_and_can_reply(): void

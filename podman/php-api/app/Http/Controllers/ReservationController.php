@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\Message;
 use App\Models\Reservation;
 use App\Models\Service;
+use App\Models\ServiceOption;
 use App\Models\Slot;
 use App\Models\Stock;
 use App\Models\StockCategory;
@@ -149,19 +150,59 @@ class ReservationController extends Controller
             'note' => $validated['note'] ?? null,
         ]);
 
-        $reservation->stocks()->attach($this->stockAttachments($validated['products'] ?? []));
+        $attach = $this->stockAttachments($validated['products'] ?? []);
+        $reservation->stocks()->attach($attach);
 
-        // Notificació automàtica al fil de xat de l'usuari (la veu l'equip al panell).
-        $service = Service::find($validated['service_id']);
+        // Notificació automàtica amb els detalls de la reserva al fil de xat de l'usuari.
         Message::create([
             'user_id' => $reservation->user_id,
             'sender' => 'system',
-            'body' => 'Nova reserva: '.($service?->name ?? 'servei').' · '.Carbon::parse($slot->starts_at)->format('d/m/Y H:i'),
+            'body' => $this->reservationSummary($slot, $validated, $attach),
         ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Reserva feta!']);
 
         return back();
+    }
+
+    /**
+     * Resum llegible amb els detalls d'una reserva per al missatge de xat.
+     *
+     * @param  array<string, mixed>  $validated
+     * @param  array<int, array{quantity: int}>  $attach
+     */
+    private function reservationSummary(Slot $slot, array $validated, array $attach): string
+    {
+        $service = Service::find($validated['service_id']);
+        $option = ! empty($validated['service_option_id']) ? ServiceOption::find($validated['service_option_id']) : null;
+        $employee = Employee::find($validated['employee_id']);
+
+        $serviceLine = $service?->name ?? 'servei';
+        if ($option) {
+            $serviceLine .= ' ('.$option->name.')';
+        }
+
+        $lines = [
+            '📅 Nova reserva',
+            'Servei: '.$serviceLine,
+            'Empleat: '.($employee?->name ?? '—'),
+            'Data: '.Carbon::parse($slot->starts_at)->format('d/m/Y H:i'),
+        ];
+
+        if ($attach !== []) {
+            $names = Stock::whereIn('id', array_keys($attach))->pluck('name', 'id');
+            $products = [];
+            foreach ($attach as $id => $pivot) {
+                $products[] = $pivot['quantity'].'× '.($names[$id] ?? '');
+            }
+            $lines[] = 'Productes: '.implode(', ', $products);
+        }
+
+        if (! empty($validated['note'])) {
+            $lines[] = 'Nota: '.$validated['note'];
+        }
+
+        return implode("\n", $lines);
     }
 
     /**

@@ -9,24 +9,32 @@ const { t } = useI18n();
 
 // --- Galeria d'obres de l'empleat (mateix patró que serveis/stock) ---
 
-// Construeix la llista inicial d'imatges d'obres existents.
+// Construeix la llista inicial d'imatges d'obres existents (amb el seu peu de foto).
 function worksOf(employee: Employee): ImageItem[] {
-    return (employee.works ?? []).map((path, i) => ({ path, url: employee.work_urls[i] ?? '' }));
+    return (employee.works ?? []).map((path, i) => ({
+        path,
+        url: employee.work_urls[i] ?? '',
+        caption: employee.work_captions[i] ?? '',
+    }));
 }
 
-// Converteix la llista de l'editor en el payload (images[] + order JSON).
-function worksPayload(items: ImageItem[]): { images: File[]; order: string } {
+// Converteix la llista de l'editor en el payload (images[] + order JSON + captions JSON).
+function worksPayload(items: ImageItem[]): { images: File[]; order: string; captions: string } {
     const images: File[] = [];
     const order: string[] = [];
+    const captions: string[] = [];
     for (const item of items) {
         if (item.file) {
             order.push(`new:${images.length}`);
             images.push(item.file);
         } else if (item.path) {
             order.push(item.path);
+        } else {
+            continue;
         }
+        captions.push(item.caption ?? '');
     }
-    return { images, order: JSON.stringify(order) };
+    return { images, order: JSON.stringify(order), captions: JSON.stringify(captions) };
 }
 
 // Allibera els object URLs de les imatges noves i buida la llista.
@@ -59,9 +67,11 @@ interface Category {
 interface Employee {
     id: number;
     name: string;
+    description: string | null;
     url: string | null;
     works: string[];
     work_urls: string[];
+    work_captions: string[];
     service_ids: number[];
     option_ids: number[];
 }
@@ -137,8 +147,9 @@ function toggleOption(form: { service_ids: number[]; option_ids: number[] }, opt
 }
 
 // --- Crear ---
-const form = useForm<{ name: string; service_ids: number[]; option_ids: number[]; image: File | null }>({
+const form = useForm<{ name: string; description: string; service_ids: number[]; option_ids: number[]; image: File | null }>({
     name: '',
+    description: '',
     service_ids: [],
     option_ids: [],
     image: null,
@@ -154,8 +165,8 @@ function onNewFile(event: Event): void {
 }
 
 function create(): void {
-    const { images, order } = worksPayload(newWorks.value);
-    form.transform((data) => ({ ...data, images, order })).post('/admin/empleats', {
+    const { images, order, captions } = worksPayload(newWorks.value);
+    form.transform((data) => ({ ...data, images, order, captions })).post('/admin/empleats', {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
@@ -169,8 +180,9 @@ function create(): void {
 
 // --- Editar ---
 const editId = ref<number | null>(null);
-const editForm = useForm<{ name: string; service_ids: number[]; option_ids: number[]; image: File | null }>({
+const editForm = useForm<{ name: string; description: string; service_ids: number[]; option_ids: number[]; image: File | null }>({
     name: '',
+    description: '',
     service_ids: [],
     option_ids: [],
     image: null,
@@ -183,6 +195,7 @@ function startEdit(employee: Employee): void {
     editForm.reset();
     editForm.clearErrors();
     editForm.name = employee.name;
+    editForm.description = employee.description ?? '';
     editForm.service_ids = [...employee.service_ids];
     editForm.option_ids = [...employee.option_ids];
     editForm.image = null;
@@ -201,8 +214,8 @@ function onEditFile(event: Event): void {
 
 function saveEdit(): void {
     if (editId.value === null) return;
-    const { images, order } = worksPayload(editWorks.value);
-    editForm.transform((data) => ({ ...data, images, order })).post(`/admin/empleats/${editId.value}`, {
+    const { images, order, captions } = worksPayload(editWorks.value);
+    editForm.transform((data) => ({ ...data, images, order, captions })).post(`/admin/empleats/${editId.value}`, {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
@@ -256,9 +269,17 @@ function remove(id: number): void {
                     </div>
                 </div>
 
+                <textarea
+                    v-model="form.description"
+                    class="rsv-emp-bio"
+                    maxlength="2000"
+                    rows="3"
+                    :placeholder="t('emp.descriptionPh')"
+                ></textarea>
+
                 <div class="rsv-emp-works">
                     <span class="rsv-emp-assign-label">{{ t('emp.works') }}</span>
-                    <ImagesField v-model="newWorks" />
+                    <ImagesField v-model="newWorks" :max="30" :captions="true" />
                 </div>
 
                 <div class="rsv-emp-assign">
@@ -312,6 +333,7 @@ function remove(id: number): void {
                         </div>
                         <div class="rsv-emp-info">
                             <span class="rsv-emp-name">{{ employee.name }}</span>
+                            <p v-if="employee.description" class="rsv-emp-bioview">{{ employee.description }}</p>
                             <span class="rsv-emp-tags">
                                 <template v-if="employee.service_ids.length">
                                     <span v-for="name in serviceNames(employee.service_ids)" :key="name" class="rsv-emp-tag">{{ name }}</span>
@@ -343,9 +365,17 @@ function remove(id: number): void {
                             </div>
                         </div>
 
+                        <textarea
+                            v-model="editForm.description"
+                            class="rsv-emp-bio"
+                            maxlength="2000"
+                            rows="3"
+                            :placeholder="t('emp.descriptionPh')"
+                        ></textarea>
+
                         <div class="rsv-emp-works">
                             <span class="rsv-emp-assign-label">{{ t('emp.works') }}</span>
-                            <ImagesField v-model="editWorks" />
+                            <ImagesField v-model="editWorks" :max="30" :captions="true" />
                         </div>
 
                         <div class="rsv-emp-assign">

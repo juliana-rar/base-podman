@@ -2674,7 +2674,7 @@
 
 /* ---------- Serveis i Stock (#rsv-serveis, #rsv-stock) ---------- */
 
-:is(#rsv-serveis, #rsv-stock) {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) {
     --a-card: #ffffff;
     --a-ink: #1e1b2e;
     --a-muted: #6b6880;
@@ -2689,7 +2689,7 @@
     color: var(--a-ink);
 }
 
-.dark :is(#rsv-serveis, #rsv-stock) {
+.dark :is(#rsv-serveis, #rsv-stock, #rsv-empleats) {
     --a-card: #161327;
     --a-ink: #ede9ff;
     --a-muted: #9b97b4;
@@ -2698,18 +2698,18 @@
     --a-soft: rgba(129, 140, 248, 0.16);
 }
 
-:is(#rsv-serveis, #rsv-stock) > :nth-child(1) > :nth-child(1) {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) > :nth-child(1) > :nth-child(1) {
     font-size: 1.75rem;
     font-weight: 800;
     margin: 0 0 0.25rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) > :nth-child(1) > :nth-child(2) {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) > :nth-child(1) > :nth-child(2) {
     color: var(--a-muted);
     margin: 0;
 }
 
-:is(#rsv-serveis, #rsv-stock) > :nth-child(2) {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) > :nth-child(2) {
     background: var(--a-card);
     border: 1px solid var(--a-line);
     border-radius: 1.25rem;
@@ -2717,21 +2717,21 @@
     box-shadow: 0 0.5rem 1.5rem -0.85rem rgba(30, 27, 46, 0.3);
 }
 
-:is(#rsv-serveis, #rsv-stock) h2 {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) h2 {
     font-weight: 700;
     font-size: 1.05rem;
     margin: 0 0 1rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) h2:nth-of-type(2) {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) h2:nth-of-type(2) {
     margin-top: 1.75rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-center {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-center {
     text-align: center;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -2740,7 +2740,7 @@
     margin: 0 auto 1rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form > input {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form > input {
     flex: 1;
     min-width: 10rem;
     border: 1px solid var(--a-line);
@@ -2751,14 +2751,14 @@
     font-size: 0.95rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form > input:focus {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form > input:focus {
     outline: none;
     border-color: var(--a-accent);
     box-shadow: 0 0 0 3px var(--a-soft);
 }
 
 /* Camp numèric amb la unitat (€ / min) sempre visible per diferenciar-lo. */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-num {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-num {
     position: relative;
     display: flex;
     align-items: center;
@@ -2766,7 +2766,7 @@
     min-width: 8rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-num > input {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-num > input {
     flex: 1;
     width: 100%;
     min-width: 0;
@@ -2780,19 +2780,19 @@
     -moz-appearance: textfield;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-num > input::-webkit-outer-spin-button,
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-num > input::-webkit-inner-spin-button {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-num > input::-webkit-outer-spin-button,
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-num > input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-num > input:focus {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-num > input:focus {
     outline: none;
     border-color: var(--a-accent);
     box-shadow: 0 0 0 3px var(--a-soft);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-unit {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-unit {
     position: absolute;
     right: 0.75rem;
     font-style: normal;
@@ -2803,19 +2803,19 @@
 }
 
 /* Durada moderna: hores + minuts un al costat de l'altre. */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-durfield {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-durfield {
     display: flex;
     gap: 0.4rem;
     flex: 1 1 12rem;
     min-width: 12rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-durfield .rsv-srv-num {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-durfield .rsv-srv-num {
     flex: 1 1 5.5rem;
     min-width: 5.5rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-edit {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-edit {
     border: 1px solid var(--a-line);
     color: var(--a-accent);
     background: transparent;
@@ -2826,25 +2826,25 @@
     transition: all 0.15s ease;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-edit:hover {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-edit:hover {
     background: var(--a-accent);
     color: #fff;
     border-color: transparent;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-error {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-error {
     color: var(--a-danger);
     font-size: 0.85rem;
     margin: 0 0 0.75rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-groups {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-groups {
     display: flex;
     flex-direction: column;
     gap: 3.5rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-group {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-group {
     display: flex;
     flex-direction: column;
     gap: 0.7rem;
@@ -2855,7 +2855,7 @@
     box-shadow: 0 1rem 2.5rem -1.1rem rgba(30, 27, 46, 0.35);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-grouphead {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-grouphead {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -2864,18 +2864,18 @@
     border-bottom: 2px solid var(--a-line);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-grouphead h3 {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-grouphead h3 {
     margin: 0;
     font-size: 1.05rem;
     font-weight: 800;
     margin-right: auto;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-grouphead input {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-grouphead input {
     margin-right: auto;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-select {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-select {
     border: 1px solid var(--a-line);
     border-radius: 0.6rem;
     padding: 0.45rem 0.6rem;
@@ -2884,13 +2884,13 @@
     font: inherit;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-rows {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-rows {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-row {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-row {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -2900,16 +2900,16 @@
     padding: 0.65rem 0.95rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-name {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-name {
     font-weight: 700;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-spacer {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-spacer {
     margin-left: auto;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-price,
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-dur {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-price,
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-dur {
     font-weight: 600;
     font-size: 0.9rem;
     color: var(--a-muted);
@@ -2917,7 +2917,7 @@
 }
 
 /* Camp d'informació del servei (textarea). */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-descfield {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-descfield {
     flex: 1 1 100%;
     width: 100%;
     border: 1px solid var(--a-line);
@@ -2930,14 +2930,14 @@
     resize: vertical;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-descfield:focus {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-descfield:focus {
     outline: none;
     border-color: var(--a-accent);
     box-shadow: 0 0 0 3px var(--a-soft);
 }
 
 /* Informació mostrada sota la fila del servei. */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-desc {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-desc {
     flex: 1 1 100%;
     width: 100%;
     margin: 0.15rem 0 0;
@@ -2947,7 +2947,7 @@
 }
 
 /* Informació de la categoria sota la seva capçalera. */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-catdesc {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-catdesc {
     margin: 0 0 0.2rem;
     font-size: 0.85rem;
     color: var(--a-muted);
@@ -2955,7 +2955,7 @@
 }
 
 /* Opcions del servei */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-options {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-options {
     flex: 1 1 100%;
     width: 100%;
     margin-top: 0.55rem;
@@ -2967,7 +2967,7 @@
     gap: 0.5rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-opts-head {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-opts-head {
     display: flex;
     align-items: center;
     gap: 0.6rem;
@@ -2979,12 +2979,12 @@
     color: var(--a-muted);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-opts-head .rsv-edit {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-opts-head .rsv-edit {
     padding: 0.25rem 0.7rem;
     font-size: 0.8rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-opt {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-opt {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -2996,12 +2996,12 @@
     background: var(--a-soft);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-optthumb {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-optthumb {
     width: 2.4rem;
     height: 2.4rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-optinfo {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-optinfo {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -3011,11 +3011,11 @@
     min-width: 8rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-optname {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-optname {
     font-weight: 700;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-optmeta {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-optmeta {
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
@@ -3024,13 +3024,13 @@
     color: var(--a-muted);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-optdesc {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-optdesc {
     font-size: 0.82rem;
     color: var(--a-muted);
     white-space: pre-line;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-optfields {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-optfields {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -3039,7 +3039,7 @@
     min-width: 12rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-optfields > input[type='text'] {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-optfields > input[type='text'] {
     flex: 1;
     min-width: 9rem;
     border: 1px solid var(--a-line);
@@ -3050,25 +3050,25 @@
     font-size: 0.95rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-optfields > input[type='text']:focus {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-optfields > input[type='text']:focus {
     outline: none;
     border-color: var(--a-accent);
     box-shadow: 0 0 0 3px var(--a-soft);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-optfields .rsv-error {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-optfields .rsv-error {
     width: 100%;
     margin: 0;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-count {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-count {
     margin-left: auto;
     font-size: 0.8rem;
     color: var(--a-muted);
     white-space: nowrap;
 }
 
-:is(#rsv-serveis, #rsv-stock) button.rsv-del {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) button.rsv-del {
     border: 1px solid rgba(220, 38, 38, 0.4);
     color: var(--a-danger);
     background: transparent;
@@ -3079,19 +3079,19 @@
     transition: all 0.15s ease;
 }
 
-:is(#rsv-serveis, #rsv-stock) button.rsv-del:hover {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) button.rsv-del:hover {
     background: var(--a-danger);
     color: #fff;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-empty {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-empty {
     color: var(--a-muted);
     text-align: center;
     padding: 1.5rem;
 }
 
 /* Selector de fitxer (estil botó) */
-:is(#rsv-serveis, #rsv-stock) .rsv-file {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-file {
     display: inline-flex;
     align-items: center;
     max-width: 13rem;
@@ -3106,27 +3106,27 @@
     transition: all 0.15s ease;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-file:hover {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-file:hover {
     border-color: var(--a-accent);
     color: var(--a-accent);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-file > span {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-file > span {
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-file > input {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-file > input {
     display: none;
 }
 
 /* Previsualització en crear */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-newprev {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-newprev {
     margin-bottom: 1rem;
     text-align: center;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-newprev > img {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-newprev > img {
     width: 5rem;
     height: 5rem;
     object-fit: cover;
@@ -3135,7 +3135,7 @@
 }
 
 /* Miniatura del catàleg */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-thumb {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-thumb {
     flex: none;
     width: 3rem;
     height: 3rem;
@@ -3148,19 +3148,19 @@
     justify-content: center;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-thumb > img {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-thumb > img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-noimg {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-noimg {
     color: var(--a-muted);
     font-weight: 700;
 }
 
 /* Camps en mode edició */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-editfields {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-editfields {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -3169,7 +3169,7 @@
     min-width: 12rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-editfields > input[type='text'] {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-editfields > input[type='text'] {
     flex: 1;
     min-width: 9rem;
     border: 1px solid var(--a-line);
@@ -3180,13 +3180,13 @@
     font-size: 0.95rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-editfields > input[type='text']:focus {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-editfields > input[type='text']:focus {
     outline: none;
     border-color: var(--a-accent);
     box-shadow: 0 0 0 3px var(--a-soft);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-editfields .rsv-error {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-editfields .rsv-error {
     width: 100%;
     margin: 0;
 }
@@ -3351,6 +3351,35 @@
     border: 1px solid var(--a-line);
 }
 
+/* Bio / descripció de l'empleat */
+#rsv-empleats .rsv-emp-bio {
+    width: 100%;
+    resize: vertical;
+    min-height: 4rem;
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-ink);
+    border-radius: 0.75rem;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+    line-height: 1.45;
+}
+
+#rsv-empleats .rsv-emp-bio:focus {
+    outline: none;
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-soft);
+}
+
+#rsv-empleats .rsv-emp-bioview {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--a-muted);
+    line-height: 1.45;
+    max-width: 42rem;
+}
+
 /* Assignació de serveis */
 #rsv-empleats .rsv-emp-assign-label {
     display: block;
@@ -3429,12 +3458,17 @@
 
 #rsv-empleats .rsv-emp-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     flex-wrap: wrap;
     gap: 0.75rem;
     border: 1px solid var(--a-line);
-    border-radius: 0.75rem;
-    padding: 0.65rem 0.95rem;
+    border-radius: 0.85rem;
+    padding: 0.85rem 1rem;
+    transition: box-shadow 0.15s ease;
+}
+
+#rsv-empleats .rsv-emp-row:hover {
+    box-shadow: 0 0.5rem 1.25rem -0.85rem rgba(30, 27, 46, 0.35);
 }
 
 #rsv-empleats .rsv-emp-thumb {
@@ -3513,7 +3547,7 @@
 /* =====================================================================
    Editor de galeria d'imatges (ImagesField): categories, serveis i opcions
    ===================================================================== */
-:is(#rsv-serveis, #rsv-stock) .rsv-imgs {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs {
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
@@ -3522,15 +3556,15 @@
 }
 
 /* Variant centrada: als formularis de crear (categoria i nou servei). */
-:is(#rsv-serveis, #rsv-stock) .rsv-imgs-centered {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-centered {
     justify-content: center;
 }
 
 /* Dins de l'edició al catàleg la galeria ocupa la seva pròpia fila, separada
    de la resta de camps perquè es llegeixi millor. */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-editfields > .rsv-imgs,
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-optfields > .rsv-imgs,
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-grouphead > .rsv-imgs {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-editfields > .rsv-imgs,
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-optfields > .rsv-imgs,
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-grouphead > .rsv-imgs {
     flex-basis: 100%;
     width: 100%;
     justify-content: center;
@@ -3539,7 +3573,26 @@
     border-top: 1px dashed var(--a-line);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-imgs-item {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    transition:
+        transform 0.12s ease,
+        opacity 0.12s ease;
+}
+
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-item.is-dragging {
+    opacity: 0.4;
+    cursor: grabbing;
+}
+
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-item.is-over .rsv-imgs-frame {
+    box-shadow: 0 0 0 2px var(--a-accent);
+}
+
+/* Marc fix de cada imatge (conté portada, accions i nansa d'arrossegar). */
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-frame {
     position: relative;
     width: 5rem;
     height: 5rem;
@@ -3547,17 +3600,55 @@
     overflow: hidden;
     border: 1px solid var(--a-line);
     background: var(--a-soft);
+    cursor: grab;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-imgs-item > img {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-item.is-dragging .rsv-imgs-frame {
+    cursor: grabbing;
+}
+
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-frame > img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+    pointer-events: none;
+}
+
+/* Nansa d'arrossegar (drag & drop). */
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-grip {
+    position: absolute;
+    top: 0.2rem;
+    right: 0.3rem;
+    z-index: 1;
+    color: #fff;
+    font-size: 0.85rem;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    cursor: grab;
+    opacity: 0.85;
+}
+
+/* Peu de foto editable (només quan captions està actiu, p. ex. empleats). */
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-caption {
+    width: 5rem;
+    border: 1px solid var(--a-line);
+    background: transparent;
+    color: var(--a-ink);
+    border-radius: 0.5rem;
+    padding: 0.3rem 0.4rem;
+    font-size: 0.72rem;
+    text-align: center;
+}
+
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-caption:focus {
+    outline: none;
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-soft);
 }
 
 /* Distintiu de la imatge de portada (la primera). */
-:is(#rsv-serveis, #rsv-stock) .rsv-imgs-cover {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-cover {
     position: absolute;
     top: 0.25rem;
     left: 0.25rem;
@@ -3571,7 +3662,7 @@
 }
 
 /* Barra d'accions a sota de cada imatge (reordenar i treure). */
-:is(#rsv-serveis, #rsv-stock) .rsv-imgs-actions {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-actions {
     position: absolute;
     inset: auto 0 0 0;
     display: flex;
@@ -3581,7 +3672,7 @@
     background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-imgs-actions > button {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-actions > button {
     width: 1.4rem;
     height: 1.4rem;
     border: none;
@@ -3597,26 +3688,26 @@
     transition: background 0.15s ease;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-imgs-actions > button:hover:not(:disabled) {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-actions > button:hover:not(:disabled) {
     background: #fff;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-imgs-actions > button:disabled {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-actions > button:disabled {
     opacity: 0.4;
     cursor: not-allowed;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-imgs-actions > .rsv-imgs-del {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-actions > .rsv-imgs-del {
     background: rgba(220, 38, 38, 0.9);
     color: #fff;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-imgs-actions > .rsv-imgs-del:hover {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-actions > .rsv-imgs-del:hover {
     background: #dc2626;
 }
 
 /* Botó d'afegir més imatges. */
-:is(#rsv-serveis, #rsv-stock) .rsv-imgs-add {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-add {
     width: 5rem;
     height: 5rem;
     border-radius: 0.75rem;
@@ -3636,12 +3727,12 @@
         color 0.15s ease;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-imgs-add:hover {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-add:hover {
     border-color: var(--a-accent);
     color: var(--a-accent);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-imgs-add > input {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-imgs-add > input {
     display: none;
 }
 
@@ -3653,7 +3744,7 @@
    ========================================================================= */
 
 /* Encapçalament de secció amb dues línies d'accent als costats. */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-center {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-center {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3664,8 +3755,8 @@
     margin-bottom: 1.1rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-center::before,
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-center::after {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-center::before,
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-center::after {
     content: '';
     height: 2px;
     width: 2.4rem;
@@ -3674,12 +3765,12 @@
     opacity: 0.55;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-center::after {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-center::after {
     background: linear-gradient(90deg, var(--a-accent), transparent);
 }
 
 /* El formulari passa a ser una targeta amb fons suau i ombra. */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form {
     max-width: 40rem;
     gap: 0.75rem;
     padding: 1.5rem;
@@ -3693,10 +3784,10 @@
 }
 
 /* Camps omplerts, més arrodonits i amb transició de focus suau. */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form > input,
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-num > input,
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-descfield,
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-select {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form > input,
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-srv-num > input,
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-srv-descfield,
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-srv-select {
     background: var(--a-card);
     border: 1px solid var(--a-line);
     border-radius: 0.9rem;
@@ -3705,14 +3796,14 @@
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-num > input {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-srv-num > input {
     padding-right: 3rem;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form > input:focus,
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-num > input:focus,
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-descfield:focus,
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-select:focus {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form > input:focus,
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-srv-num > input:focus,
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-srv-descfield:focus,
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-srv-select:focus {
     outline: none;
     border-color: var(--a-accent);
     box-shadow: 0 0 0 3px var(--a-soft);
@@ -3720,19 +3811,19 @@
 
 /* El nom, la descripció, la categoria i el botó ocupen tota l'amplada;
    els camps numèrics (preu, durada, quantitat) queden un al costat de l'altre. */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form > input,
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-descfield,
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-select {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form > input,
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-srv-descfield,
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-srv-select {
     flex: 1 1 100%;
     width: 100%;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-descfield {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-srv-descfield {
     resize: vertical;
 }
 
 /* Botó "Afegir" destacat: accent ple, pastilla, amb lleuger relleu. */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-edit {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-edit {
     flex: 1 1 100%;
     margin-top: 0.15rem;
     padding: 0.75rem 1.2rem;
@@ -3744,21 +3835,21 @@
     transition: filter 0.15s ease, transform 0.15s ease;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-edit:hover {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-edit:hover {
     background: var(--a-accent);
     color: #fff;
     filter: brightness(1.08);
     transform: translateY(-1px);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-edit:disabled {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-edit:disabled {
     opacity: 0.55;
     cursor: not-allowed;
     transform: none;
 }
 
 /* Zona d'imatges integrada dins de la targeta, com una àrea de pujada moderna. */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-imgzone {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-srv-imgzone {
     flex: 1 1 100%;
     width: 100%;
     display: flex;
@@ -3770,7 +3861,7 @@
     background: var(--a-card);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-imgzone-label {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-srv-imgzone-label {
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -3778,18 +3869,18 @@
     color: var(--a-muted);
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-form .rsv-srv-imgzone .rsv-imgs {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-form .rsv-srv-imgzone .rsv-imgs {
     margin: 0;
     justify-content: flex-start;
 }
 
 /* Miniatures del catàleg: indiquen que es poden clicar per ampliar. */
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-thumb .rsv-srv-zoomable {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-thumb .rsv-srv-zoomable {
     cursor: zoom-in;
     transition: transform 0.15s ease, filter 0.15s ease;
 }
 
-:is(#rsv-serveis, #rsv-stock) .rsv-srv-thumb .rsv-srv-zoomable:hover {
+:is(#rsv-serveis, #rsv-stock, #rsv-empleats) .rsv-srv-thumb .rsv-srv-zoomable:hover {
     transform: scale(1.04);
     filter: brightness(1.05);
 }
@@ -4206,50 +4297,462 @@
 
 /* ===================== Panell d'usuaris i rols ===================== */
 #rsv-usuaris {
-    max-width: 70rem;
+    max-width: 76rem;
     width: 100%;
     margin: 0 auto;
     padding: 2rem clamp(1rem, 5vw, 4rem) 4rem;
 }
 
+#rsv-usuaris > header h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+#rsv-usuaris > header p {
+    color: #6b7280;
+    margin: 0.25rem 0 0;
+}
+
 #rsv-usuaris section {
-    margin-top: 2rem;
+    margin-top: 2.25rem;
 }
 
-.rsv-role-new {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 1rem;
-    border: 1px solid rgba(127, 127, 160, 0.2);
-    border-radius: 0.9rem;
-    margin-bottom: 1rem;
+#rsv-usuaris section > h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
 }
 
-.rsv-role-checks {
+.usr-fieldlabel {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 0.4rem;
+}
+
+/* Chips de pantalles (commutables i estàtics) */
+.usr-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem 1rem;
-    margin-top: 0.35rem;
+    gap: 0.4rem;
 }
 
-.rsv-role-check {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.9rem;
+.usr-chip {
+    border: 1px solid rgba(127, 127, 160, 0.28);
+    background: transparent;
+    color: #4b5563;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
     cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
-.rsv-role-edit {
+.usr-chip:hover {
+    border-color: #4f46e5;
+    color: #4f46e5;
+}
+
+.usr-chip.is-on {
+    background: #4f46e5;
+    border-color: #4f46e5;
+    color: #fff;
+}
+
+.usr-chip.is-static {
+    cursor: default;
+    background: #eef0fd;
+    border-color: transparent;
+    color: #4f46e5;
+}
+
+.usr-muted {
+    color: #9ca3af;
+    font-size: 0.85rem;
+}
+
+/* Barra de creació de rol */
+.usr-rolebar {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.9rem;
+    padding: 1.1rem;
+    margin-bottom: 1.1rem;
+    border: 1px solid rgba(127, 127, 160, 0.2);
+    border-radius: 1rem;
+    background: rgba(127, 127, 160, 0.04);
+}
+
+.usr-roleinput {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid rgba(127, 127, 160, 0.3);
+    border-radius: 0.7rem;
+    font: inherit;
+    max-width: 22rem;
     width: 100%;
 }
 
-.rsv-usr-actions {
+/* Graella de rols */
+.usr-rolegrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: 0.9rem;
+}
+
+.usr-rolecard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 1rem;
+    border: 1px solid rgba(127, 127, 160, 0.2);
+    border-radius: 1rem;
+    background: var(--w-card, #fff);
+    box-shadow: 0 0.4rem 1.2rem -0.8rem rgba(17, 24, 39, 0.3);
+}
+
+.usr-rolecard-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.usr-rolename {
+    font-weight: 700;
+    font-size: 1.02rem;
+}
+
+.usr-rolecard-actions {
+    display: flex;
+    gap: 0.3rem;
+}
+
+.usr-iconbtn {
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 0.55rem;
+    border: 1px solid rgba(127, 127, 160, 0.25);
+    background: transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    color: #6b7280;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.usr-iconbtn:hover {
+    color: #4f46e5;
+    border-color: #4f46e5;
+}
+
+.usr-iconbtn-del:hover {
+    color: #ef4444;
+    border-color: #ef4444;
+}
+
+.usr-editactions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Botons */
+.usr-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.7rem;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.usr-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.usr-btn-primary {
+    background: #4f46e5;
+    color: #fff;
+}
+
+.usr-btn-primary:not(:disabled):hover {
+    background: #4338ca;
+}
+
+.usr-btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(127, 127, 160, 0.3);
+    color: #6b7280;
+}
+
+.usr-btn-ghost:hover {
+    color: #ef4444;
+    border-color: #ef4444;
+}
+
+/* Barra d'eines d'usuaris */
+.usr-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.usr-search {
+    position: relative;
+    flex: 1;
+    max-width: 24rem;
+}
+
+.usr-search-icon {
+    position: absolute;
+    left: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+    font-size: 0.9rem;
+}
+
+.usr-search input {
+    width: 100%;
+    padding: 0.6rem 0.8rem 0.6rem 2.1rem;
+    border: 1px solid rgba(127, 127, 160, 0.3);
+    border-radius: 0.7rem;
+    font: inherit;
+}
+
+.usr-count {
+    color: #9ca3af;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+/* Taula d'usuaris */
+.usr-tablecard {
+    border: 1px solid rgba(127, 127, 160, 0.18);
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 0.5rem 1.5rem -0.9rem rgba(17, 24, 39, 0.25);
+}
+
+.usr-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.usr-table th {
+    text-align: left;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #6b7280;
+    font-weight: 700;
+    padding: 0.8rem 1rem;
+    background: rgba(127, 127, 160, 0.06);
+    border-bottom: 1px solid rgba(127, 127, 160, 0.18);
+}
+
+.usr-table td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid rgba(127, 127, 160, 0.1);
+    vertical-align: middle;
+}
+
+.usr-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.usr-table tbody tr:hover {
+    background: rgba(79, 70, 229, 0.03);
+}
+
+.usr-table tbody tr.is-dirty {
+    background: rgba(79, 70, 229, 0.07);
+}
+
+.usr-th-actions {
+    text-align: right;
+}
+
+/* Cel·la d'usuari amb avatar d'inicials */
+.usr-userc {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.usr-avatar {
+    flex: 0 0 auto;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    background: #eef0fd;
+    color: #4f46e5;
+}
+
+.usr-avatar.is-admin {
+    background: #4f46e5;
+    color: #fff;
+}
+
+.usr-userc-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.usr-userc-name {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.usr-userc-email {
+    font-size: 0.82rem;
+    color: #9ca3af;
+}
+
+.usr-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.12rem 0.45rem;
+    border-radius: 999px;
+    background: #4f46e5;
+    color: #fff;
+}
+
+.usr-date {
+    color: #6b7280;
+    font-size: 0.88rem;
+    white-space: nowrap;
+}
+
+/* Selector de rol */
+.usr-select {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid rgba(127, 127, 160, 0.3);
+    border-radius: 0.6rem;
+    font: inherit;
+    background: transparent;
+}
+
+.usr-select:disabled {
+    opacity: 0.5;
+}
+
+/* Interruptor d'administrador */
+.usr-switch {
+    position: relative;
+    display: inline-block;
+    width: 2.6rem;
+    height: 1.5rem;
+    cursor: pointer;
+}
+
+.usr-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.usr-switch-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: rgba(127, 127, 160, 0.35);
+    transition: background 0.18s ease;
+}
+
+.usr-switch-track::after {
+    content: '';
+    position: absolute;
+    top: 0.15rem;
+    left: 0.15rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.18s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.usr-switch input:checked + .usr-switch-track {
+    background: #4f46e5;
+}
+
+.usr-switch input:checked + .usr-switch-track::after {
+    transform: translateX(1.1rem);
+}
+
+.usr-actions {
     display: flex;
     gap: 0.4rem;
-    white-space: nowrap;
+    justify-content: flex-end;
+}
+
+@media (max-width: 48rem) {
+    .usr-table thead {
+        display: none;
+    }
+
+    .usr-table,
+    .usr-table tbody,
+    .usr-table tr,
+    .usr-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .usr-table tr {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(127, 127, 160, 0.15);
+    }
+
+    .usr-table td {
+        border: none;
+        padding: 0.35rem 1rem;
+    }
+
+    .usr-actions {
+        justify-content: flex-start;
+    }
+}
+
+/* Mode fosc */
+.dark .usr-rolecard {
+    background: #1f2430;
+}
+
+.dark .usr-chip.is-static {
+    background: #2a2f3e;
+    color: #a5b4fc;
+}
+
+.dark .usr-avatar {
+    background: #2a2f3e;
+    color: #a5b4fc;
+}
+
+.dark .usr-table th {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.dark .usr-roleinput,
+.dark .usr-search input,
+.dark .usr-select {
+    background: #1f2430;
+    color: #e5e7eb;
 }

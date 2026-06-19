@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Employee;
 use App\Models\Post;
 use App\Models\Reservation;
 use App\Models\Service;
@@ -22,6 +23,20 @@ class WelcomeController extends Controller
                 ->latest()
                 ->get(['id', 'title', 'slug', 'body', 'summary', 'cover_image', 'images', 'user_id', 'created_at']),
             'slides' => SlideImage::orderBy('id')->get(['id', 'path']),
+            // Empleats que tenen fotos d'obres, per a la secció "Obres de…" del home.
+            'employees' => Employee::whereNotNull('works')
+                ->orderBy('name')
+                ->get(['id', 'name', 'slug', 'description', 'works', 'work_captions'])
+                ->filter(fn (Employee $e) => ! empty($e->works))
+                ->map(fn (Employee $e) => [
+                    'id' => $e->id,
+                    'name' => $e->name,
+                    'slug' => $e->slug,
+                    'description' => $e->description,
+                    'work_urls' => $e->work_urls,
+                    'work_captions' => $e->captionList(),
+                ])
+                ->values(),
             'services' => Service::whereHas('employees')
                 ->with('category:id,name,image_path,images', 'options:id,service_id,name,price,duration_minutes,description,image_path,images')
                 ->orderBy('name')

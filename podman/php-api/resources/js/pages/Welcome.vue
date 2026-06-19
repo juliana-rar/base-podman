@@ -73,11 +73,21 @@ interface Review {
     slot: { id: number; starts_at: string } | null;
 }
 
+interface TeamMember {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    work_urls: string[];
+    work_captions: string[];
+}
+
 const props = defineProps<{
     posts: Post[];
     slides: Slide[];
     services: Service[];
     reviews: Review[];
+    employees: TeamMember[];
 }>();
 
 const page = usePage();
@@ -274,6 +284,10 @@ function restartAuto(): void {
 // --- Visor d'imatges en gran (una imatge a la vegada, amb fletxes i comptador) ---
 const lightbox = ref<string[]>([]);
 const lightboxIndex = ref(0);
+const lightboxCaptions = ref<string[]>([]);
+
+// Peu de foto de la imatge que s'està veient (buit si no en té).
+const lightboxCaption = computed(() => lightboxCaptions.value[lightboxIndex.value] ?? '');
 
 // Obre la galeria amb totes les imatges (com a /reservar). Accepta el cover de
 // reserva com a alternativa si encara no s'ha carregat la galeria.
@@ -281,6 +295,7 @@ function openImages(urls: string[], fallback?: string | null): void {
     const images = urls.length ? urls : fallback ? [fallback] : [];
     if (images.length) {
         lightbox.value = images;
+        lightboxCaptions.value = [];
         lightboxIndex.value = 0;
     }
 }
@@ -291,11 +306,13 @@ function openSlides(start: number): void {
         return;
     }
     lightbox.value = props.slides.map((s) => s.url);
+    lightboxCaptions.value = [];
     lightboxIndex.value = start;
 }
 
 function closeLightbox(): void {
     lightbox.value = [];
+    lightboxCaptions.value = [];
     lightboxIndex.value = 0;
 }
 
@@ -507,7 +524,38 @@ onBeforeUnmount(() => {
             <div v-else class="rsv-empty">{{ t('welcome.servicesEmpty') }}</div>
         </section>
 
-        <section>
+        <section v-if="employees.length" class="rsv-team" aria-labelledby="rsv-team-title">
+            <h2 id="rsv-team-title">{{ t('welcome.team') }}</h2>
+            <p class="rsv-team-sub">{{ t('welcome.teamText') }}</p>
+            <div class="rsv-team-grid">
+                <Link
+                    v-for="member in employees"
+                    :key="member.id"
+                    :href="`/equip/${member.slug}`"
+                    class="rsv-team-card"
+                >
+                    <div class="rsv-team-cover">
+                        <img :src="member.work_urls[0]" alt="" />
+                        <span class="rsv-team-cover-grad"></span>
+                        <span v-if="member.work_urls.length > 1" class="rsv-team-count">
+                            +{{ member.work_urls.length - 1 }}
+                        </span>
+                        <span class="rsv-team-name">{{ member.name }}</span>
+                    </div>
+                    <div class="rsv-team-body">
+                        <p v-if="member.description" class="rsv-team-bio">{{ member.description }}</p>
+                        <div v-if="member.work_urls.length > 1" class="rsv-team-strip">
+                            <span v-for="(url, i) in member.work_urls.slice(1, 5)" :key="i" class="rsv-team-thumb">
+                                <img :src="url" alt="" />
+                            </span>
+                        </div>
+                        <span class="rsv-team-more">{{ t('welcome.teamMore') }}</span>
+                    </div>
+                </Link>
+            </div>
+        </section>
+
+        <section class="rsv-news">
             <h2>{{ t('welcome.novetats') }}</h2>
             <div v-if="posts.length" class="rsv-carousel" :style="{ '--per': perView }">
                 <button v-if="useCarousel" type="button" class="rsv-arrow" aria-label="Anterior" @click="prev">
@@ -591,6 +639,7 @@ onBeforeUnmount(() => {
                     </button>
                     <figure class="rsv-lb-stage" @click.stop>
                         <img :src="lightbox[lightboxIndex]" alt="" />
+                        <figcaption v-if="lightboxCaption" class="rsv-lb-caption">{{ lightboxCaption }}</figcaption>
                     </figure>
                     <button
                         v-if="lightbox.length > 1"

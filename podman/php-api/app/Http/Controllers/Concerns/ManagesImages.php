@@ -20,14 +20,14 @@ use Illuminate\Support\Facades\Storage;
 trait ManagesImages
 {
     /**
-     * Regles de validació de la galeria (fins a 10 imatges).
+     * Regles de validació de la galeria (per defecte fins a 10 imatges).
      *
      * @return array<string, list<string>>
      */
-    protected function imageRules(): array
+    protected function imageRules(int $max = 10): array
     {
         return [
-            'images' => ['nullable', 'array', 'max:10'],
+            'images' => ['nullable', 'array', 'max:'.$max],
             'images.*' => ['image', 'max:5120'],
             'order' => ['nullable', 'string', 'max:10000'],
         ];
@@ -71,5 +71,63 @@ trait ManagesImages
         }
 
         return $final;
+    }
+
+    /**
+     * Com syncImages, però mantenint un peu de foto (caption) per imatge.
+     *
+     * El client envia, a més de `images[]` i `order`, un `captions` (JSON) amb un text
+     * paral·lel a cada token d'`order`. La caption viatja amb la imatge encara que es
+     * reordeni o s'intercalin imatges noves.
+     *
+     * @param  list<string>  $current  Rutes actuals del model (buides en crear).
+     * @return array{paths: list<string>, captions: array<string, string>}
+     *               Rutes finals en ordre i el mapa { ruta => caption } (sense captions buides).
+     */
+    protected function syncCaptionedImages(Request $request, string $directory, array $current = []): array
+    {
+        $newFiles = array_values($request->file('images', []));
+        $order = json_decode((string) $request->input('order'), true);
+        $captions = json_decode((string) $request->input('captions'), true);
+        $captions = is_array($captions) ? array_values($captions) : [];
+
+        $paths = [];
+        $captionMap = [];
+
+        if (! is_array($order)) {
+            // Sense ordre explícit: mantenim les actuals i afegim les noves al final (sense captions).
+            $paths = $current;
+            foreach ($newFiles as $file) {
+                $paths[] = $file->store($directory, 'public');
+            }
+        } else {
+            foreach ($order as $position => $token) {
+                $path = null;
+                if (is_string($token) && str_starts_with($token, 'new:')) {
+                    $index = (int) substr($token, 4);
+                    if (isset($newFiles[$index])) {
+                        $path = $newFiles[$index]->store($directory, 'public');
+                    }
+                } elseif (in_array($token, $current, true)) {
+                    $path = $token;
+                }
+
+                if ($path === null || in_array($path, $paths, true)) {
+                    continue;
+                }
+
+                $paths[] = $path;
+                $caption = trim((string) ($captions[$position] ?? ''));
+                if ($caption !== '') {
+                    $captionMap[$path] = $caption;
+                }
+            }
+        }
+
+        foreach (array_diff($current, $paths) as $removed) {
+            Storage::disk('public')->delete($removed);
+        }
+
+        return ['paths' => $paths, 'captions' => $captionMap];
     }
 }

@@ -80,3 +80,30 @@
     color: var(--d-muted);
     font-size: 0.85rem;
 }
+
+/* Punt de notificació (xat sense llegir) a la targeta. */
+#rsv-dash > :nth-child(1) > a {
+    position: relative;
+}
+
+.rsv-dash-dot {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
+    min-width: 1.3rem;
+    height: 1.3rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 3px var(--d-card);
+}
+
+#rsv-dash > :nth-child(1) > a.has-dot {
+    border-color: rgba(239, 68, 68, 0.4);
+}

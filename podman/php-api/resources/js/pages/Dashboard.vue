@@ -17,6 +17,8 @@ const page = usePage();
 // Pantalles accessibles (compartides pel servidor) i si l'usuari és admin.
 const screens = computed(() => (page.props.screens as string[] | undefined) ?? []);
 const isAdmin = computed(() => page.props.auth?.user?.role === 'admin');
+// Missatges de xat sense llegir, per mostrar un punt a la targeta de Xat.
+const unreadChat = computed(() => (page.props.unreadChat as number | undefined) ?? 0);
 
 // `screen` indica quina pantalla cal tenir; sense `screen` és visible per a tothom.
 // `adminOnly` només per a admins.
@@ -50,7 +52,8 @@ const items = computed(() =>
 
     <div id="rsv-dash">
         <nav>
-            <Link v-for="item in items" :key="item.href" :href="item.href">
+            <Link v-for="item in items" :key="item.href" :href="item.href" :class="{ 'has-dot': item.href === '/admin/xat' && unreadChat > 0 }">
+                <span v-if="item.href === '/admin/xat' && unreadChat > 0" class="rsv-dash-dot">{{ unreadChat }}</span>
                 <component :is="item.icon" />
                 <span>{{ t(item.key) }}</span>
                 <small>{{ t(item.desc) }}</small>

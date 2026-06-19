@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from '@/lib/i18n';
 import '../../../css/reserva/admin.css';
 
@@ -56,6 +56,17 @@ function screenLabel(key: string): string {
 
 function fmtDate(iso: string): string {
     return new Date(iso).toLocaleDateString(localeTag(), { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function initials(name: string): string {
+    return (
+        name
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((w) => w[0]?.toUpperCase() ?? '')
+            .join('') || '?'
+    );
 }
 
 function toggleScreen(list: string[], key: string): void {
@@ -117,11 +128,29 @@ const filteredUsers = computed(() => {
 // Estat editable per usuari (admin + rol de personal), indexat per id.
 const draft = ref<Record<number, { is_admin: boolean; role_id: number | null }>>({});
 
+// Sembra l'esborrany amb els valors actuals (i per a usuaris nous que arribin).
+watch(
+    () => props.users,
+    (users) => {
+        for (const u of users) {
+            if (!draft.value[u.id]) {
+                draft.value[u.id] = { is_admin: u.is_admin, role_id: u.role_id };
+            }
+        }
+    },
+    { immediate: true },
+);
+
 function draftFor(u: UserRow): { is_admin: boolean; role_id: number | null } {
-    if (!draft.value[u.id]) {
-        draft.value[u.id] = { is_admin: u.is_admin, role_id: u.role_id };
-    }
     return draft.value[u.id];
+}
+
+// Indica si l'usuari té canvis pendents respecte a la BD (per activar "Desar").
+function isDirty(u: UserRow): boolean {
+    const d = draft.value[u.id];
+    if (!d) return false;
+    const roleId = d.is_admin ? null : d.role_id;
+    return d.is_admin !== u.is_admin || roleId !== u.role_id;
 }
 
 const savingId = ref<number | null>(null);
@@ -157,65 +186,75 @@ function deleteUser(id: number): void {
         <section>
             <h2>{{ t('usr.rolesTitle') }}</h2>
 
-            <div class="rsv-role-new">
+            <div class="usr-rolebar">
                 <input
                     v-model="roleForm.name"
                     type="text"
                     maxlength="50"
+                    class="usr-roleinput"
                     :placeholder="t('usr.roleNamePh')"
                     @keydown.enter.prevent="createRole"
                 />
-                <div class="rsv-role-screens">
-                    <span class="rsv-emp-assign-label">{{ t('usr.screens') }}</span>
-                    <div class="rsv-role-checks">
-                        <label v-for="s in screens" :key="s" class="rsv-role-check">
-                            <input
-                                type="checkbox"
-                                :checked="roleForm.screens.includes(s)"
-                                @change="toggleScreen(roleForm.screens, s)"
-                            />
-                            <span>{{ screenLabel(s) }}</span>
-                        </label>
+                <div>
+                    <span class="usr-fieldlabel">{{ t('usr.screens') }}</span>
+                    <div class="usr-chips">
+                        <button
+                            v-for="s in screens"
+                            :key="s"
+                            type="button"
+                            class="usr-chip"
+                            :class="{ 'is-on': roleForm.screens.includes(s) }"
+                            @click="toggleScreen(roleForm.screens, s)"
+                        >
+                            {{ screenLabel(s) }}
+                        </button>
                     </div>
                 </div>
-                <button type="button" class="rsv-edit" :disabled="roleForm.processing" @click="createRole">
-                    {{ t('usr.addRole') }}
-                </button>
+                <div>
+                    <button
+                        type="button"
+                        class="usr-btn usr-btn-primary"
+                        :disabled="roleForm.processing || !roleForm.name.trim()"
+                        @click="createRole"
+                    >
+                        ＋ {{ t('usr.addRole') }}
+                    </button>
+                </div>
             </div>
             <p v-if="roleForm.errors.name" class="rsv-error">{{ roleForm.errors.name }}</p>
 
-            <div v-if="roles.length" class="rsv-emp-rows">
-                <div v-for="role in roles" :key="role.id" class="rsv-emp-row">
+            <div v-if="roles.length" class="usr-rolegrid">
+                <div v-for="role in roles" :key="role.id" class="usr-rolecard">
                     <template v-if="editRoleId !== role.id">
-                        <div class="rsv-emp-info">
-                            <span class="rsv-emp-name">{{ role.name }}</span>
-                            <span class="rsv-emp-tags">
-                                <template v-if="role.screens.length">
-                                    <span v-for="s in role.screens" :key="s" class="rsv-emp-tag">{{ screenLabel(s) }}</span>
-                                </template>
-                                <span v-else class="rsv-emp-none">{{ t('usr.noScreens') }}</span>
-                            </span>
+                        <div class="usr-rolecard-head">
+                            <span class="usr-rolename">{{ role.name }}</span>
+                            <div class="usr-rolecard-actions">
+                                <button type="button" class="usr-iconbtn" :title="t('usr.edit')" @click="startEditRole(role)">✎</button>
+                                <button type="button" class="usr-iconbtn usr-iconbtn-del" :title="t('usr.delete')" @click="deleteRole(role.id)">×</button>
+                            </div>
                         </div>
-                        <button type="button" class="rsv-edit" @click="startEditRole(role)">{{ t('usr.edit') }}</button>
-                        <button type="button" class="rsv-del" @click="deleteRole(role.id)">{{ t('usr.delete') }}</button>
+                        <div class="usr-chips">
+                            <span v-for="s in role.screens" :key="s" class="usr-chip is-static">{{ screenLabel(s) }}</span>
+                            <span v-if="!role.screens.length" class="usr-muted">{{ t('usr.noScreens') }}</span>
+                        </div>
                     </template>
                     <template v-else>
-                        <div class="rsv-role-edit">
-                            <input v-model="editRoleForm.name" type="text" maxlength="50" />
-                            <div class="rsv-role-checks">
-                                <label v-for="s in screens" :key="s" class="rsv-role-check">
-                                    <input
-                                        type="checkbox"
-                                        :checked="editRoleForm.screens.includes(s)"
-                                        @change="toggleScreen(editRoleForm.screens, s)"
-                                    />
-                                    <span>{{ screenLabel(s) }}</span>
-                                </label>
-                            </div>
-                            <div class="rsv-emp-editactions">
-                                <button type="button" class="rsv-edit" :disabled="editRoleForm.processing" @click="saveRole">{{ t('usr.save') }}</button>
-                                <button type="button" class="rsv-del" @click="editRoleId = null">{{ t('usr.cancel') }}</button>
-                            </div>
+                        <input v-model="editRoleForm.name" type="text" maxlength="50" class="usr-roleinput" />
+                        <div class="usr-chips">
+                            <button
+                                v-for="s in screens"
+                                :key="s"
+                                type="button"
+                                class="usr-chip"
+                                :class="{ 'is-on': editRoleForm.screens.includes(s) }"
+                                @click="toggleScreen(editRoleForm.screens, s)"
+                            >
+                                {{ screenLabel(s) }}
+                            </button>
+                        </div>
+                        <div class="usr-editactions">
+                            <button type="button" class="usr-btn usr-btn-primary" :disabled="editRoleForm.processing" @click="saveRole">{{ t('usr.save') }}</button>
+                            <button type="button" class="usr-btn usr-btn-ghost" @click="editRoleId = null">{{ t('usr.cancel') }}</button>
                         </div>
                     </template>
                 </div>
@@ -227,42 +266,66 @@ function deleteUser(id: number): void {
         <section>
             <h2>{{ t('usr.usersTitle') }}</h2>
 
-            <div class="rsv-toolbar">
-                <input v-model="search" type="search" :placeholder="t('usr.searchPh')" />
-                <span class="rsv-count">{{ filteredUsers.length }} {{ t('adm.of') }} {{ users.length }}</span>
+            <div class="usr-toolbar">
+                <div class="usr-search">
+                    <span class="usr-search-icon">🔍</span>
+                    <input v-model="search" type="search" :placeholder="t('usr.searchPh')" />
+                </div>
+                <span class="usr-count">{{ filteredUsers.length }} / {{ users.length }}</span>
             </div>
 
-            <div v-if="filteredUsers.length" class="rsv-tablewrap">
-                <table>
+            <div v-if="filteredUsers.length" class="usr-tablecard">
+                <table class="usr-table">
                     <thead>
                         <tr>
                             <th>{{ t('usr.colUser') }}</th>
-                            <th>{{ t('usr.colEmail') }}</th>
                             <th>{{ t('usr.colPhone') }}</th>
                             <th>{{ t('usr.admin') }}</th>
                             <th>{{ t('usr.staffRole') }}</th>
                             <th>{{ t('usr.colCreated') }}</th>
-                            <th>{{ t('usr.colActions') }}</th>
+                            <th class="usr-th-actions">{{ t('usr.colActions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="u in filteredUsers" :key="u.id">
-                            <td>{{ u.name }}</td>
-                            <td>{{ u.email }}</td>
-                            <td>{{ u.phone ?? '—' }}</td>
+                        <tr v-for="u in filteredUsers" :key="u.id" :class="{ 'is-dirty': isDirty(u) }">
                             <td>
-                                <input type="checkbox" v-model="draftFor(u).is_admin" />
+                                <div class="usr-userc">
+                                    <span class="usr-avatar" :class="{ 'is-admin': draftFor(u).is_admin }">{{ initials(u.name) }}</span>
+                                    <span class="usr-userc-text">
+                                        <span class="usr-userc-name">
+                                            {{ u.name }}
+                                            <span v-if="draftFor(u).is_admin" class="usr-badge">{{ t('usr.admin') }}</span>
+                                        </span>
+                                        <span class="usr-userc-email">{{ u.email }}</span>
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="usr-date">{{ u.phone ?? '—' }}</td>
+                            <td>
+                                <label class="usr-switch">
+                                    <input v-model="draftFor(u).is_admin" type="checkbox" />
+                                    <span class="usr-switch-track"></span>
+                                </label>
                             </td>
                             <td>
-                                <select v-model="draftFor(u).role_id" :disabled="draftFor(u).is_admin">
+                                <select v-model="draftFor(u).role_id" class="usr-select" :disabled="draftFor(u).is_admin">
                                     <option :value="null">{{ draftFor(u).is_admin ? t('usr.adminAll') : t('usr.noRole') }}</option>
                                     <option v-for="r in roles" :key="r.id" :value="r.id">{{ r.name }}</option>
                                 </select>
                             </td>
-                            <td>{{ fmtDate(u.created_at) }}</td>
-                            <td class="rsv-usr-actions">
-                                <button type="button" class="rsv-edit" :disabled="savingId === u.id" @click="saveUser(u)">{{ t('usr.save') }}</button>
-                                <button type="button" class="rsv-del" @click="deleteUser(u.id)">{{ t('usr.delete') }}</button>
+                            <td class="usr-date">{{ fmtDate(u.created_at) }}</td>
+                            <td>
+                                <div class="usr-actions">
+                                    <button
+                                        type="button"
+                                        class="usr-btn usr-btn-primary"
+                                        :disabled="savingId === u.id || !isDirty(u)"
+                                        @click="saveUser(u)"
+                                    >
+                                        {{ t('usr.save') }}
+                                    </button>
+                                    <button type="button" class="usr-btn usr-btn-ghost" @click="deleteUser(u.id)">{{ t('usr.delete') }}</button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>

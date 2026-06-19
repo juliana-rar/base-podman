@@ -25,6 +25,9 @@ Route::get('/', WelcomeController::class)->name('home');
 // Detall públic d'un post (URL amb el slug del títol)
 Route::get('posts/{post:slug}', [PostController::class, 'show'])->name('posts.show');
 
+// Detall públic d'un membre de l'equip amb les seves obres (URL amb el slug del nom)
+Route::get('equip/{employee:slug}', [EmployeeController::class, 'show'])->name('equip.show');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     // El dashboard és per a admins i per al personal amb alguna pantalla atorgada;
     // l'usuari normal va a reservar.

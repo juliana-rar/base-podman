@@ -289,6 +289,20 @@
 }
 
 #rsv-reserves .rsv-imgs-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+#rsv-reserves .rsv-imgs-item.is-dragging {
+    opacity: 0.4;
+}
+
+#rsv-reserves .rsv-imgs-item.is-over .rsv-imgs-frame {
+    box-shadow: 0 0 0 2px #4f46e5;
+}
+
+#rsv-reserves .rsv-imgs-frame {
     position: relative;
     width: 4.5rem;
     height: 4.5rem;
@@ -296,13 +310,32 @@
     overflow: hidden;
     border: 1px solid var(--r-line);
     background: rgba(127, 127, 160, 0.08);
+    cursor: grab;
 }
 
-#rsv-reserves .rsv-imgs-item > img {
+#rsv-reserves .rsv-imgs-item.is-dragging .rsv-imgs-frame {
+    cursor: grabbing;
+}
+
+#rsv-reserves .rsv-imgs-frame > img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+    pointer-events: none;
+}
+
+#rsv-reserves .rsv-imgs-grip {
+    position: absolute;
+    top: 0.15rem;
+    right: 0.25rem;
+    z-index: 1;
+    color: #fff;
+    font-size: 0.8rem;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    cursor: grab;
+    opacity: 0.85;
 }
 
 #rsv-reserves .rsv-imgs-cover {

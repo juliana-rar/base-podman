@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import {
     CalendarCheck,
     CalendarClock,
@@ -86,12 +86,19 @@ function onEsc(event: KeyboardEvent): void {
     }
 }
 
+// Refresca en viu el comptador de xat sense llegir (perquè el punt aparegui sol).
+let unreadTimer: ReturnType<typeof setInterval> | undefined;
+
 onMounted(() => {
     document.addEventListener('mousedown', onDocClick);
     document.addEventListener('keydown', onEsc);
+    if (user.value) {
+        unreadTimer = setInterval(() => router.reload({ only: ['unreadChat'] }), 12000);
+    }
 });
 
 onBeforeUnmount(() => {
+    clearInterval(unreadTimer);
     document.removeEventListener('mousedown', onDocClick);
     document.removeEventListener('keydown', onEsc);
 });
