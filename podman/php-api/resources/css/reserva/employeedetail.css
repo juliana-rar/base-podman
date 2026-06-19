@@ -53,87 +53,113 @@
     flex: 1;
 }
 
-/* Hero: portada gran amb el nom i la bio superposats sobre un degradat. */
+/* Hero: foto de l'empleat (rectangle esquerre) + nom i descripció a la dreta. */
 #rsv-member .rsv-hero {
-    position: relative;
+    display: grid;
+    grid-template-columns: clamp(13rem, 30%, 20rem) 1fr;
+    gap: clamp(1.25rem, 3vw, 2.5rem);
+    background: var(--w-card);
+    border: 1px solid rgba(127, 127, 160, 0.14);
     border-radius: 1.75rem;
+    padding: clamp(1.1rem, 2.5vw, 1.75rem);
+    box-shadow: 0 1.25rem 3rem -1.5rem rgba(30, 27, 46, 0.35);
+    align-items: stretch;
+}
+
+#rsv-member .rsv-hero.no-photo {
+    grid-template-columns: 1fr;
+}
+
+/* Rectangle de la foto, format retrat. */
+#rsv-member .rsv-hero-photo {
+    aspect-ratio: 4 / 5;
+    border-radius: 1.25rem;
     overflow: hidden;
-    box-shadow: 0 1.25rem 3rem -1.5rem rgba(30, 27, 46, 0.4);
+    background: rgba(127, 127, 160, 0.1);
 }
 
-#rsv-member .rsv-hero.has-cover {
-    min-height: clamp(22rem, 52vw, 34rem);
-    display: flex;
-    align-items: flex-end;
-}
-
-#rsv-member .rsv-hero-img {
-    position: absolute;
-    inset: 0;
+#rsv-member .rsv-hero-photo > img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+#rsv-member .rsv-hero:hover .rsv-hero-photo > img {
     transform: scale(1.04);
-    transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-#rsv-member .rsv-hero:hover .rsv-hero-img {
-    transform: scale(1);
+#rsv-member .rsv-hero-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+    min-width: 0;
+    padding: 0.25rem 0;
 }
 
-#rsv-member .rsv-hero-grad {
-    position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(120% 80% at 0% 100%, rgba(79, 70, 229, 0.35), transparent 60%),
-        linear-gradient(to top, rgba(10, 12, 20, 0.92), rgba(10, 12, 20, 0.1) 65%, transparent);
-}
-
-#rsv-member .rsv-hero-content {
-    position: relative;
-    padding: clamp(1.5rem, 4vw, 2.75rem);
-    max-width: 48rem;
-}
-
-/* Sobre la portada, el text viu dins d'un panell de vidre esmerilat. */
-#rsv-member .rsv-hero.has-cover .rsv-hero-content {
-    color: #fff;
-    margin: clamp(1rem, 3vw, 2rem);
-    padding: clamp(1.25rem, 3vw, 2rem);
-    max-width: 42rem;
-    background: rgba(18, 16, 38, 0.32);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 1.25rem;
-    backdrop-filter: blur(16px);
-    box-shadow: 0 1.25rem 3rem -1.5rem rgba(0, 0, 0, 0.6);
-}
-
-#rsv-member .rsv-hero:not(.has-cover) {
-    background: var(--w-card);
-    border: 1px solid rgba(127, 127, 160, 0.14);
-}
-
-#rsv-member .rsv-hero h1 {
+#rsv-member .rsv-name {
     margin: 0;
-    font-size: clamp(2rem, 5vw, 3rem);
+    font-size: clamp(2.2rem, 1.4rem + 3.5vw, 3.5rem);
     font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 1.05;
+    letter-spacing: -0.04em;
+    line-height: 1.04;
+    background: linear-gradient(115deg, var(--w-ink), var(--w-accent) 68%, #ec4899);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+
+/* Barra d'accent sota el nom. */
+#rsv-member .rsv-name::after {
+    content: '';
+    display: block;
+    width: 3.5rem;
+    height: 0.28rem;
+    margin: 0.9rem 0 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--w-accent), #ec4899);
 }
 
 #rsv-member .rsv-bio {
-    margin: 0.9rem 0 0;
-    font-size: 1.02rem;
-    line-height: 1.65;
+    margin: 1.5rem 0 0;
+    padding-left: 1.1rem;
+    border-left: 2px solid transparent;
+    border-image: linear-gradient(to bottom, var(--w-accent), #ec4899) 1;
+    font-size: 0.875rem;
+    line-height: 2.05;
+    letter-spacing: 0.01em;
+    color: var(--w-muted);
     white-space: pre-line;
 }
 
-#rsv-member .rsv-hero.has-cover .rsv-bio {
-    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
-}
+/* En pantalles estretes, foto a dalt i text a sota. */
+@media (max-width: 48rem) {
+    #rsv-member .rsv-hero {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+    }
 
-#rsv-member .rsv-hero:not(.has-cover) .rsv-bio {
-    color: var(--w-muted);
+    #rsv-member .rsv-hero-photo {
+        width: min(16rem, 70%);
+    }
+
+    #rsv-member .rsv-hero-text {
+        text-align: center;
+    }
+
+    #rsv-member .rsv-name::after {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    #rsv-member .rsv-bio {
+        padding-left: 0;
+        border-left: none;
+    }
 }
 
 /* Seccions de contingut sota el hero. */

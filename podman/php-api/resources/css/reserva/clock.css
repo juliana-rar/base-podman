@@ -119,9 +119,28 @@
     box-shadow: 0 6px 14px -6px var(--rsv-accent);
 }
 
-/* Hora disponible (mode usuari) */
-.rsv-clock > :nth-child(1) > :nth-child(1) > .is-available {
+/* Hora disponible (mode usuari): marcada amb fons d'accent, anell i un punt sota. */
+.rsv-clock > :nth-child(1) > :nth-child(1) > .is-available:not(.is-selected) {
+    background: var(--rsv-accent-soft);
+    color: var(--rsv-accent);
+    font-weight: 700;
     box-shadow: inset 0 0 0 1.5px var(--rsv-accent);
+}
+
+.rsv-clock > :nth-child(1) > :nth-child(1) > .is-available::after {
+    content: '';
+    position: absolute;
+    bottom: 0.28rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0.32rem;
+    height: 0.32rem;
+    border-radius: 50%;
+    background: var(--rsv-accent);
+}
+
+.rsv-clock > :nth-child(1) > :nth-child(1) > .is-available.is-selected::after {
+    background: #fff;
 }
 
 /* Hora deshabilitada */

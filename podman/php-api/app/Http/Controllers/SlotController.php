@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BusinessHour;
 use App\Models\Employee;
 use App\Models\Service;
 use App\Models\Slot;
@@ -19,11 +20,14 @@ class SlotController extends Controller
      */
     public function index(Request $request): Response
     {
-        $available = Slot::query()
-            ->doesntHave('reservation')
-            ->where('starts_at', '>=', now())
+        // Hores ja ocupades (futures): el frontend les treu de les triables.
+        $reservedTimes = Slot::query()
+            ->has('reservation')
+            ->where('starts_at', '>=', now()->startOfDay())
             ->orderBy('starts_at')
-            ->get(['id', 'starts_at', 'notes']);
+            ->pluck('starts_at')
+            ->map(fn ($startsAt) => $startsAt->format('Y-m-d H:i'))
+            ->all();
 
         $myReservations = $request->user()
             ->reservations()
@@ -33,7 +37,10 @@ class SlotController extends Controller
             ->values();
 
         return Inertia::render('Reservar', [
-            'availableSlots' => $available,
+            // Horari d'atenció per dia (0 = dilluns … 6 = diumenge) i hores ja ocupades.
+            'businessHours' => BusinessHour::orderBy('weekday')->get(['weekday', 'closed', 'opens', 'closes']),
+            'reservedTimes' => $reservedTimes,
+            'slotMinutes' => 30,
             'myReservations' => $myReservations,
             'services' => Service::with('category:id,name,description,image_path,images', 'options:id,service_id,name,price,duration_minutes,description,image_path,images')
                 ->orderBy('name')

@@ -481,6 +481,17 @@
     border-color: transparent;
 }
 
+/* Hores ja passades d'avui: visibles però no triables. */
+#rsv-booking .rsv-hours-grid > button.is-past {
+    opacity: 0.38;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+#rsv-booking .rsv-hours-grid > button.is-past:hover {
+    border-color: var(--b-line);
+}
+
 #rsv-booking .rsv-pick-col .rsv-empty {
     width: 100%;
     color: var(--b-muted);

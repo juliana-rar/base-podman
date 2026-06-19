@@ -391,17 +391,34 @@ function step(direction: number): void {
 const prev = () => step(-1);
 const next = () => step(1);
 
+// --- Mini-carrusel d'obres dins de cada targeta d'empleat (autoavanç sincronitzat) ---
+const teamTick = ref(0);
+let teamTimer: ReturnType<typeof setInterval> | undefined;
+
+// Imatges de la targeta a part de la portada (la primera obra fa d'imatge de l'empleat).
+function teamExtra(member: TeamMember): string[] {
+    return member.work_urls.slice(1);
+}
+
+// Índex de l'obra que es mostra ara al carrusel d'aquell empleat.
+function teamActive(member: TeamMember): number {
+    const n = teamExtra(member).length;
+    return n > 0 ? teamTick.value % n : 0;
+}
+
 onMounted(() => {
     updatePerView();
     window.addEventListener('resize', updatePerView);
     window.addEventListener('keydown', onKeydown);
     restartAuto();
+    teamTimer = setInterval(() => teamTick.value++, 3000);
 });
 
 onBeforeUnmount(() => {
     window.removeEventListener('resize', updatePerView);
     window.removeEventListener('keydown', onKeydown);
     clearInterval(slideTimer);
+    clearInterval(teamTimer);
     clearTimeout(highlightTimer);
 });
 </script>
@@ -544,12 +561,22 @@ onBeforeUnmount(() => {
                     </div>
                     <div class="rsv-team-body">
                         <p v-if="member.description" class="rsv-team-bio">{{ member.description }}</p>
-                        <div v-if="member.work_urls.length > 1" class="rsv-team-strip">
-                            <span v-for="(url, i) in member.work_urls.slice(1, 5)" :key="i" class="rsv-team-thumb">
-                                <img :src="url" alt="" />
+                        <div v-if="teamExtra(member).length" class="rsv-team-carousel">
+                            <img
+                                v-for="(url, i) in teamExtra(member)"
+                                :key="i"
+                                :src="url"
+                                alt=""
+                                :class="{ 'is-active': i === teamActive(member) }"
+                            />
+                            <span v-if="teamExtra(member).length > 1" class="rsv-team-dots">
+                                <i
+                                    v-for="(url, i) in teamExtra(member)"
+                                    :key="i"
+                                    :class="{ on: i === teamActive(member) }"
+                                ></i>
                             </span>
                         </div>
-                        <span class="rsv-team-more">{{ t('welcome.teamMore') }}</span>
                     </div>
                 </Link>
             </div>

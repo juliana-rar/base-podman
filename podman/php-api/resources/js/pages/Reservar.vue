@@ -12,6 +12,13 @@ interface Slot {
     notes: string | null;
 }
 
+interface BusinessHour {
+    weekday: number; // 0 = dilluns … 6 = diumenge
+    closed: boolean;
+    opens: string | null;
+    closes: string | null;
+}
+
 interface ServiceOption {
     id: number;
     name: string;
@@ -64,7 +71,9 @@ interface StockCategory {
 }
 
 const props = defineProps<{
-    availableSlots: Slot[];
+    businessHours: BusinessHour[];
+    reservedTimes: string[];
+    slotMinutes: number;
     myReservations: Reservation[];
     services: Service[];
     employees: Employee[];
@@ -253,11 +262,6 @@ onUnmounted(() => {
     clearTimeout(highlightTimer);
 });
 
-function timeOf(iso: string): string {
-    const d = new Date(iso);
-    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 function dayKeyOf(iso: string): string {
     const d = new Date(iso);
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -275,38 +279,119 @@ function fullLabel(iso: string): string {
 
 const todayKey = dayKeyOf(new Date().toISOString());
 
-const availableDayKeys = computed(() => [
-    ...new Set(props.availableSlots.map((slot) => dayKeyOf(slot.starts_at))),
-]);
+// Dia de la setmana (0 = dilluns … 6 = diumenge) d'una clau YYYY-MM-DD.
+function weekdayOf(dayKey: string): number {
+    return (new Date(dayKey + 'T00:00:00').getDay() + 6) % 7;
+}
+
+// Horari d'atenció configurat per al dia indicat (o null si no n'hi ha).
+function hoursOf(dayKey: string): BusinessHour | null {
+    return props.businessHours.find((h) => h.weekday === weekdayOf(dayKey)) ?? null;
+}
+
+// "HH:MM[:SS]" → minuts des de mitjanit, i a la inversa.
+function toMinutes(value: string): number {
+    const [h, m] = value.split(':');
+    return Number(h) * 60 + Number(m);
+}
+function fromMinutes(min: number): string {
+    return `${pad(Math.floor(min / 60))}:${pad(min % 60)}`;
+}
+
+// Dies oberts dins una finestra de 120 dies (per ressaltar-los al calendari).
+const availableDayKeys = computed(() => {
+    const keys: string[] = [];
+    const start = new Date(todayKey + 'T00:00:00');
+    for (let i = 0; i < 120; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        const key = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        const h = hoursOf(key);
+        if (h && !h.closed && h.opens && h.closes) {
+            keys.push(key);
+        }
+    }
+    return keys;
+});
 
 const selectedDay = ref('');
-const effectiveDay = computed(
-    () => selectedDay.value || [...availableDayKeys.value].sort()[0] || todayKey,
-);
+const effectiveDay = computed(() => selectedDay.value || availableDayKeys.value[0] || todayKey);
 
-const dayTimes = computed(() =>
-    props.availableSlots
-        .filter((slot) => dayKeyOf(slot.starts_at) === effectiveDay.value)
-        .map((slot) => ({ id: slot.id, time: timeOf(slot.starts_at) }))
-        .sort((a, b) => a.time.localeCompare(b.time)),
-);
+// Hores ja ocupades del dia efectiu (conjunt de "HH:MM").
+const reservedSet = computed(() => {
+    const set = new Set<string>();
+    for (const iso of props.reservedTimes) {
+        const [day, hm] = iso.split(' ');
+        if (day === effectiveDay.value) {
+            set.add(hm);
+        }
+    }
+    return set;
+});
 
-const highlightTimes = computed(() => dayTimes.value.map((entry) => entry.time));
+const now = new Date();
+
+// Hores del dia: totes les de l'horari (cada mitja hora) que no estiguin reservades.
+const dayTimes = computed<string[]>(() => {
+    const h = hoursOf(effectiveDay.value);
+    if (!h || h.closed || !h.opens || !h.closes) {
+        return [];
+    }
+    const step = props.slotMinutes;
+    const open = toMinutes(h.opens);
+    const close = toMinutes(h.closes);
+    const times: string[] = [];
+    for (let m = open; m + step <= close; m += step) {
+        const label = fromMinutes(m);
+        if (!reservedSet.value.has(label)) {
+            times.push(label);
+        }
+    }
+    return times;
+});
+
+// Una hora del dia d'avui que ja ha passat (es mostra però no es pot triar).
+function isPastSlot(hm: string): boolean {
+    return effectiveDay.value === todayKey && toMinutes(hm) <= now.getHours() * 60 + now.getMinutes();
+}
+
+// El dia està tancat si té configuració però marcada com a tancada.
+const dayClosed = computed(() => {
+    const h = hoursOf(effectiveDay.value);
+    return !h || h.closed || !h.opens || !h.closes;
+});
+
+const highlightTimes = computed(() => dayTimes.value);
 
 const time = ref('');
 const note = ref('');
 const serviceId = ref<number | null>(null);
 const optionId = ref<number | null>(null);
 
-const selectedSlotId = computed(
-    () => dayTimes.value.find((entry) => entry.time === time.value)?.id ?? null,
-);
+// L'hora triada (qualsevol minut) és vàlida si és dins l'horari, lliure i futura.
+const isTimeAvailable = computed(() => {
+    if (!/^\d{1,2}:\d{2}$/.test(time.value)) {
+        return false;
+    }
+    const h = hoursOf(effectiveDay.value);
+    if (!h || h.closed || !h.opens || !h.closes) {
+        return false;
+    }
+    const m = toMinutes(time.value);
+    if (m < toMinutes(h.opens) || m >= toMinutes(h.closes)) {
+        return false;
+    }
+    if (reservedSet.value.has(time.value)) {
+        return false;
+    }
+    if (effectiveDay.value === todayKey && m <= now.getHours() * 60 + now.getMinutes()) {
+        return false;
+    }
+    return true;
+});
 
 const canReserve = computed(
-    () =>
-        selectedSlotId.value !== null &&
-        employeeId.value !== null &&
-        serviceId.value !== null,
+    () => isTimeAvailable.value && employeeId.value !== null && serviceId.value !== null,
 );
 
 // Usuari autenticat que fa la reserva (per mostrar-ne el contacte al resum).
@@ -456,7 +541,7 @@ function reserve(): void {
     router.post(
         '/reservas',
         {
-            slot_id: selectedSlotId.value,
+            starts_at: `${effectiveDay.value} ${time.value}`,
             service_id: serviceId.value,
             service_option_id: optionId.value,
             employee_id: employeeId.value,
@@ -674,23 +759,24 @@ function confirmCancel(): void {
                         <div v-if="dayTimes.length" class="rsv-hours-grid">
                             <button
                                 v-for="entry in dayTimes"
-                                :key="entry.id"
+                                :key="entry"
                                 type="button"
-                                :class="{ 'is-active': entry.time === time }"
-                                @click="time = entry.time"
+                                :disabled="isPastSlot(entry)"
+                                :class="{ 'is-active': entry === time, 'is-past': isPastSlot(entry) }"
+                                @click="time = entry"
                             >
-                                {{ entry.time }}
+                                {{ entry }}
                             </button>
                         </div>
-                        <div v-else class="rsv-empty">{{ t('res.capHora') }}</div>
+                        <div v-else class="rsv-empty">{{ dayClosed ? t('res.closedDay') : t('res.capHora') }}</div>
                     </div>
 
                     <div class="rsv-pick-col">
                         <h2 class="rsv-clock-title">{{ t('res.triaHora') }}</h2>
-                        <ClockPicker v-model="time" :highlight-times="highlightTimes" restrict />
+                        <ClockPicker v-model="time" :highlight-times="highlightTimes" />
                         <div class="rsv-time-input">
                             <label for="time-input">{{ t('res.oEscriu') }}</label>
-                            <input id="time-input" v-model="time" type="time" step="900" />
+                            <input id="time-input" v-model="time" type="time" step="60" />
                         </div>
                     </div>
                 </div>
@@ -705,7 +791,7 @@ function confirmCancel(): void {
                     ></textarea>
                 </div>
                 <button type="button" class="rsv-book-btn" :disabled="!canReserve" @click="openConfirm">
-                    {{ selectedSlotId ? `${t('res.book')} ${dayLabel} ${t('res.at')} ${time}` : t('res.pickAvailable') }}
+                    {{ isTimeAvailable ? `${t('res.book')} ${dayLabel} ${t('res.at')} ${time}` : t('res.pickAvailable') }}
                 </button>
             </div>
         </section>

@@ -33,6 +33,7 @@ class EmployeeController extends Controller
                 'id' => $employee->id,
                 'name' => $employee->name,
                 'description' => $employee->description,
+                'url' => $employee->url,
                 'work_urls' => $employee->work_urls,
                 'work_captions' => $employee->captionList(),
                 'services' => $employee->services->values(),

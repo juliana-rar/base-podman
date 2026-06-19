@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\BusinessHour;
 use App\Models\Employee;
 use App\Models\Post;
 use App\Models\Reservation;
@@ -32,24 +33,41 @@ class ReservaTest extends TestCase
         $this->get(route('reservar'))->assertOk();
     }
 
-    public function test_user_can_reserve_an_available_slot(): void
+    /**
+     * Configura el dia de l'hora indicada com a obert (08:00–21:00) i la retorna.
+     */
+    private function openTime(): \Carbon\CarbonInterface
+    {
+        $when = now()->addDay()->setTime(10, 0);
+
+        BusinessHour::updateOrCreate(
+            ['weekday' => $when->dayOfWeekIso - 1],
+            ['closed' => false, 'opens' => '08:00', 'closes' => '21:00'],
+        );
+
+        return $when;
+    }
+
+    public function test_user_can_reserve_a_free_time_within_business_hours(): void
     {
         $user = User::factory()->create();
-        $slot = Slot::factory()->create();
+        $when = $this->openTime();
         $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
         $employee = Employee::create(['name' => 'Anna']);
 
         $this->actingAs($user)
             ->post(route('reservas.store'), [
-                'slot_id' => $slot->id,
+                'starts_at' => $when->format('Y-m-d H:i'),
                 'service_id' => $service->id,
                 'employee_id' => $employee->id,
                 'note' => 'Primera visita',
             ])
-            ->assertRedirect();
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
 
+        // S'ha creat la franja a l'hora triada i la reserva associada.
+        $this->assertDatabaseHas('slots', ['starts_at' => $when->format('Y-m-d H:i:s')]);
         $this->assertDatabaseHas('reservations', [
-            'slot_id' => $slot->id,
             'user_id' => $user->id,
             'service_id' => $service->id,
             'employee_id' => $employee->id,
@@ -59,13 +77,13 @@ class ReservaTest extends TestCase
     public function test_user_can_reserve_without_a_note(): void
     {
         $user = User::factory()->create();
-        $slot = Slot::factory()->create();
+        $when = $this->openTime();
         $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
         $employee = Employee::create(['name' => 'Anna']);
 
         $this->actingAs($user)
             ->post(route('reservas.store'), [
-                'slot_id' => $slot->id,
+                'starts_at' => $when->format('Y-m-d H:i'),
                 'service_id' => $service->id,
                 'employee_id' => $employee->id,
             ])
@@ -73,7 +91,6 @@ class ReservaTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('reservations', [
-            'slot_id' => $slot->id,
             'user_id' => $user->id,
             'note' => null,
         ]);
@@ -82,14 +99,14 @@ class ReservaTest extends TestCase
     public function test_user_can_reserve_with_optional_products(): void
     {
         $user = User::factory()->create();
-        $slot = Slot::factory()->create();
+        $when = $this->openTime();
         $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
         $employee = Employee::create(['name' => 'Anna']);
         $product = Stock::create(['name' => 'Xampú', 'quantity' => 5, 'price' => 8.50]);
 
         $this->actingAs($user)
             ->post(route('reservas.store'), [
-                'slot_id' => $slot->id,
+                'starts_at' => $when->format('Y-m-d H:i'),
                 'service_id' => $service->id,
                 'employee_id' => $employee->id,
                 'products' => [
@@ -108,14 +125,14 @@ class ReservaTest extends TestCase
     public function test_reserved_product_quantity_is_capped_at_available_stock(): void
     {
         $user = User::factory()->create();
-        $slot = Slot::factory()->create();
+        $when = $this->openTime();
         $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
         $employee = Employee::create(['name' => 'Anna']);
         $product = Stock::create(['name' => 'Crema', 'quantity' => 3, 'price' => 12]);
 
         $this->actingAs($user)
             ->post(route('reservas.store'), [
-                'slot_id' => $slot->id,
+                'starts_at' => $when->format('Y-m-d H:i'),
                 'service_id' => $service->id,
                 'employee_id' => $employee->id,
                 'products' => [
@@ -131,23 +148,68 @@ class ReservaTest extends TestCase
         ]);
     }
 
-    public function test_user_cannot_reserve_an_already_booked_slot(): void
+    public function test_user_cannot_reserve_an_already_booked_time(): void
     {
-        $slot = Slot::factory()->create();
+        $when = $this->openTime();
+        $slot = Slot::factory()->create(['starts_at' => $when]);
         Reservation::factory()->create(['slot_id' => $slot->id]);
         $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
         $employee = Employee::create(['name' => 'Anna']);
 
         $this->actingAs(User::factory()->create())
             ->post(route('reservas.store'), [
-                'slot_id' => $slot->id,
+                'starts_at' => $when->format('Y-m-d H:i'),
                 'service_id' => $service->id,
                 'employee_id' => $employee->id,
                 'note' => 'Hola',
             ])
-            ->assertSessionHasErrors('slot_id');
+            ->assertSessionHasErrors('starts_at');
 
         $this->assertSame(1, Reservation::where('slot_id', $slot->id)->count());
+    }
+
+    public function test_user_cannot_reserve_on_a_closed_day(): void
+    {
+        $user = User::factory()->create();
+        $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
+        $employee = Employee::create(['name' => 'Anna']);
+        $when = now()->addDay()->setTime(10, 0);
+        BusinessHour::updateOrCreate(
+            ['weekday' => $when->dayOfWeekIso - 1],
+            ['closed' => true, 'opens' => null, 'closes' => null],
+        );
+
+        $this->actingAs($user)
+            ->post(route('reservas.store'), [
+                'starts_at' => $when->format('Y-m-d H:i'),
+                'service_id' => $service->id,
+                'employee_id' => $employee->id,
+            ])
+            ->assertSessionHasErrors('starts_at');
+
+        $this->assertDatabaseCount('reservations', 0);
+    }
+
+    public function test_user_cannot_reserve_outside_business_hours(): void
+    {
+        $user = User::factory()->create();
+        $service = Service::create(['name' => 'Tall', 'price' => 10, 'duration_minutes' => 30]);
+        $employee = Employee::create(['name' => 'Anna']);
+        $when = now()->addDay()->setTime(14, 0);
+        BusinessHour::updateOrCreate(
+            ['weekday' => $when->dayOfWeekIso - 1],
+            ['closed' => false, 'opens' => '09:00', 'closes' => '12:00'],
+        );
+
+        $this->actingAs($user)
+            ->post(route('reservas.store'), [
+                'starts_at' => $when->format('Y-m-d H:i'),
+                'service_id' => $service->id,
+                'employee_id' => $employee->id,
+            ])
+            ->assertSessionHasErrors('starts_at');
+
+        $this->assertDatabaseCount('reservations', 0);
     }
 
     public function test_user_can_cancel_their_own_reservation(): void

@@ -33,6 +33,7 @@ interface Employee {
     id: number;
     name: string;
     description: string | null;
+    url: string | null;
     work_urls: string[];
     work_captions: string[];
     services: Service[];
@@ -55,8 +56,8 @@ const props = defineProps<{ employee: Employee }>();
 
 const { t } = useI18n();
 
-// Imatge de portada del hero: la primera obra de l'empleat (si en té).
-const cover = computed(() => props.employee.work_urls[0] ?? null);
+// Imatge del hero: la foto de l'empleat; si no en té, la primera obra.
+const heroImage = computed(() => props.employee.url ?? props.employee.work_urls[0] ?? null);
 
 // --- Serveis: mateixa lògica i presentació que el home (agrupats per categoria) ---
 function formatDuration(total: number): string {
@@ -295,12 +296,13 @@ onBeforeUnmount(() => {
         <AppNavbar />
 
         <article>
-            <!-- Hero: portada amb el nom i la bio superposats -->
-            <header class="rsv-hero" :class="{ 'has-cover': cover }">
-                <img v-if="cover" :src="cover" alt="" class="rsv-hero-img" />
-                <span v-if="cover" class="rsv-hero-grad"></span>
-                <div class="rsv-hero-content">
-                    <h1>{{ employee.name }}</h1>
+            <!-- Hero: foto de l'empleat a l'esquerra, nom i descripció a la dreta -->
+            <header class="rsv-hero" :class="{ 'no-photo': !heroImage }">
+                <div v-if="heroImage" class="rsv-hero-photo">
+                    <img :src="heroImage" alt="" />
+                </div>
+                <div class="rsv-hero-text">
+                    <h1 class="rsv-name">{{ employee.name }}</h1>
                     <p v-if="employee.description" class="rsv-bio">{{ employee.description }}</p>
                 </div>
             </header>

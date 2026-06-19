@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ManagesImages;
+use App\Models\BusinessHour;
 use App\Models\Cancellation;
 use App\Models\Employee;
 use App\Models\Message;
@@ -114,12 +115,12 @@ class ReservationController extends Controller
     }
 
     /**
-     * L'usuari reserva una franja horària disponible.
+     * L'usuari reserva una hora lliure dins l'horari d'atenció.
      */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'slot_id' => ['required', 'integer', 'exists:slots,id'],
+            'starts_at' => ['required', 'date'],
             'service_id' => ['required', 'integer', 'exists:services,id'],
             'service_option_id' => [
                 'nullable',
@@ -133,11 +134,19 @@ class ReservationController extends Controller
             'products.*.quantity' => ['required_with:products', 'integer', 'min:1'],
         ]);
 
-        $slot = Slot::findOrFail($validated['slot_id']);
+        $startsAt = Carbon::parse($validated['starts_at'])->startOfMinute();
+
+        $this->ensureWithinBusinessHours($startsAt);
+
+        // Reutilitza la franja si ja existeix (creada per l'admin o per una reserva prèvia).
+        $slot = Slot::firstOrCreate(
+            ['starts_at' => $startsAt],
+            ['created_by' => $request->user()->id],
+        );
 
         if ($slot->reservation()->exists()) {
             throw ValidationException::withMessages([
-                'slot_id' => 'Aquesta franja ja està reservada.',
+                'starts_at' => 'Aquesta hora ja està reservada.',
             ]);
         }
 
@@ -163,6 +172,42 @@ class ReservationController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Reserva feta!']);
 
         return back();
+    }
+
+    /**
+     * Comprova que l'hora triada sigui reservable: futura i dins l'horari
+     * d'atenció del dia (qualsevol minut entre l'obertura i el tancament).
+     */
+    private function ensureWithinBusinessHours(Carbon $startsAt): void
+    {
+        if ($startsAt->isPast()) {
+            throw ValidationException::withMessages(['starts_at' => 'Has de triar una hora futura.']);
+        }
+
+        // weekday a business_hours: 0 = dilluns … 6 = diumenge.
+        $hours = BusinessHour::where('weekday', $startsAt->dayOfWeekIso - 1)->first();
+
+        if (! $hours || $hours->closed || ! $hours->opens || ! $hours->closes) {
+            throw ValidationException::withMessages(['starts_at' => 'Aquell dia està tancat.']);
+        }
+
+        $minute = $startsAt->hour * 60 + $startsAt->minute;
+        $opens = $this->minutesOfTime($hours->opens);
+        $closes = $this->minutesOfTime($hours->closes);
+
+        if ($minute < $opens || $minute >= $closes) {
+            throw ValidationException::withMessages(['starts_at' => "Aquesta hora és fora de l'horari d'atenció."]);
+        }
+    }
+
+    /**
+     * Converteix una hora "HH:MM" o "HH:MM:SS" en minuts des de mitjanit.
+     */
+    private function minutesOfTime(string $time): int
+    {
+        [$h, $m] = explode(':', $time);
+
+        return (int) $h * 60 + (int) $m;
     }
 
     /**
